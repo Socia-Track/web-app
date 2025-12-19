@@ -1,0 +1,54 @@
+steps:
+  # Build and push Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/sociatrack-app:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/sociatrack-app:latest'
+      - '--build-arg'
+      - 'VITE_API_URL=https://sociatrack-backend-802172403809.us-central1.run.app'
+      - '--build-arg'
+      - 'VITE_LANDING_URL=https://sociatrack.com'
+      - '.'
+    dir: 'frontend-app'
+
+  # Push to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/sociatrack-app:$COMMIT_SHA']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/sociatrack-app:latest']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'sociatrack-app'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/sociatrack-app:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+
+images:
+  - 'gcr.io/$PROJECT_ID/sociatrack-app:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/sociatrack-app:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
