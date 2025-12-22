@@ -1,0 +1,54 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-deploy
+  cancel-in-progress: true
+
+env:
+  PROJECT_ID: charming-shield-477806-j2
+  REGION: us-central1
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+
+      - name: Build and deploy frontend
+        run: |
+          gcloud builds submit --config cloudbuild.yaml --async .
+
+      - name: Wait for frontend to be ready
+        run: |
+          echo "Waiting for frontend deployment to complete..."
+          for i in {1..60}; do
+            if curl -sf https://app.sociatrack.com/ > /dev/null; then
+              echo "✅ Frontend is live!"
+              exit 0
+            fi
+            echo "Attempt $i/60: Frontend not ready yet..."
+            sleep 10
+          done
+          echo "❌ Frontend health check timed out"
+          exit 1
