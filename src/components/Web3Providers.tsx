@@ -13,7 +13,8 @@ import {
 } from 'wagmi/chains'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'b18e2469e62d5edfbbb72b6e3e284f20'
+// Use environment variable or a placeholder - RainbowKit will work with basic functionality
+const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '2f05a7ca2bb7abb24e2d7b700e80f90e'
 
 const wagmiConfig = getDefaultConfig({
   appName: 'SociaTrack',
