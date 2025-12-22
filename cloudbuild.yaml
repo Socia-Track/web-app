@@ -4,8 +4,6 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/sociatrack-frontend:$COMMIT_SHA'
-      - '-t'
       - 'gcr.io/$PROJECT_ID/sociatrack-frontend:latest'
       - '--build-arg'
       - 'VITE_API_URL=https://sociatrack-backend-802172403809.us-central1.run.app'
@@ -17,9 +15,6 @@ steps:
 
   # Push to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/sociatrack-frontend:$COMMIT_SHA']
-
-  - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/sociatrack-frontend:latest']
 
   # Deploy to Cloud Run
@@ -30,7 +25,7 @@ steps:
       - 'deploy'
       - 'sociatrack-frontend'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/sociatrack-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/sociatrack-frontend:latest'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -48,7 +43,6 @@ steps:
       - '10'
 
 images:
-  - 'gcr.io/$PROJECT_ID/sociatrack-frontend:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/sociatrack-frontend:latest'
 
 options:
