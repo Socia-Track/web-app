@@ -72,6 +72,13 @@ export const useNetworks = (): UseNetworksResponse => {
           chainId: 8453,
           currency: 'ETH',
           explorerUrl: 'https://basescan.org'
+        },
+        {
+          key: 'solana',
+          name: 'Solana Mainnet',
+          chainId: 101,
+          currency: 'SOL',
+          explorerUrl: 'https://solscan.io'
         }
       ]);
     } finally {
