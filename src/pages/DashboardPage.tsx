@@ -9,6 +9,7 @@ import { Activity, Calendar, RefreshCw, Twitter, AlertCircle, TrendingUp, Dollar
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import NetworkInfoDisplay from "@/components/NetworkInfoDisplay"
 
 interface Campaign {
   id: string
@@ -402,11 +403,14 @@ export default function DashboardPage() {
                         <div className="text-sm text-muted-foreground mb-1">
                           {campaign.description || 'No description provided'}
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground/70">
-                          <div className="flex items-center gap-1">
-                            <Globe size={12} />
-                            <span>{campaign.blockchain || 'Ethereum'}</span>
-                          </div>
+                        <div className="flex items-center gap-4 text-xs">
+                          <NetworkInfoDisplay
+                            networkKey={campaign.blockchain || 'ethereum'}
+                            showCurrency={false}
+                            showChainId={false}
+                            size="sm"
+                            variant="secondary"
+                          />
                         </div>
                       </div>
                       <motion.div

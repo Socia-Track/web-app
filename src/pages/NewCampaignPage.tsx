@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useSession } from "@/lib/auth-client"
 import DashboardLayout from "@/components/DashboardLayout"
@@ -14,17 +14,20 @@ import { motion } from "framer-motion"
 import { ArrowLeft, Loader2, Link, Copy, Plus } from "lucide-react"
 import { toast } from "sonner"
 import { Spinner } from "@/components/ui/spinner"
+import { useNetworks } from "@/hooks/useNetworks"
+import NetworkSelector from "@/components/NetworkSelector"
 
 export default function NewCampaignPage() {
   const navigate = useNavigate()
   const { data: session } = useSession()
+  const { networks, loading: networksLoading, error: networksError } = useNetworks()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     objectives: "",
     platforms: [] as string[],
-    blockchain: "Ethereum",
+    blockchain: "",
     originalLink: "",
     generatedLinks: {} as Record<string, string>,
     // NFT Promotion fields
@@ -33,6 +36,13 @@ export default function NewCampaignPage() {
     tokenIds: [] as string[]
   })
   const [generatingLinks, setGeneratingLinks] = useState(false)
+  
+  // Set default blockchain when networks are loaded
+  useEffect(() => {
+    if (networks.length > 0 && !formData.blockchain) {
+      setFormData(prev => ({ ...prev, blockchain: networks[0].key }))
+    }
+  }, [networks, formData.blockchain])
   
   // New state for dynamic link generation
   const [linkCounts, setLinkCounts] = useState<Record<string, number>>({
@@ -474,25 +484,15 @@ export default function NewCampaignPage() {
                     </div>
                   )}
 
-                  <div>
-                    <Label htmlFor="blockchain" className="text-gray-300">Blockchain *</Label>
-                    <Select 
-                      value={formData.blockchain}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, blockchain: value }))}
-                    >
-                      <SelectTrigger className="mt-2 bg-black/50 border-white/10 text-white">
-                        <SelectValue placeholder="Select blockchain" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Ethereum">Ethereum</SelectItem>
-                        {/*<SelectItem value="Polygon">Polygon</SelectItem>
-                        <SelectItem value="Solana">Solana</SelectItem>
-                        <SelectItem value="Base">Base</SelectItem>
-                        <SelectItem value="Arbitrum">Arbitrum</SelectItem>
-                        <SelectItem value="Optimism">Optimism</SelectItem>*/}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <NetworkSelector
+                    value={formData.blockchain}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, blockchain: value }))}
+                    label="Blockchain"
+                    required={true}
+                    showCurrency={true}
+                    showChainId={false}
+                    className=""
+                  />
                 </div>
               </div>
 

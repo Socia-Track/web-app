@@ -10,6 +10,7 @@ import { motion } from "framer-motion"
 import { Plus, Search, Filter, Megaphone, Calendar, TrendingUp } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
+import NetworkInfoDisplay from "@/components/NetworkInfoDisplay"
 
 export default function CampaignsPage() {
   const navigate = useNavigate()
@@ -165,9 +166,14 @@ export default function CampaignsPage() {
                           Created {new Date(campaign.createdAt).toLocaleDateString()}
                         </div>
                         {campaign.blockchain && (
-                          <div className="flex items-center gap-2 text-gray-400">
-                            <TrendingUp size={14} />
-                            {campaign.blockchain}
+                          <div className="flex items-center gap-2">
+                            <NetworkInfoDisplay
+                              networkKey={campaign.blockchain}
+                              showCurrency={true}
+                              showChainId={false}
+                              size="sm"
+                              variant="outline"
+                            />
                           </div>
                         )}
                         {campaign.promotionType && (
