@@ -91,7 +91,7 @@ export const DesktopSidebar = ({
   return (
     <motion.div
       className={cn(
-        "fixed left-0 top-0 h-screen px-4 py-4 hidden md:flex md:flex-col bg-sidebar border-r border-sidebar-border w-[350px] flex-shrink-0 z-40",
+        "fixed left-0 top-0 h-screen px-4 py-4 hidden md:flex md:flex-col bg-sidebar border-r border-sidebar-border w-87.5 shrink-0 z-40",
         className
       )}
       animate={{
@@ -137,7 +137,7 @@ export const MobileSidebar = ({
                 ease: "easeInOut",
               }}
               className={cn(
-                "fixed h-screen w-full inset-0 bg-sidebar p-10 z-[100] flex flex-col",
+                "fixed h-screen w-full inset-0 bg-sidebar p-10 z-100 flex flex-col",
                 className
               )}
             >
@@ -182,7 +182,7 @@ export const SidebarLink = ({
       {...props}
     >
       {/* Shining hover effect */}
-      <div className="absolute inset-0 -translate-x-full group-hover/sidebar:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
+      <div className="absolute inset-0 -translate-x-full group-hover/sidebar:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/20 to-transparent skew-x-12" />
       
       {link.icon}
       <motion.span
@@ -190,7 +190,7 @@ export const SidebarLink = ({
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
-        className="text-sm group-hover/sidebar:translate-x-1 transition duration-300 whitespace-pre inline-block !p-0 !m-0 relative z-10"
+        className="text-sm group-hover/sidebar:translate-x-1 transition duration-300 whitespace-pre inline-block p-0! m-0! relative z-10"
       >
         {link.label}
       </motion.span>
@@ -244,7 +244,7 @@ function SidebarContent() {
             <img 
               src="/logo-48.png" 
               alt="SociaTrack Logo" 
-              className="w-8 h-8 flex-shrink-0"
+              className="w-8 h-8 shrink-0"
             />
             <span className="text-lg font-bold text-white">
               SociaTrack
@@ -282,7 +282,7 @@ function SidebarContent() {
             )}
           >
             {/* Shining hover effect */}
-            <div className="absolute inset-0 -translate-x-full group-hover/sidebar:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-red-500/20 to-transparent skew-x-12" />
+            <div className="absolute inset-0 -translate-x-full group-hover/sidebar:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-red-500/20 to-transparent skew-x-12" />
             
             <LogOut size={24} className="relative z-10" />
             <motion.span
@@ -290,7 +290,7 @@ function SidebarContent() {
                 display: open ? "inline-block" : "none",
                 opacity: open ? 1 : 0,
               }}
-              className="text-sm group-hover/sidebar:translate-x-1 transition duration-300 whitespace-pre inline-block !p-0 !m-0 relative z-10"
+              className="text-sm group-hover/sidebar:translate-x-1 transition duration-300 whitespace-pre inline-block p-0! m-0! relative z-10"
             >
               Sign Out
             </motion.span>

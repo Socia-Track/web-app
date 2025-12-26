@@ -164,7 +164,7 @@ export default function CampaignDetailPage() {
                 <ArrowLeft size={18} className="mr-2" />
                 Back to Campaigns
               </Button>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 {campaign.name}
               </h1>
               <p className="text-sm sm:text-base text-gray-400">{campaign.description || 'No description'}</p>
