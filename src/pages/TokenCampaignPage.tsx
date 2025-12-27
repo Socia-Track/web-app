@@ -658,40 +658,24 @@ export default function TokenCampaignPage() {
                               const parts = key.split('_')
                               const personName = parts.slice(1).join('_') || ''
                               
-                              // Generate short URL format
-                              const sanitizedCampaignName = (formData.name || 'untitled-token-campaign').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-                              const shortCode = personName 
-                                ? `${sanitizedCampaignName}-${personName}-discord`
-                                : `${sanitizedCampaignName}-discord`
-                              const shortUrl = `https://app.sociatrack.com/s/${shortCode}`
-                              
                               return (
                                 <div key={key} className="flex flex-col gap-2 p-3 bg-black/30 rounded-lg border border-white/10">
                                   <span className="font-medium text-sm text-gray-300">
                                     Discord{personName && ` - ${personName}`}
                                   </span>
-                                  <div className="flex flex-col gap-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-green-400 font-semibold">Short URL:</span>
-                                      <div className="flex-1 text-xs text-green-300 font-mono break-all">
-                                        {shortUrl}
-                                      </div>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => copyToClipboard(shortUrl, personName ? `Discord (${personName})` : 'Discord')}
-                                        className="px-2 text-gray-300 hover:text-white shrink-0"
-                                      >
-                                        <Copy className="w-4 h-4" />
-                                      </Button>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 text-xs text-gray-400 font-mono break-all">
+                                      {link}
                                     </div>
-                                    <details className="text-xs">
-                                      <summary className="text-gray-500 cursor-pointer hover:text-gray-400">View tracking URL</summary>
-                                      <div className="mt-1 text-gray-500 font-mono break-all">
-                                        {link}
-                                      </div>
-                                    </details>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => copyToClipboard(link, personName ? `Discord (${personName})` : 'Discord')}
+                                      className="px-2 text-gray-300 hover:text-white shrink-0"
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </Button>
                                   </div>
                                 </div>
                               )
@@ -705,40 +689,24 @@ export default function TokenCampaignPage() {
                               const parts = key.split('_')
                               const personName = parts.slice(1).join('_') || ''
                               
-                              // Generate short URL format
-                              const sanitizedCampaignName = (formData.name || 'untitled-token-campaign').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-                              const shortCode = personName 
-                                ? `${sanitizedCampaignName}-${personName}-twitter`
-                                : `${sanitizedCampaignName}-twitter`
-                              const shortUrl = `https://app.sociatrack.com/s/${shortCode}`
-                              
                               return (
                                 <div key={key} className="flex flex-col gap-2 p-3 bg-black/30 rounded-lg border border-white/10">
                                   <span className="font-medium text-sm text-gray-300">
                                     Twitter{personName && ` - ${personName}`}
                                   </span>
-                                  <div className="flex flex-col gap-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-green-400 font-semibold">Short URL:</span>
-                                      <div className="flex-1 text-xs text-green-300 font-mono break-all">
-                                        {shortUrl}
-                                      </div>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => copyToClipboard(shortUrl, personName ? `Twitter (${personName})` : 'Twitter')}
-                                        className="px-2 text-gray-300 hover:text-white shrink-0"
-                                      >
-                                        <Copy className="w-4 h-4" />
-                                      </Button>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 text-xs text-gray-400 font-mono break-all">
+                                      {link}
                                     </div>
-                                    <details className="text-xs">
-                                      <summary className="text-gray-500 cursor-pointer hover:text-gray-400">View tracking URL</summary>
-                                      <div className="mt-1 text-gray-500 font-mono break-all">
-                                        {link}
-                                      </div>
-                                    </details>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => copyToClipboard(link, personName ? `Twitter (${personName})` : 'Twitter')}
+                                      className="px-2 text-gray-300 hover:text-white shrink-0"
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </Button>
                                   </div>
                                 </div>
                               )
