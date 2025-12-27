@@ -9,6 +9,7 @@ import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import CampaignsPage from "@/pages/CampaignsPage";
 import NewCampaignPage from "@/pages/NewCampaignPage";
+import TokenCampaignPage from "@/pages/TokenCampaignPage";
 import CampaignDetailPage from "@/pages/CampaignDetailPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import AttributionsPage from "@/pages/AttributionsPage";
@@ -34,6 +35,8 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/campaigns" element={<CampaignsPage />} />
         <Route path="/campaigns/new" element={<NewCampaignPage />} />
+        <Route path="/campaigns/new-nft" element={<NewCampaignPage />} />
+        <Route path="/campaigns/new-token" element={<TokenCampaignPage />} />
         <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/attributions" element={<AttributionsPage />} />

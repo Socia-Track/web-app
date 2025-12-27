@@ -7,10 +7,17 @@ import DashboardLayout from "@/components/DashboardLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
-import { Plus, Search, Filter, Megaphone, Calendar, TrendingUp } from "lucide-react"
+import { Plus, Search, Filter, Megaphone, Calendar, TrendingUp, Image, Coins } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import NetworkInfoDisplay from "@/components/NetworkInfoDisplay"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function CampaignsPage() {
   const navigate = useNavigate()
@@ -18,6 +25,7 @@ export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [showTypeDialog, setShowTypeDialog] = useState(false)
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -75,14 +83,16 @@ export default function CampaignsPage() {
                   </h1>
                   <p className="text-sm sm:text-base text-gray-400">Manage your Web3 marketing campaigns</p>
                 </div>
-                <Link to="/campaigns/new" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto" style={{
+                <Button 
+                  onClick={() => setShowTypeDialog(true)}
+                  className="w-full sm:w-auto" 
+                  style={{
                     background: 'linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(100, 100, 100, 0.8))'
-                  }}>
-                    <Plus size={16} className="mr-2" />
-                    New Campaign
-                  </Button>
-                </Link>
+                  }}
+                >
+                  <Plus size={16} className="mr-2" />
+                  New Campaign
+                </Button>
               </div>
 
               {/* Search and Filter */}
@@ -194,6 +204,57 @@ export default function CampaignsPage() {
                   ))}
                 </div>
               )}
+
+              {/* Campaign Type Selection Dialog */}
+              <Dialog open={showTypeDialog} onOpenChange={setShowTypeDialog}>
+                <DialogContent className="sm:max-w-md bg-black/95 border-white/10">
+                  <DialogHeader>
+                    <DialogTitle className="text-white text-xl">Choose Campaign Type</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                      Select the type of campaign you want to create
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    {/* NFT Campaign */}
+                    <button
+                      onClick={() => {
+                        setShowTypeDialog(false)
+                        navigate('/campaigns/new-nft')
+                      }}
+                      className="p-6 rounded-lg border border-white/10 bg-linear-to-br from-white/5 to-black/60 hover:from-white/10 hover:to-black/40 transition-all group"
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="p-3 rounded-full bg-purple-500/20 group-hover:bg-purple-500/30 transition-colors">
+                          <Image className="w-6 h-6 text-purple-400" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-white font-semibold mb-1">NFT Campaign</h3>
+                          <p className="text-gray-400 text-sm">Track NFT collection or single NFT purchases</p>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Token Campaign */}
+                    <button
+                      onClick={() => {
+                        setShowTypeDialog(false)
+                        navigate('/campaigns/new-token')
+                      }}
+                      className="p-6 rounded-lg border border-white/10 bg-linear-to-br from-white/5 to-black/60 hover:from-white/10 hover:to-black/40 transition-all group"
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="p-3 rounded-full bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors">
+                          <Coins className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-white font-semibold mb-1">Token Campaign</h3>
+                          <p className="text-gray-400 text-sm">Track ERC20 token purchases on DEX</p>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </DialogContent>
+              </Dialog>
       </div>
     </DashboardLayout>
   )
