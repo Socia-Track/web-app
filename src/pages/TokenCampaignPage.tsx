@@ -131,26 +131,33 @@ export default function TokenCampaignPage() {
         totalCount: totalLinksPlanned
       }
 
-      const res = await fetch('/api/campaigns', {
+      // POST to /api/tokens endpoint for token campaigns
+      const res = await fetch('/api/tokens', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          ...formData,
-          userId: session.user.uid,
-          campaignType: 'token',
-          platforms: JSON.stringify(formData.platforms),
+          name: formData.name,
+          description: formData.description,
+          objectives: formData.objectives,
+          platforms: formData.platforms,
+          blockchain: tokenNetwork.toLowerCase() || 'ethereum',
+          originalLink: formData.originalLink,
+          generatedLinks: formData.generatedLinks,
+          contractAddress: formData.tokenContractAddress,
+          promotionType: 'token',
           plannedLinks: plannedLinksData,
-          totalLinksPlanned: totalLinksPlanned
+          totalLinksPlanned: totalLinksPlanned,
+          userId: session.user.uid
         })
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        toast.error(data.error || 'Failed to create campaign')
+        toast.error(data.error || 'Failed to create token campaign')
         return
       }
 
@@ -238,7 +245,7 @@ export default function TokenCampaignPage() {
         if (count > 0 && names.length > 0) {
           for (let i = 0; i < names.length; i++) {
             const personName = names[i]
-            const response = await fetch('/api/campaigns/generate-links', {
+            const response = await fetch('/api/tokens/generate-links', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -262,7 +269,7 @@ export default function TokenCampaignPage() {
             allGeneratedLinks[`${platform.toLowerCase()}_${personName}`] = data.generatedLinks[platform.toLowerCase()]
           }
         } else {
-          const response = await fetch('/api/campaigns/generate-links', {
+          const response = await fetch('/api/tokens/generate-links', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -651,24 +658,40 @@ export default function TokenCampaignPage() {
                               const parts = key.split('_')
                               const personName = parts.slice(1).join('_') || ''
                               
+                              // Generate short URL format
+                              const sanitizedCampaignName = (formData.name || 'untitled-token-campaign').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+                              const shortCode = personName 
+                                ? `${sanitizedCampaignName}-${personName}-discord`
+                                : `${sanitizedCampaignName}-discord`
+                              const shortUrl = `https://app.sociatrack.com/s/${shortCode}`
+                              
                               return (
                                 <div key={key} className="flex flex-col gap-2 p-3 bg-black/30 rounded-lg border border-white/10">
                                   <span className="font-medium text-sm text-gray-300">
                                     Discord{personName && ` - ${personName}`}
                                   </span>
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex-1 text-xs text-gray-400 font-mono break-all">
-                                      {link}
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-green-400 font-semibold">Short URL:</span>
+                                      <div className="flex-1 text-xs text-green-300 font-mono break-all">
+                                        {shortUrl}
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(shortUrl, personName ? `Discord (${personName})` : 'Discord')}
+                                        className="px-2 text-gray-300 hover:text-white shrink-0"
+                                      >
+                                        <Copy className="w-4 h-4" />
+                                      </Button>
                                     </div>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(link, personName ? `Discord (${personName})` : 'Discord')}
-                                      className="px-2 text-gray-300 hover:text-white shrink-0"
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </Button>
+                                    <details className="text-xs">
+                                      <summary className="text-gray-500 cursor-pointer hover:text-gray-400">View tracking URL</summary>
+                                      <div className="mt-1 text-gray-500 font-mono break-all">
+                                        {link}
+                                      </div>
+                                    </details>
                                   </div>
                                 </div>
                               )
@@ -682,24 +705,40 @@ export default function TokenCampaignPage() {
                               const parts = key.split('_')
                               const personName = parts.slice(1).join('_') || ''
                               
+                              // Generate short URL format
+                              const sanitizedCampaignName = (formData.name || 'untitled-token-campaign').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+                              const shortCode = personName 
+                                ? `${sanitizedCampaignName}-${personName}-twitter`
+                                : `${sanitizedCampaignName}-twitter`
+                              const shortUrl = `https://app.sociatrack.com/s/${shortCode}`
+                              
                               return (
                                 <div key={key} className="flex flex-col gap-2 p-3 bg-black/30 rounded-lg border border-white/10">
                                   <span className="font-medium text-sm text-gray-300">
                                     Twitter{personName && ` - ${personName}`}
                                   </span>
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex-1 text-xs text-gray-400 font-mono break-all">
-                                      {link}
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-green-400 font-semibold">Short URL:</span>
+                                      <div className="flex-1 text-xs text-green-300 font-mono break-all">
+                                        {shortUrl}
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(shortUrl, personName ? `Twitter (${personName})` : 'Twitter')}
+                                        className="px-2 text-gray-300 hover:text-white shrink-0"
+                                      >
+                                        <Copy className="w-4 h-4" />
+                                      </Button>
                                     </div>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(link, personName ? `Twitter (${personName})` : 'Twitter')}
-                                      className="px-2 text-gray-300 hover:text-white shrink-0"
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </Button>
+                                    <details className="text-xs">
+                                      <summary className="text-gray-500 cursor-pointer hover:text-gray-400">View tracking URL</summary>
+                                      <div className="mt-1 text-gray-500 font-mono break-all">
+                                        {link}
+                                      </div>
+                                    </details>
                                   </div>
                                 </div>
                               )

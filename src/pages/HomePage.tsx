@@ -111,11 +111,24 @@ export default function HomePage() {
       
       const token = localStorage.getItem("bearer_token")
       try {
-        // Fetch campaigns first
-        const campaignsRes = await fetch('/api/campaigns?limit=100', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        const campaigns = await campaignsRes.json()
+        // Fetch both NFT campaigns and token campaigns
+        const [campaignsRes, tokensRes] = await Promise.all([
+          fetch('/api/campaigns?limit=100', {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch('/api/tokens?limit=100', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ])
+        
+        const nftCampaigns = await campaignsRes.json()
+        const tokenCampaigns = await tokensRes.json()
+        
+        // Combine both arrays with type markers
+        const campaigns = [
+          ...(Array.isArray(nftCampaigns) ? nftCampaigns.map((c: any) => ({ ...c, campaignType: 'nft' })) : []),
+          ...(Array.isArray(tokenCampaigns) ? tokenCampaigns.map((t: any) => ({ ...t, campaignType: 'token' })) : [])
+        ]
 
         // Fetch real transaction data from each campaign's analytics
         const allRecentActivity = []

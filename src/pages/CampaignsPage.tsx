@@ -40,12 +40,35 @@ export default function CampaignsPage() {
       
       const token = localStorage.getItem("bearer_token")
       try {
-        const res = await fetch(`/api/campaigns?limit=100&userId=${session.user.uid}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        const data = await res.json()
-        setCampaigns(Array.isArray(data) ? data : [])
+        // Fetch both NFT campaigns and Token campaigns
+        const [campaignsRes, tokensRes] = await Promise.all([
+          fetch(`/api/campaigns?limit=100&userId=${session.user.uid}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`/api/tokens?limit=100&userId=${session.user.uid}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ])
+
+        const campaignsData = await campaignsRes.json()
+        const tokensData = await tokensRes.json()
+
+        // Combine both arrays, marking each with its type
+        const nftCampaigns = Array.isArray(campaignsData) 
+          ? campaignsData.map(c => ({ ...c, campaignType: 'nft', links: c.links || [] })) 
+          : []
+        const tokenCampaigns = Array.isArray(tokensData) 
+          ? tokensData.map(t => ({ ...t, campaignType: 'token', links: t.tokenLinks || [] })) 
+          : []
+
+        // Combine and sort by creation date
+        const allCampaigns = [...nftCampaigns, ...tokenCampaigns].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+
+        setCampaigns(allCampaigns)
       } catch (error) {
+        console.error('Error fetching campaigns:', error)
         toast.error('Error fetching campaigns')
       } finally {
         setLoading(false)
@@ -152,16 +175,27 @@ export default function CampaignsPage() {
                             background: 'linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.8))'
                           }}
                         >
-                          <Megaphone className="text-white" size={24} />
+                          {campaign.campaignType === 'token' ? (
+                            <Coins className="text-white" size={24} />
+                          ) : (
+                            <Image className="text-white" size={24} />
+                          )}
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          campaign.status === 'active' 
-                            ? 'bg-green-400/10 text-green-400' 
-                            : campaign.status === 'paused'
-                            ? 'bg-yellow-400/10 text-yellow-400'
-                            : 'bg-gray-400/10 text-gray-400'
-                        }`}>
-                          {campaign.status}
+                        <div className="flex flex-col items-end gap-1">
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            campaign.status === 'active' 
+                              ? 'bg-green-400/10 text-green-400' 
+                              : campaign.status === 'paused'
+                              ? 'bg-yellow-400/10 text-yellow-400'
+                              : 'bg-gray-400/10 text-gray-400'
+                          }`}>
+                            {campaign.status}
+                          </div>
+                          {campaign.campaignType === 'token' && (
+                            <div className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
+                              Token
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -186,10 +220,25 @@ export default function CampaignsPage() {
                             />
                           </div>
                         )}
-                        {campaign.promotionType && (
+                        {campaign.campaignType === 'token' && campaign.tokenSymbol && (
+                          <div className="flex items-center gap-2 text-gray-400">
+                            <Coins size={14} className="text-purple-400" />
+                            <span className="text-white font-medium">{campaign.tokenSymbol}</span>
+                            {campaign.tokenName && (
+                              <span className="text-xs">({campaign.tokenName})</span>
+                            )}
+                          </div>
+                        )}
+                        {campaign.promotionType === 'single' && (
+                          <div className="flex items-center gap-2 text-gray-400">
+                            <span className="w-3.5 h-3.5 rounded-full bg-blue-500" />
+                            Single NFT Promotion
+                          </div>
+                        )}
+                        {campaign.promotionType === 'collection' && (
                           <div className="flex items-center gap-2 text-gray-400">
                             <span className="w-3.5 h-3.5 rounded-full bg-purple-500" />
-                            {campaign.promotionType === 'single' ? 'Single NFT' : 'Collection'} Promotion
+                            Collection Promotion
                           </div>
                         )}
                       </div>

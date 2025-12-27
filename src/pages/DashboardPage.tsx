@@ -65,8 +65,11 @@ export default function DashboardPage() {
     }
 
     try {
-      const [campaignsRes, attributionsRes, postsRes] = await Promise.all([
+      const [campaignsRes, tokensRes, attributionsRes, postsRes] = await Promise.all([
         fetch(`/api/campaigns?limit=100&userId=${session.user.uid}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`/api/tokens?limit=100&userId=${session.user.uid}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch('/api/attributions?limit=1000', {
@@ -77,15 +80,22 @@ export default function DashboardPage() {
         })
       ])
 
-      if (!campaignsRes.ok || !attributionsRes.ok || !postsRes.ok) {
+      if (!campaignsRes.ok || !tokensRes.ok || !attributionsRes.ok || !postsRes.ok) {
         throw new Error("Failed to fetch dashboard data")
       }
 
-      const campaignsData = await campaignsRes.json()
+      const nftCampaigns = await campaignsRes.json()
+      const tokenCampaigns = await tokensRes.json()
       const attributions = await attributionsRes.json()
       const posts = await postsRes.json()
+      
+      // Combine both NFT and token campaigns
+      const allCampaigns = [
+        ...(Array.isArray(nftCampaigns) ? nftCampaigns.map((c: any) => ({ ...c, campaignType: 'nft' })) : []),
+        ...(Array.isArray(tokenCampaigns) ? tokenCampaigns.map((t: any) => ({ ...t, campaignType: 'token' })) : [])
+      ]
 
-      setCampaigns(Array.isArray(campaignsData) ? campaignsData : [])
+      setCampaigns(allCampaigns)
 
       const avgScore = Array.isArray(attributions) && attributions.length > 0
         ? attributions.reduce((sum: number, a: any) => sum + (a.confidenceScore || 0), 0) / attributions.length

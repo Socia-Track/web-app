@@ -36,47 +36,70 @@ export default function CampaignDetailPage() {
       
       const token = localStorage.getItem("bearer_token")
       try {
-        // Fetch campaign details
-        const campaignRes = await fetch(`/api/campaigns?id=${params.id}`, {
+        // Try fetching as NFT campaign first
+        let campaignRes = await fetch(`/api/campaigns?id=${params.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        const campaignData = await campaignRes.json()
+        
+        let campaignData = await campaignRes.json()
+        let campaignType = 'nft'
+        
+        // If not found, try fetching as Token campaign
+        if (!campaignRes.ok) {
+          campaignRes = await fetch(`/api/tokens?id=${params.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          campaignData = await campaignRes.json()
+          campaignType = 'token'
+        }
         
         if (campaignRes.ok) {
-          setCampaign(campaignData)
+          setCampaign({ ...campaignData, campaignType })
           
-          // Fetch campaign stats
-          const [attributionsRes, transactionsRes] = await Promise.all([
-            fetch(`/api/attributions?campaignId=${params.id}&limit=1000`, {
-              headers: { Authorization: `Bearer ${token}` }
-            }),
-            fetch(`/api/transactions?campaignId=${params.id}&limit=1000`, {
-              headers: { Authorization: `Bearer ${token}` }
+          // Fetch campaign stats based on type
+          if (campaignType === 'token') {
+            // For token campaigns, we'll add transaction fetching later
+            setStats({
+              attributions: 0,
+              transactions: 0,
+              totalValue: 0,
+              avgConfidence: 0
             })
-          ])
-          
-          const attributions = await attributionsRes.json()
-          const transactions = await transactionsRes.json()
-          
-          const avgConf = Array.isArray(attributions) && attributions.length > 0
-            ? attributions.reduce((sum: number, a: any) => sum + (a.confidenceScore || 0), 0) / attributions.length
-            : 0
+          } else {
+            // Fetch NFT campaign stats
+            const [attributionsRes, transactionsRes] = await Promise.all([
+              fetch(`/api/attributions?campaignId=${params.id}&limit=1000`, {
+                headers: { Authorization: `Bearer ${token}` }
+              }),
+              fetch(`/api/transactions?campaignId=${params.id}&limit=1000`, {
+                headers: { Authorization: `Bearer ${token}` }
+              })
+            ])
             
-          const totalVal = Array.isArray(attributions)
-            ? attributions.reduce((sum: number, a: any) => sum + (parseFloat(a.valueUsd) || 0), 0)
-            : 0
-          
-          setStats({
-            attributions: Array.isArray(attributions) ? attributions.length : 0,
-            transactions: Array.isArray(transactions) ? transactions.length : 0,
-            totalValue: totalVal,
-            avgConfidence: avgConf
-          })
+            const attributions = await attributionsRes.json()
+            const transactions = await transactionsRes.json()
+            
+            const avgConf = Array.isArray(attributions) && attributions.length > 0
+              ? attributions.reduce((sum: number, a: any) => sum + (a.confidenceScore || 0), 0) / attributions.length
+              : 0
+              
+            const totalVal = Array.isArray(attributions)
+              ? attributions.reduce((sum: number, a: any) => sum + (parseFloat(a.valueUsd) || 0), 0)
+              : 0
+            
+            setStats({
+              attributions: Array.isArray(attributions) ? attributions.length : 0,
+              transactions: Array.isArray(transactions) ? transactions.length : 0,
+              totalValue: totalVal,
+              avgConfidence: avgConf
+            })
+          }
         } else {
           toast.error('Campaign not found')
           navigate('/campaigns')
         }
       } catch (error) {
+        console.error('Error loading campaign:', error)
         toast.error('Error loading campaign')
       } finally {
         setLoading(false)
@@ -93,10 +116,11 @@ export default function CampaignDetailPage() {
     
     const newStatus = campaign.status === 'active' ? 'paused' : 'active'
     const token = localStorage.getItem("bearer_token")
+    const endpoint = campaign.campaignType === 'token' ? '/api/tokens' : '/api/campaigns'
     
     try {
-      const res = await fetch(`/api/campaigns?id=${campaign.id}`, {
-        method: 'PUT',
+      const res = await fetch(`${endpoint}/${campaign.id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -106,7 +130,7 @@ export default function CampaignDetailPage() {
       
       if (res.ok) {
         const updated = await res.json()
-        setCampaign(updated)
+        setCampaign({ ...updated, campaignType: campaign.campaignType })
         toast.success(`Campaign ${newStatus}`)
       }
     } catch (error) {
@@ -118,8 +142,10 @@ export default function CampaignDetailPage() {
     if (!campaign || !confirm('Are you sure you want to delete this campaign?')) return
     
     const token = localStorage.getItem("bearer_token")
+    const endpoint = campaign.campaignType === 'token' ? '/api/tokens' : '/api/campaigns'
+    
     try {
-      const res = await fetch(`/api/campaigns?id=${campaign.id}`, {
+      const res = await fetch(`${endpoint}/${campaign.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })

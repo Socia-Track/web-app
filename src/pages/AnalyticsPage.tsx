@@ -501,14 +501,26 @@ export default function AnalyticsPage() {
     const fetchCampaigns = async () => {
       try {
         const token = localStorage.getItem("bearer_token")
-        const response = await fetch(`/api/campaigns?userId=${session.user!.uid}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-        const data = await response.json()
-        console.log('Fetched campaigns:', data)
-        setCampaigns(data)
+        const [campaignsRes, tokensRes] = await Promise.all([
+          fetch(`/api/campaigns?userId=${session.user!.uid}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch(`/api/tokens?userId=${session.user!.uid}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+        ])
+        
+        const nftCampaigns = await campaignsRes.json()
+        const tokenCampaigns = await tokensRes.json()
+        
+        // Combine both arrays with type markers
+        const allCampaigns = [
+          ...(Array.isArray(nftCampaigns) ? nftCampaigns.map((c: any) => ({ ...c, campaignType: 'nft' })) : []),
+          ...(Array.isArray(tokenCampaigns) ? tokenCampaigns.map((t: any) => ({ ...t, campaignType: 'token' })) : [])
+        ]
+        
+        console.log('Fetched campaigns:', allCampaigns)
+        setCampaigns(allCampaigns)
       } catch (error) {
         console.error('Error fetching campaigns:', error)
       } finally {
@@ -657,11 +669,18 @@ export default function AnalyticsPage() {
     setLinksLoading(true)
     try {
       const token = localStorage.getItem("bearer_token")
-      const response = await fetch(`/api/campaigns?id=${campaignId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      
+      // Try fetching from campaigns first, then tokens
+      let response = await fetch(`/api/campaigns?id=${campaignId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       })
+      
+      if (!response.ok) {
+        response = await fetch(`/api/tokens?id=${campaignId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      }
+      
       const data = await response.json()
       setCampaignLinks(data.links || [])
       
