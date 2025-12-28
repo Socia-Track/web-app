@@ -9,6 +9,7 @@ import {
   optimism,
   arbitrum,
   base,
+  bsc,
   sepolia,
 } from 'wagmi/chains'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
@@ -19,13 +20,14 @@ const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '2f05a7ca2bb7
 const wagmiConfig = getDefaultConfig({
   appName: 'SociaTrack',
   projectId,
-  chains: [mainnet, polygon, optimism, arbitrum, base, sepolia],
+  chains: [mainnet, polygon, optimism, arbitrum, base, bsc, sepolia],
   transports: {
     [mainnet.id]: http(),
     [polygon.id]: http(),
     [optimism.id]: http(),
     [arbitrum.id]: http(),
     [base.id]: http(),
+    [bsc.id]: http(),
     [sepolia.id]: http(),
   },
 })
