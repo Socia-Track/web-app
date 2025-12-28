@@ -72,6 +72,13 @@ export const useNetworks = (): UseNetworksResponse => {
           chainId: 8453,
           currency: 'ETH',
           explorerUrl: 'https://basescan.org'
+        },
+        {
+          key: 'bnb',
+          name: 'BNB Smart Chain',
+          chainId: 56,
+          currency: 'BNB',
+          explorerUrl: 'https://bscscan.com'
         }
       ]);
     } finally {
