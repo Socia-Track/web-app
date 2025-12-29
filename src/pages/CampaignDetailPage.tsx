@@ -21,7 +21,9 @@ export default function CampaignDetailPage() {
     attributions: 0,
     transactions: 0,
     totalValue: 0,
-    avgConfidence: 0
+    avgConfidence: 0,
+    totalClicks: 0,
+    uniqueWallets: 0
   })
 
   useEffect(() => {
@@ -58,12 +60,34 @@ export default function CampaignDetailPage() {
           
           // Fetch campaign stats based on type
           if (campaignType === 'token') {
-            // For token campaigns, we'll add transaction fetching later
+            // Fetch token transactions and clicks
+            const [transactionsRes, clicksRes] = await Promise.all([
+              fetch(`/api/token-transactions?tokenId=${params.id}&limit=1000`, {
+                headers: { Authorization: `Bearer ${token}` }
+              }),
+              fetch(`/api/token-clicks?tokenId=${params.id}&limit=1000`, {
+                headers: { Authorization: `Bearer ${token}` }
+              })
+            ])
+            
+            const transactions = transactionsRes.ok ? await transactionsRes.json() : []
+            const clicks = clicksRes.ok ? await clicksRes.json() : []
+            
+            const totalVal = Array.isArray(transactions)
+              ? transactions.reduce((sum: number, t: any) => sum + (t.usdValue || 0), 0)
+              : 0
+            
+            const uniqueWallets = Array.isArray(clicks)
+              ? new Set(clicks.filter((c: any) => c.walletAddress).map((c: any) => c.walletAddress)).size
+              : 0
+            
             setStats({
               attributions: 0,
-              transactions: 0,
-              totalValue: 0,
-              avgConfidence: 0
+              transactions: Array.isArray(transactions) ? transactions.length : 0,
+              totalValue: totalVal,
+              avgConfidence: 0,
+              totalClicks: Array.isArray(clicks) ? clicks.length : 0,
+              uniqueWallets: uniqueWallets
             })
           } else {
             // Fetch NFT campaign stats
@@ -190,9 +214,39 @@ export default function CampaignDetailPage() {
                 <ArrowLeft size={18} className="mr-2" />
                 Back to Campaigns
               </Button>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                {campaign.name}
-              </h1>
+              <div className="flex items-start gap-4 mb-3">
+                {campaign.campaignType === 'token' && campaign.tokenLogo && (
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 border-white/20 flex-shrink-0">
+                    <img 
+                      src={campaign.tokenLogo} 
+                      alt={campaign.tokenSymbol || 'Token'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                    {campaign.name}
+                  </h1>
+                  {campaign.campaignType === 'token' && campaign.tokenName && (
+                    <div className="text-lg sm:text-xl text-white/80 mt-2 font-semibold">
+                      Token: {campaign.tokenName}
+                    </div>
+                  )}
+                  {campaign.campaignType === 'token' && (
+                    <div className="flex items-center gap-2 mt-2">
+                      {campaign.tokenSymbol && (
+                        <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm font-semibold">
+                          ${campaign.tokenSymbol}
+                        </span>
+                      )}
+                      <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm font-semibold">
+                        🪙 ERC20 Token
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
               <p className="text-sm sm:text-base text-gray-400">{campaign.description || 'No description'}</p>
             </div>
             
@@ -272,8 +326,32 @@ export default function CampaignDetailPage() {
               </div>
             )}
 
-            {/* NFT Promotion Info */}
-            {(campaign.promotionType || campaign.contractAddress) && (
+            {/* NFT Promotion Info OR Token Info */}
+            {campaign.campaignType === 'token' && campaign.contractAddress ? (
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <div className="text-sm text-gray-400 mb-3">🪙 Token Campaign Details</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Token Symbol</div>
+                    <div className="text-white font-semibold text-lg">
+                      ${campaign.tokenSymbol || 'N/A'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Token Decimals</div>
+                    <div className="text-white font-semibold">
+                      {campaign.tokenDecimals || 18}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="text-xs text-gray-400 mb-1">Contract Address</div>
+                    <div className="text-white font-mono text-sm break-all">
+                      {campaign.contractAddress}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (campaign.promotionType || campaign.contractAddress) && (
               <div className="mt-4 pt-4 border-t border-white/10">
                 <div className="text-sm text-gray-400 mb-3">NFT Promotion Tracking</div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -315,112 +393,253 @@ export default function CampaignDetailPage() {
             )}
           </motion.div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="rounded-lg border border-white/10 p-3 sm:p-4"
-              style={{
-                background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.8))'
-              }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs sm:text-sm text-gray-400">Attributions</span>
-                <Activity size={14} className="text-white sm:w-4 sm:h-4" />
-              </div>
-              <div className="text-xl sm:text-2xl font-bold text-white">{stats.attributions}</div>
-            </motion.div>
+          {/* Stats Grid - Only for NFT campaigns */}
+          {campaign.campaignType !== 'token' && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-lg border border-white/10 p-3 sm:p-4"
+                style={{
+                  background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.8))'
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs sm:text-sm text-gray-400">Attributions</span>
+                  <Activity size={14} className="text-white sm:w-4 sm:h-4" />
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-white">{stats.attributions}</div>
+              </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="rounded-lg border border-white/10 p-3 sm:p-4"
-              style={{
-                background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.8))'
-              }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs sm:text-sm text-gray-400">Transactions</span>
-                <TrendingUp size={14} className="text-white sm:w-4 sm:h-4" />
-              </div>
-              <div className="text-xl sm:text-2xl font-bold text-white">{stats.transactions}</div>
-            </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-lg border border-white/10 p-3 sm:p-4"
+                style={{
+                  background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.8))'
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs sm:text-sm text-gray-400">Transactions</span>
+                  <TrendingUp size={14} className="text-white sm:w-4 sm:h-4" />
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-white">{stats.transactions}</div>
+              </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="rounded-lg border border-white/10 p-3 sm:p-4"
-              style={{
-                background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.8))'
-              }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs sm:text-sm text-gray-400">Total Value</span>
-                <DollarSign size={14} className="text-white sm:w-4 sm:h-4" />
-              </div>
-              <div className="text-xl sm:text-2xl font-bold text-white">${stats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-            </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="rounded-lg border border-white/10 p-3 sm:p-4"
+                style={{
+                  background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.8))'
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs sm:text-sm text-gray-400">Total Value</span>
+                  <DollarSign size={14} className="text-white sm:w-4 sm:h-4" />
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-white">${stats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+              </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="rounded-lg border border-white/10 p-3 sm:p-4"
-              style={{
-                background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.8))'
-              }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Avg Confidence</span>
-                <TrendingUp size={16} className="text-white" />
-              </div>
-              <div className="text-2xl font-bold text-white">{stats.avgConfidence.toFixed(0)}%</div>
-            </motion.div>
-          </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="rounded-lg border border-white/10 p-3 sm:p-4"
+                style={{
+                  background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.8))'
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-400">Avg Confidence</span>
+                  <TrendingUp size={16} className="text-white" />
+                </div>
+                <div className="text-2xl font-bold text-white">{stats.avgConfidence.toFixed(0)}%</div>
+              </motion.div>
+            </div>
+          )}
 
           {/* Campaign Details */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="rounded-xl border border-white/10 p-6"
-            style={{
-              background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-            }}
-          >
-            <h2 className="text-2xl font-bold text-white mb-6">Campaign Details</h2>
-            
-            <div className="space-y-4">
+          {campaign.campaignType === 'token' ? (
+            /* Token Campaign - Comprehensive Data Display */
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="rounded-xl border border-white/10 p-6 mb-8"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.9))'
+              }}
+            >
+              <h2 className="text-2xl font-bold text-white mb-6">Token Campaign Information</h2>
+              
+              {/* Token Metadata Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-white/10">Token Metadata</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Token Name</div>
+                    <div className="text-white font-medium">{campaign.tokenName || 'N/A'}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Token Symbol</div>
+                    <div className="text-white font-medium">{campaign.tokenSymbol || 'N/A'}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Token Decimals</div>
+                    <div className="text-white font-medium">{campaign.tokenDecimals || 18}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Total Supply</div>
+                    <div className="text-white font-medium">{campaign.tokenTotalSupply || 'N/A'}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Network</div>
+                    <div className="text-white font-medium capitalize">{campaign.tokenNetwork || campaign.blockchain || 'N/A'}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Blockchain</div>
+                    <div className="text-white font-medium capitalize">{campaign.blockchain || 'N/A'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contract Information */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-white/10">Contract Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Contract Address</div>
+                    <div className="text-white font-mono text-sm break-all bg-white/5 p-3 rounded border border-white/10">
+                      {campaign.contractAddress || 'N/A'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Original Link</div>
+                    <div className="text-white text-sm break-all bg-white/5 p-3 rounded border border-white/10">
+                      {campaign.originalLink || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campaign Configuration */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-white/10">Campaign Configuration</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Campaign Status</div>
+                    <div className="text-white font-medium capitalize">{campaign.status || 'N/A'}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Time Window</div>
+                    <div className="text-white font-medium">{campaign.timeWindow ? `${campaign.timeWindow} hours` : 'N/A'}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Min Confidence Threshold</div>
+                    <div className="text-white font-medium">{campaign.minConfidenceThreshold || 70}%</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Total Links Planned</div>
+                    <div className="text-white font-medium">{campaign.totalLinksPlanned || 0}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Created At</div>
+                    <div className="text-white font-medium text-sm">
+                      {new Date(campaign.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400">Last Updated</div>
+                    <div className="text-white font-medium text-sm">
+                      {new Date(campaign.updatedAt || campaign.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campaign Objectives */}
               {campaign.objectives && (
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">Objectives</div>
-                  <div className="text-white">{campaign.objectives}</div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-white/10">Campaign Objectives</h3>
+                  <div className="text-white text-sm bg-white/5 p-4 rounded border border-white/10">
+                    {campaign.objectives}
+                  </div>
                 </div>
               )}
-              
+
+              {/* Platforms */}
+              {platformsArray.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-white/10">Active Platforms</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {platformsArray.map((platform: string, i: number) => (
+                      <span key={i} className="px-3 py-1.5 rounded border border-white/10 bg-white/5 text-white text-sm capitalize">
+                        {platform}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Keywords */}
               {keywordsArray.length > 0 && (
-                <div>
-                  <div className="text-sm text-gray-400 mb-2">Keywords</div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-white/10">Tracking Keywords</h3>
                   <div className="flex flex-wrap gap-2">
                     {keywordsArray.map((keyword: string, i: number) => (
-                      <span key={i} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white text-sm">
+                      <span key={i} className="px-3 py-1.5 rounded border border-white/10 bg-white/5 text-white text-sm">
                         {keyword}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
+            </motion.div>
+          ) : (
+            /* NFT Campaign Details - Original */
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="rounded-xl border border-white/10 p-6"
+              style={{
+                background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
+              }}
+            >
+              <h2 className="text-2xl font-bold text-white mb-6">Campaign Details</h2>
               
-              <div className="flex items-center gap-2 text-sm text-gray-400 pt-4 border-t border-white/10">
-                <Calendar size={14} />
-                Created {new Date(campaign.createdAt).toLocaleDateString()} at {new Date(campaign.createdAt).toLocaleTimeString()}
+              <div className="space-y-4">
+                {campaign.objectives && (
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Objectives</div>
+                    <div className="text-white">{campaign.objectives}</div>
+                  </div>
+                )}
+                
+                {keywordsArray.length > 0 && (
+                  <div>
+                    <div className="text-sm text-gray-400 mb-2">Keywords</div>
+                    <div className="flex flex-wrap gap-2">
+                      {keywordsArray.map((keyword: string, i: number) => (
+                        <span key={i} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white text-sm">
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-2 text-sm text-gray-400 pt-4 border-t border-white/10">
+                  <Calendar size={14} />
+                  Created {new Date(campaign.createdAt).toLocaleDateString()} at {new Date(campaign.createdAt).toLocaleTimeString()}
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
         </div>
       </SidebarInset>
     </SidebarProvider>
