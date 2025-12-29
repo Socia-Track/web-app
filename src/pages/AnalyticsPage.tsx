@@ -40,6 +40,12 @@ interface Campaign {
   minConfidenceThreshold?: number
   plannedLinks?: any
   totalLinksPlanned?: number
+  // Token campaign specific fields
+  campaignType?: 'nft' | 'token'
+  tokenSymbol?: string
+  tokenLogo?: string
+  contractAddress?: string
+  tokenDecimals?: number
 }
 
 interface Attribution {
@@ -574,8 +580,9 @@ export default function AnalyticsPage() {
       
       try {
         const token = localStorage.getItem("bearer_token")
+        const platformParam = platformFilter !== 'all' ? `?platform=${platformFilter}` : '';
         const response = await fetch(
-          `/api/analytics/campaign/${selectedCampaign.id}`,
+          `/api/analytics/campaign/${selectedCampaign.id}${platformParam}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -1173,8 +1180,9 @@ export default function AnalyticsPage() {
     setIsRefreshing(true)
     try {
       const token = localStorage.getItem("bearer_token")
+      const platformParam = platformFilter !== 'all' ? `?platform=${platformFilter}` : '';
       const response = await fetch(
-        `/api/analytics/campaign/${selectedCampaign.id}`,
+        `/api/analytics/campaign/${selectedCampaign.id}${platformParam}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -1613,14 +1621,14 @@ export default function AnalyticsPage() {
                                     <div className="flex items-center gap-2">
                                       <div className="flex-1 min-w-0">
                                         <code className="text-sm bg-black/50 px-3 py-2 rounded-md text-white font-mono border border-white/10 block w-full break-all">
-                                          {link.longUrl || link.shortUrl}
+                                          {link.originalUrl || link.shortUrl}
                                         </code>
                                       </div>
                                       <div className="flex gap-1 flex-shrink-0">
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          onClick={() => copyToClipboard(link.longUrl || link.shortUrl, 'Tracking URL')}
+                                          onClick={() => copyToClipboard(link.originalUrl || link.shortUrl, 'Tracking URL')}
                                           className="h-8 w-8 p-0 hover:bg-white/10"
                                           title="Copy tracking URL"
                                         >
@@ -1629,7 +1637,7 @@ export default function AnalyticsPage() {
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          onClick={() => window.open(link.longUrl || link.shortUrl, '_blank')}
+                                          onClick={() => window.open(link.originalUrl || link.shortUrl, '_blank')}
                                           className="h-8 w-8 p-0 hover:bg-white/10"
                                           title="Open in new tab"
                                         >
@@ -1689,16 +1697,50 @@ export default function AnalyticsPage() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center"
-                  style={{
-                    background: 'linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.8))'
-                  }}
-                >
-                  <Megaphone className="text-white" size={24} />
-                </div>
+                {selectedCampaign.campaignType === 'token' && selectedCampaign.tokenLogo ? (
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20">
+                    <img 
+                      src={selectedCampaign.tokenLogo} 
+                      alt={selectedCampaign.tokenSymbol || 'Token'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center"
+                    style={{
+                      background: 'linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.8))'
+                    }}
+                  >
+                    <Megaphone className="text-white" size={24} />
+                  </div>
+                )}
                 <div>
-                  <h3 className="text-xl font-bold text-white">{selectedCampaign.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-white">{selectedCampaign.name}</h3>
+                    {selectedCampaign.campaignType === 'token' && selectedCampaign.tokenSymbol && (
+                      <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20">
+                        ${selectedCampaign.tokenSymbol}
+                      </Badge>
+                    )}
+                    {selectedCampaign.campaignType === 'token' && (
+                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
+                        🪙 ERC20 Token
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-gray-400">{selectedCampaign.description || 'No description provided'}</p>
+                  {selectedCampaign.campaignType === 'token' && selectedCampaign.blockchain && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
+                        🌐 {selectedCampaign.blockchain.charAt(0).toUpperCase() + selectedCampaign.blockchain.slice(1)}
+                      </Badge>
+                      {selectedCampaign.contractAddress && (
+                        <span className="text-xs text-gray-500 font-mono">
+                          {selectedCampaign.contractAddress.slice(0, 6)}...{selectedCampaign.contractAddress.slice(-4)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-4">
