@@ -526,6 +526,69 @@ export default function CampaignDetailPage() {
                 </div>
               </div>
 
+              {/* Campaign Tracking Links */}
+              {campaign.links && campaign.links.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-white/10">Campaign Tracking Links</h3>
+                  <div className="space-y-4">
+                    {campaign.links.map((link: any, index: number) => (
+                      <div key={link.id || index} className="bg-white/5 p-4 rounded border border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <div className="text-white font-semibold">{link.linkName || link.platform}</div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              {link.clickCount || 0} clicks • {link.conversionCount || 0} conversions
+                            </div>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            link.status === 'active' 
+                              ? 'bg-green-400/10 text-green-400' 
+                              : 'bg-gray-500/20 text-gray-400'
+                          }`}>
+                            {link.status}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="rounded-lg bg-black/30 border border-white/10 p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium text-gray-300">Tracking URL:</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 min-w-0">
+                                <code className="text-xs bg-black/50 px-2 py-1.5 rounded text-white font-mono border border-white/10 block w-full break-all">
+                                  {link.longUrl || link.shortUrl}
+                                </code>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(link.longUrl || link.shortUrl)
+                                  toast.success('Tracking URL copied!')
+                                }}
+                                className="flex-shrink-0 px-2 py-1.5 text-xs hover:bg-white/10 rounded border border-white/10 text-gray-300"
+                              >
+                                Copy
+                              </button>
+                            </div>
+                          </div>
+                          
+                          <div className="rounded-lg bg-black/30 border border-white/10 p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium text-gray-300">Destination URL:</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <code className="text-xs bg-black/50 px-2 py-1.5 rounded text-gray-400 font-mono border border-white/10 block w-full break-all">
+                                {link.originalUrl}
+                              </code>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Campaign Configuration */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-white/10">Campaign Configuration</h3>
