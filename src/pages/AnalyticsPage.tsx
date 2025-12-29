@@ -74,6 +74,7 @@ interface CampaignLink {
   platform: string
   linkName?: string
   originalUrl: string
+  longUrl?: string
   shortCode: string
   shortUrl: string
   utmSource?: string
@@ -1621,14 +1622,14 @@ export default function AnalyticsPage() {
                                     <div className="flex items-center gap-2">
                                       <div className="flex-1 min-w-0">
                                         <code className="text-sm bg-black/50 px-3 py-2 rounded-md text-white font-mono border border-white/10 block w-full break-all">
-                                          {link.originalUrl || link.shortUrl}
+                                          {link.longUrl || link.shortUrl}
                                         </code>
                                       </div>
                                       <div className="flex gap-1 flex-shrink-0">
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          onClick={() => copyToClipboard(link.originalUrl || link.shortUrl, 'Tracking URL')}
+                                          onClick={() => copyToClipboard(link.longUrl || link.shortUrl, 'Tracking URL')}
                                           className="h-8 w-8 p-0 hover:bg-white/10"
                                           title="Copy tracking URL"
                                         >
@@ -1637,7 +1638,7 @@ export default function AnalyticsPage() {
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          onClick={() => window.open(link.originalUrl || link.shortUrl, '_blank')}
+                                          onClick={() => window.open(link.longUrl || link.shortUrl, '_blank')}
                                           className="h-8 w-8 p-0 hover:bg-white/10"
                                           title="Open in new tab"
                                         >
@@ -1661,7 +1662,7 @@ export default function AnalyticsPage() {
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          onClick={() => copyToClipboard(link.originalUrl, 'Original URL')}
+                                          onClick={() => copyToClipboard(link.originalUrl, 'Destination URL')}
                                           className="h-8 w-8 p-0 hover:bg-white/10"
                                           title="Copy destination URL"
                                         >
