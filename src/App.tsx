@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { Web3Providers } from "@/components/Web3Providers";
+import { isAdminSubdomain } from "@/lib/subdomain-utils";
 
 // Pages
 import AuthPage from "@/pages/AuthPage";
@@ -20,12 +21,31 @@ import SocialPage from "@/pages/SocialPage";
 import TrackingPage from "@/pages/TrackingPage";
 import WalletConnectionPage from "@/pages/WalletConnectionPage";
 import { MobileWalletPage } from "@/pages/MobileWalletPage";
+import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminPage from "@/pages/AdminPage";
 import UserDetailsPage from "@/pages/UserDetailsPage";
 
 export default function App() {
   const LANDING_URL = import.meta.env.VITE_LANDING_URL || 'https://sociatrack.com';
+  const isAdminDomain = isAdminSubdomain();
   
+  // If on admin subdomain, only show admin routes
+  if (isAdminDomain) {
+    return (
+      <Web3Providers>
+        <Routes>
+          <Route path="/" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/users/:userId" element={<UserDetailsPage />} />
+          {/* Redirect all other routes to admin login on admin subdomain */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster />
+      </Web3Providers>
+    );
+  }
+  
+  // Regular app routes for main domain
   return (
     <Web3Providers>
       <Routes>
@@ -48,6 +68,7 @@ export default function App() {
         <Route path="/tracking" element={<TrackingPage />} />
         <Route path="/connect-wallet" element={<WalletConnectionPage />} />
         <Route path="/mobile-wallet" element={<MobileWalletPage />} />
+        {/* Admin routes available on app.sociatrack.com */}
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/users/:userId" element={<UserDetailsPage />} />
         {/* Redirect unknown routes to home */}

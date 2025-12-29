@@ -79,34 +79,6 @@ export default function AuthPage() {
     setLoginLoading(true)
 
     try {
-      // Check for admin credentials
-      if (loginEmail.trim() === "admin7337@gmail.com" && loginPassword === "admin") {
-        console.log("✅ Admin login detected")
-        
-        const adminToken = 'admin-token-' + Date.now()
-        localStorage.setItem('bearer_token', adminToken)
-        
-        const mockAdminSession = {
-          user: {
-            uid: 'admin-uid',
-            email: 'admin7337@gmail.com',
-            name: 'Admin User'
-          },
-          token: adminToken
-        }
-        
-        localStorage.setItem('admin_session', JSON.stringify(mockAdminSession))
-        
-        toast.success("Admin access granted!")
-        setLoginLoading(false)
-        
-        setTimeout(() => {
-          navigate("/admin")
-        }, 500)
-        
-        return
-      }
-
       const { data, error } = await authClient.signIn.email({
         email: loginEmail.trim(),
         password: loginPassword,

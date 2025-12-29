@@ -65,13 +65,13 @@ export default function AdminPage() {
 
   // Check admin access
   useEffect(() => {
-    // Check for mock admin session first (for admin bypass login)
+    // Check for admin session (from AdminLoginPage)
     const adminSession = localStorage.getItem('admin_session')
     if (adminSession) {
       try {
         const mockSession = JSON.parse(adminSession)
         if (mockSession.user?.email === 'admin7337@gmail.com') {
-          console.log("✅ Admin session found in localStorage")
+          console.log("✅ Admin session verified")
           return // Allow access
         }
       } catch (e) {
@@ -80,22 +80,19 @@ export default function AdminPage() {
       }
     }
 
-    // Check regular session
-    if (!isPending && !session?.user) {
-      console.log("❌ No session found, redirecting to home")
+    // If no valid admin session, redirect to admin login
+    console.log("❌ No admin session found, redirecting to admin login")
+    
+    // Check if we're on admin subdomain
+    const hostname = window.location.hostname.toLowerCase()
+    if (hostname === 'admin.sociatrack.com' || hostname.startsWith('admin.')) {
+      // On admin subdomain, redirect to root (admin login page)
       navigate("/")
-    } else if (session?.user) {
-      // Check if user is admin
-      const userEmail = session.user.email
-      if (userEmail !== 'admin7337@gmail.com') {
-        console.log("❌ Unauthorized access attempt to admin page")
-        navigate("/dashboard")
-        toast.error("Unauthorized access")
-        return
-      }
-      console.log("✅ Admin logged in:", session.user.email)
+    } else {
+      // On main domain, redirect to home
+      navigate("/")
     }
-  }, [session, isPending, navigate])
+  }, [navigate])
 
   const fetchAccessRequests = async () => {
     // Check if we have admin access (either through regular session or admin bypass)
