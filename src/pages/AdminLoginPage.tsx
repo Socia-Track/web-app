@@ -45,12 +45,13 @@ export default function AdminLoginPage() {
         localStorage.setItem('admin_session', JSON.stringify(mockAdminSession))
         
         toast.success("Admin access granted!")
-        setLoading(false)
         
+        // Small delay to ensure localStorage is saved (important for mobile)
         setTimeout(() => {
-          // Redirect to app.sociatrack.com/admin
-          window.location.href = "https://app.sociatrack.com/admin"
-        }, 500)
+          setLoading(false)
+          // Navigate to /admin on same domain to maintain backend access
+          navigate("/admin")
+        }, 200)
         
         return
       }

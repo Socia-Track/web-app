@@ -65,33 +65,37 @@ export default function AdminPage() {
 
   // Check admin access
   useEffect(() => {
-    // Check for admin session (from AdminLoginPage)
-    const adminSession = localStorage.getItem('admin_session')
-    if (adminSession) {
-      try {
-        const mockSession = JSON.parse(adminSession)
-        if (mockSession.user?.email === 'admin7337@gmail.com') {
-          console.log("✅ Admin session verified")
-          return // Allow access
+    // Add a small delay to ensure localStorage is properly loaded (important for mobile)
+    const checkAdminAccess = () => {
+      // Check for admin session (from AdminLoginPage)
+      const adminSession = localStorage.getItem('admin_session')
+      if (adminSession) {
+        try {
+          const mockSession = JSON.parse(adminSession)
+          if (mockSession.user?.email === 'admin7337@gmail.com') {
+            console.log("✅ Admin session verified")
+            return true // Allow access
+          }
+        } catch (e) {
+          console.log("❌ Invalid admin session data")
+          localStorage.removeItem('admin_session')
         }
-      } catch (e) {
-        console.log("❌ Invalid admin session data")
-        localStorage.removeItem('admin_session')
       }
+      return false
     }
 
-    // If no valid admin session, redirect to admin login
-    console.log("❌ No admin session found, redirecting to admin login")
-    
-    // Check if we're on admin subdomain
-    const hostname = window.location.hostname.toLowerCase()
-    if (hostname === 'admin.sociatrack.com' || hostname.startsWith('admin.')) {
-      // On admin subdomain, redirect to root (admin login page)
+    // Small delay for mobile browsers to finish localStorage operations
+    const timer = setTimeout(() => {
+      if (checkAdminAccess()) {
+        return // Access granted
+      }
+
+      // If no valid admin session, redirect to home
+      console.log("❌ No admin session found, redirecting to home")
       navigate("/")
-    } else {
-      // On main domain, redirect to home
-      navigate("/")
-    }
+    }, 150)
+
+    return () => clearTimeout(timer)
   }, [navigate])
 
   const fetchAccessRequests = async () => {
