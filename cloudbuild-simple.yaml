@@ -1,0 +1,40 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_URL=https://sociatrack-backend-802172403809.us-central1.run.app'
+      - '--build-arg'
+      - 'VITE_FRONTEND_URL=https://sociatrack.com'
+      - '-t'
+      - 'gcr.io/charming-shield-477806-j2/sociatrack-frontend:latest'
+      - '.'
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/charming-shield-477806-j2/sociatrack-frontend:latest']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'sociatrack-frontend'
+      - '--image'
+      - 'gcr.io/charming-shield-477806-j2/sociatrack-frontend:latest'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '256Mi'
+
+images:
+  - 'gcr.io/charming-shield-477806-j2/sociatrack-frontend:latest'
+
+timeout: '1200s'

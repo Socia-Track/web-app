@@ -1,0 +1,46 @@
+steps:
+  # Build the container image for landing page
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_URL=https://sociatrack-backend-802172403809.us-central1.run.app'
+      - '--build-arg'
+      - 'VITE_FRONTEND_URL=https://sociatrack.com'
+      - '--build-arg'
+      - 'VITE_BUILD_TYPE=landing'
+      - '--build-arg'
+      - 'VITE_APP_URL=https://app.sociatrack.com'
+      - '--build-arg'
+      - 'VITE_LANDING_URL=https://sociatrack.com'
+      - '-t'
+      - 'gcr.io/charming-shield-477806-j2/sociatrack-landing:latest'
+      - '.'
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/charming-shield-477806-j2/sociatrack-landing:latest']
+
+  # Deploy container image to Cloud Run (landing page service)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'sociatrack-landing'
+      - '--image'
+      - 'gcr.io/charming-shield-477806-j2/sociatrack-landing:latest'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '256Mi'
+
+images:
+  - 'gcr.io/charming-shield-477806-j2/sociatrack-landing:latest'
+
+timeout: '1200s'

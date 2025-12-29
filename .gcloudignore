@@ -1,0 +1,42 @@
+# This file excludes files from upload to reduce build time
+
+# Node modules (will be installed during build)
+node_modules/
+.npm/
+.pnp/
+
+# Build output
+dist/
+build/
+
+# Development files
+.vscode/
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+coverage/
+.nyc_output/
+
+# Documentation
+*.md
+!README.md
+
+# Lock files (keep package-lock.json)
+yarn.lock
+pnpm-lock.yaml
