@@ -11,6 +11,7 @@ import AuthPage from "@/pages/AuthPage";
 import DashboardPage from "@/pages/DashboardPage";
 import CampaignsPage from "@/pages/CampaignsPage";
 import NewCampaignPage from "@/pages/NewCampaignPage";
+import NewTokenCampaignPage from "@/pages/NewTokenCampaignPage";
 import CampaignDetailPage from "@/pages/CampaignDetailPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import AttributionsPage from "@/pages/AttributionsPage";
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/dashboard" element={<HomePage />} />
         <Route path="/campaigns" element={<CampaignsPage />} />
         <Route path="/campaigns/new" element={<NewCampaignPage />} />
+        <Route path="/campaigns/new-token" element={<NewTokenCampaignPage />} />
         <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/attributions" element={<AttributionsPage />} />

@@ -333,7 +333,7 @@ export default function AttributionsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleExportCSV}
-                  className="bg-[#00D9A3] text-white hover:bg-[#00D9A3]/90 border-[#00D9A3]"
+                  className="bg-[#00D9A3] text-black hover:bg-[#00D9A3]/90 border-[#00D9A3] font-semibold"
                 >
                   <Download size={16} className="mr-2" />
                   Export CSV
@@ -342,7 +342,7 @@ export default function AttributionsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleExportJSON}
-                  className="bg-[#00D9A3] text-white hover:bg-[#00D9A3]/90 border-[#00D9A3]"
+                  className="bg-[#00D9A3] text-black hover:bg-[#00D9A3]/90 border-[#00D9A3] font-semibold"
                 >
                   <Download size={16} className="mr-2" />
                   Export JSON

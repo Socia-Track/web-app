@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useSession } from "@/lib/auth-client"
 import DashboardLayout from "@/components/DashboardLayout"
+import CampaignTypeModal from "@/components/CampaignTypeModal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
@@ -17,6 +18,7 @@ export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [showCampaignTypeModal, setShowCampaignTypeModal] = useState(false)
 
   useEffect(() => {
     // Don't redirect while session is loading
@@ -62,6 +64,20 @@ export default function CampaignsPage() {
     c.description?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const handleCreateCampaign = () => {
+    setShowCampaignTypeModal(true)
+  }
+
+  const handleSelectNFTCampaign = () => {
+    setShowCampaignTypeModal(false)
+    navigate('/campaigns/new?type=nft')
+  }
+
+  const handleSelectTokenCampaign = () => {
+    setShowCampaignTypeModal(false)
+    navigate('/campaigns/new?type=token')
+  }
+
   if (isPending || loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-white">
@@ -83,12 +99,13 @@ export default function CampaignsPage() {
                   </h1>
                   <p className="text-sm sm:text-base text-gray-600">Manage your Web3 marketing campaigns</p>
                 </div>
-                <Link to="/campaigns/new" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white">
-                    <Plus size={16} className="mr-2" />
-                    New Campaign
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={handleCreateCampaign} 
+                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Plus size={16} className="mr-2" />
+                  New Campaign
+                </Button>
               </div>
 
               {/* Search and Filter */}
@@ -118,12 +135,13 @@ export default function CampaignsPage() {
                     <Rocket className="mx-auto mb-4 text-gray-500" size={64} />
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">No campaigns yet</h2>
                     <p className="text-gray-600 mb-6">Create your first campaign to start tracking attributions</p>
-                    <Link to="/campaigns/new">
-                      <Button className="bg-green-600 hover:bg-green-700 text-white">
-                        <Plus size={16} className="mr-2" />
-                        Create Campaign
-                      </Button>
-                    </Link>
+                    <Button 
+                      onClick={handleCreateCampaign}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Plus size={16} className="mr-2" />
+                      Create Campaign
+                    </Button>
                   </motion.div>
                 </div>
               ) : (
@@ -143,10 +161,7 @@ export default function CampaignsPage() {
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-900" style={{width: '24px', height: '24px'}}>
-                          <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                          <path d="M10 10l-3 4m6-8l4 5m-2-7l2 3m-7 6l5-6m8-3l-3 2"/>
-                        </svg>
+                          <img src="/megaphone-icon.svg" alt="campaign" className="w-6 h-6 text-gray-900" />
                         </div>
                         <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           campaign.status === 'active' 
@@ -185,6 +200,13 @@ export default function CampaignsPage() {
                 </div>
               )}
       </div>
+
+      <CampaignTypeModal
+        isOpen={showCampaignTypeModal}
+        onClose={() => setShowCampaignTypeModal(false)}
+        onSelectNFT={handleSelectNFTCampaign}
+        onSelectToken={handleSelectTokenCampaign}
+      />
     </DashboardLayout>
   )
 }

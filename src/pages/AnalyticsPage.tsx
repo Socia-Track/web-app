@@ -40,6 +40,7 @@ interface Campaign {
   minConfidenceThreshold?: number
   plannedLinks?: any
   totalLinksPlanned?: number
+  promotionType?: 'single' | 'collection'
 }
 
 interface Attribution {
@@ -1362,10 +1363,7 @@ export default function AnalyticsPage() {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-900" style={{width: '24px', height: '24px'}}>
-                          <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                          <path d="M10 10l-3 4m6-8l4 5m-2-7l2 3m-7 6l5-6m8-3l-3 2"/>
-                        </svg>
+                        <img src="/megaphone-icon.svg" alt="campaign" className="w-6 h-6 text-gray-900" />
                       </div>
                       <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         campaign.status === 'active' 
@@ -1654,14 +1652,14 @@ export default function AnalyticsPage() {
                                     <div className="flex items-center gap-2">
                                       <div className="flex-1 min-w-0">
                                         <code className="text-sm bg-white px-3 py-2 rounded-md text-gray-900 font-mono border border-gray-200 block w-full break-all">
-                                          {link.longUrl}
+                                          {link.shortUrl}
                                         </code>
                                       </div>
                                       <div className="flex gap-1 flex-shrink-0">
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          onClick={() => copyToClipboard(link.longUrl, 'Short URL')}
+                                          onClick={() => copyToClipboard(link.shortUrl, 'Short URL')}
                                           className="h-8 w-8 p-0 hover:bg-gray-100"
                                           title="Copy tracking URL"
                                         >
@@ -1670,7 +1668,7 @@ export default function AnalyticsPage() {
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          onClick={() => window.open(link.longUrl, '_blank')}
+                                          onClick={() => window.open(link.originalUrl, '_blank')}
                                           className="h-8 w-8 p-0 hover:bg-gray-100"
                                           title="Open in new tab"
                                         >

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, useMotionValue, useTransform, animate } from "framer-motion"
 import DashboardLayout from "@/components/DashboardLayout"
+import { Spinner } from "@/components/ui/spinner"
+import CampaignTypeModal from "@/components/CampaignTypeModal"
 import { 
   Target, 
   TrendingUp, 
@@ -70,6 +72,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { data: session, isPending } = useSession()
   const { planName, limits, usage, loading: planLoading } = usePlan()
+  const [showCampaignTypeModal, setShowCampaignTypeModal] = useState(false)
   const [stats, setStats] = useState({
     campaigns: 0,
     attributions: 0,
@@ -224,6 +227,20 @@ export default function HomePage() {
 
   const handleNavigation = (path: string) => {
     navigate(path)
+  }
+
+  const handleCreateCampaign = () => {
+    setShowCampaignTypeModal(true)
+  }
+
+  const handleSelectNFTCampaign = () => {
+    setShowCampaignTypeModal(false)
+    navigate('/campaigns/new?type=nft')
+  }
+
+  const handleSelectTokenCampaign = () => {
+    setShowCampaignTypeModal(false)
+    navigate('/campaigns/new?type=token')
   }
 
   // Show loading state while checking auth or fetching data
@@ -415,7 +432,7 @@ export default function HomePage() {
                   <div className="space-y-3">
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Button
-                        onClick={() => handleNavigation('/campaigns/new')}
+                        onClick={handleCreateCampaign}
                         className="w-full justify-start text-left h-auto py-4 px-4 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900"
                       >
                         <Plus className="mr-3 flex-shrink-0 text-[#00D9A3]" size={20} />
@@ -525,7 +542,7 @@ export default function HomePage() {
                         Create your first campaign to start tracking attributions
                       </p>
                       <Button
-                        onClick={() => handleNavigation('/campaigns/new')}
+                        onClick={handleCreateCampaign}
                         size="sm"
                       >
                         <Plus className="mr-2" size={16} />
@@ -596,6 +613,13 @@ export default function HomePage() {
             */}
         </div>
       </div>
+
+      <CampaignTypeModal
+        isOpen={showCampaignTypeModal}
+        onClose={() => setShowCampaignTypeModal(false)}
+        onSelectNFT={handleSelectNFTCampaign}
+        onSelectToken={handleSelectTokenCampaign}
+      />
     </DashboardLayout>
   )
 }

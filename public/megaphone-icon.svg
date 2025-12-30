@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <!-- Speaker cone - triangle shape -->
+  <path d="M4 9v6c0 1 .5 2 1.5 2h2.5l6 4V3l-6 4H5.5C4.5 7 4 8 4 9z" fill="currentColor"/>
+  <!-- Sound waves -->
+  <path d="M18 7c1 1 1.5 2.5 0 5" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+  <path d="M21 4c1.5 1.5 2 4 0 8" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+</svg>

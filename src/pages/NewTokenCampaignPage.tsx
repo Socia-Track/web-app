@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { useSession } from "@/lib/auth-client"
 import DashboardLayout from "@/components/DashboardLayout"
 import { Button } from "@/components/ui/button"
@@ -11,14 +11,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { motion } from "framer-motion"
-import { ArrowLeft, Loader2, Link, Copy, Plus } from "lucide-react"
+import { ArrowLeft, Loader2, Link, Copy } from "lucide-react"
 import { toast } from "sonner"
 import { Spinner } from "@/components/ui/spinner"
 
-export default function NewCampaignPage() {
+export default function NewTokenCampaignPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const campaignType = searchParams.get('type') || 'nft' // 'nft' or 'token'
   const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -29,10 +27,6 @@ export default function NewCampaignPage() {
     blockchain: "Ethereum",
     originalLink: "",
     generatedLinks: {} as Record<string, string>,
-    // NFT Promotion fields
-    promotionType: "collection" as "single" | "collection",
-    contractAddress: "",
-    tokenIds: [] as string[],
     // Token Promotion fields
     tokenAddress: "",
     tokenSymbol: "",
@@ -46,8 +40,6 @@ export default function NewCampaignPage() {
     Twitter: 0
   })
   
-  // State for managing tokenId inputs
-  const [tokenIdInput, setTokenIdInput] = useState("")
   const [personNames, setPersonNames] = useState<Record<string, string[]>>({
     Discord: [],
     Twitter: []
@@ -66,27 +58,15 @@ export default function NewCampaignPage() {
       return
     }
 
-    // Validate based on campaign type
-    if (campaignType === 'token') {
-      // Validate Token promotion fields
-      if (!formData.tokenAddress.trim()) {
-        toast.error("Token address is required")
-        return
-      }
-      if (!formData.tokenSymbol.trim()) {
-        toast.error("Token symbol is required")
-        return
-      }
-    } else {
-      // Validate NFT promotion fields
-      if (!formData.contractAddress.trim()) {
-        toast.error("Contract address is required")
-        return
-      }
-      if (formData.promotionType === 'single' && formData.tokenIds.length === 0) {
-        toast.error("At least one token ID is required for single NFT promotion")
-        return
-      }
+    // Validate token promotion fields
+    if (!formData.tokenAddress.trim()) {
+      toast.error("Token address is required")
+      return
+    }
+
+    if (!formData.tokenSymbol.trim()) {
+      toast.error("Token symbol is required")
+      return
     }
     
     setLoading(true)
@@ -114,10 +94,9 @@ export default function NewCampaignPage() {
           ...formData,
           userId: session.user.uid,
           platforms: JSON.stringify(formData.platforms),
-          tokenIds: JSON.stringify(formData.tokenIds),
           plannedLinks: plannedLinksData,
           totalLinksPlanned: totalLinksPlanned,
-          campaignType: campaignType // 'nft' or 'token'
+          campaignType: 'token'
         })
       })
 
@@ -128,7 +107,7 @@ export default function NewCampaignPage() {
         return
       }
 
-      toast.success(`${campaignType === 'token' ? 'Token' : 'NFT'} campaign created successfully!`)
+      toast.success('Token campaign created successfully!')
       navigate(`/campaigns/${data.id}`)
     } catch (error) {
       toast.error('An error occurred')
@@ -306,13 +285,9 @@ export default function NewCampaignPage() {
                 </Button>
               </motion.div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-[#1F2937]">
-                {campaignType === 'token' ? 'Create Token Campaign' : 'Create NFT Campaign'}
+                Create Token Campaign
               </h1>
-              <p className="text-sm sm:text-base text-[#6B7280]">
-                {campaignType === 'token' 
-                  ? 'Set up a Web3 token promotion attribution campaign' 
-                  : 'Set up a new Web3 NFT marketing attribution campaign'}
-              </p>
+              <p className="text-sm sm:text-base text-[#6B7280]">Set up a Web3 token promotion attribution campaign</p>
             </div>
 
             {/* Form */}
@@ -330,7 +305,7 @@ export default function NewCampaignPage() {
                     <Label htmlFor="name" className="text-gray-900">Campaign Name *</Label>
                     <Input
                       id="name"
-                      placeholder="e.g., NFT Launch Campaign"
+                      placeholder="e.g., Token Launch Campaign"
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       required
@@ -342,7 +317,7 @@ export default function NewCampaignPage() {
                     <Label htmlFor="description" className="text-gray-900">Description</Label>
                     <Textarea
                       id="description"
-                      placeholder="Describe your campaign objectives and target audience"
+                      placeholder="Describe your token campaign and distribution strategy"
                       value={formData.description}
                       onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                       className="mt-2 bg-white border-gray-200 text-gray-900 min-h-24"
@@ -353,7 +328,7 @@ export default function NewCampaignPage() {
                     <Label htmlFor="objectives" className="text-gray-900">Campaign Objectives</Label>
                     <Textarea
                       id="objectives"
-                      placeholder="e.g., Drive NFT mints, increase token holders"
+                      placeholder="e.g., Drive token adoption, increase holder base"
                       value={formData.objectives}
                       onChange={(e) => setFormData(prev => ({ ...prev, objectives: e.target.value }))}
                       className="mt-2 bg-gray-50 border-gray-200 text-gray-900 min-h-20"
@@ -512,145 +487,6 @@ export default function NewCampaignPage() {
                 </div>
               </div>
 
-              {/* NFT Promotion Tracking - Only show for NFT campaigns */}
-              {campaignType === 'nft' && (
-              <div className="rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-sm">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">NFT Promotion Tracking</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-gray-900 mb-3 block">Promotion Type *</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div
-                        className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                          formData.promotionType === 'collection'
-                            ? 'border-green-600 bg-green-50'
-                            : 'border-gray-200 bg-gray-50'
-                        }`}
-                        onClick={() => setFormData(prev => ({ ...prev, promotionType: 'collection', tokenIds: [] }))}
-                      >
-                        <div className="text-[#1F2937] font-medium mb-2">Collection Promotion</div>
-                        <div className="text-[#6B7280] text-sm">Track purchases of any NFT from a collection</div>
-                      </div>
-                      
-                      <div
-                        className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                          formData.promotionType === 'single'
-                            ? 'border-green-600 bg-green-50'
-                            : 'border-gray-200 bg-gray-50'
-                        }`}
-                        onClick={() => setFormData(prev => ({ ...prev, promotionType: 'single' }))}
-                      >
-                        <div className="text-[#1F2937] font-medium mb-2">Single NFT Promotion</div>
-                        <div className="text-[#6B7280] text-sm">Track purchases of specific NFT(s) by token ID</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="contractAddress" className="text-[#1F2937]">
-                      Contract Address *
-                    </Label>
-                    <Input
-                      id="contractAddress"
-                      placeholder="e.g., 0x1234567890abcdef..."
-                      value={formData.contractAddress}
-                      onChange={(e) => setFormData(prev => ({ ...prev, contractAddress: e.target.value }))}
-                      className="mt-2 bg-white border-gray-200 text-[#1F2937]"
-                    />
-                    <p className="text-xs text-[#6B7280] mt-1">
-                      The smart contract address of the NFT collection
-                    </p>
-                  </div>
-
-                  {formData.promotionType === 'single' && (
-                    <div>
-                      <Label className="text-[#1F2937] mb-2 block">Token IDs *</Label>
-                      <div className="space-y-3">
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Enter token ID (e.g., 1234)"
-                            value={tokenIdInput}
-                            onChange={(e) => setTokenIdInput(e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault()
-                                if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
-                                  setFormData(prev => ({ 
-                                    ...prev, 
-                                    tokenIds: [...prev.tokenIds, tokenIdInput.trim()] 
-                                  }))
-                                  setTokenIdInput("")
-                                }
-                              }
-                            }}
-                            className="bg-white border-gray-200 text-[#1F2937]"
-                          />
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
-                                setFormData(prev => ({ 
-                                  ...prev, 
-                                  tokenIds: [...prev.tokenIds, tokenIdInput.trim()] 
-                                }))
-                                setTokenIdInput("")
-                              }
-                            }}
-                            className="px-4 bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            Add
-                          </Button>
-                        </div>
-                        
-                        {formData.tokenIds.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-sm text-[#6B7280]">Added Token IDs:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {formData.tokenIds.map((tokenId, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full text-sm text-green-700"
-                                >
-                                  <span>{tokenId}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        tokenIds: prev.tokenIds.filter((_, i) => i !== index)
-                                      }))
-                                    }}
-                                    className="text-green-600 hover:text-green-800 ml-1"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <p className="text-xs text-[#6B7280]">
-                          For single NFT promotion, specify which exact tokens to track. Press Enter or click Add to add each token ID.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {formData.promotionType === 'collection' && (
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-blue-700 text-sm">
-                        <strong>Collection Promotion:</strong> We'll track when users purchase any NFT from this collection using the contract address. No specific token IDs needed.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              )}
-
-              {/* Token Promotion Tracking - Only show for Token campaigns */}
-              {campaignType === 'token' && (
               <div className="rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-sm">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Token Tracking</h2>
                 
@@ -667,7 +503,7 @@ export default function NewCampaignPage() {
                       className="mt-2 bg-white border-gray-200 text-[#1F2937]"
                     />
                     <p className="text-xs text-[#6B7280] mt-1">
-                      The ERC20 token contract address
+                      The ERC20 token contract address (click Fetch to load token details)
                     </p>
                   </div>
 
@@ -711,7 +547,6 @@ export default function NewCampaignPage() {
                   </div>
                 </div>
               </div>
-              )}
 
               <div className="rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
