@@ -89,11 +89,11 @@ export default function PricingPage() {
       const body = encodeURIComponent(
         `Hi SociaTrack Team,\n\nI'm interested in learning more about the Enterprise plan.\n\nBest regards`
       )
-      
+
       // Try to open in new tab first (iframe compatibility)
       const mailtoLink = `mailto:sales@sociatrack.io?subject=${subject}&body=${body}`
       const isInIframe = window.self !== window.top
-      
+
       if (isInIframe) {
         window.parent.postMessage(
           { type: "OPEN_EXTERNAL_URL", data: { url: mailtoLink } },
@@ -102,17 +102,17 @@ export default function PricingPage() {
       } else {
         window.location.href = mailtoLink
       }
-      
+
       toast.success("Opening email client...")
     } else {
       // For Free and Pro plans
       if (!isPending && session?.user) {
         // User is logged in, activate the plan
         setLoading(true)
-        
+
         try {
           const token = localStorage.getItem("bearer_token")
-          
+
           // Create subscription
           const subResponse = await fetch("/api/subscriptions", {
             method: "POST",
@@ -124,7 +124,7 @@ export default function PricingPage() {
               userId: session.user.uid,
               planName,
               status: planName === "Pro" ? "trial" : "active",
-              trialEndsAt: planName === "Pro" 
+              trialEndsAt: planName === "Pro"
                 ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
                 : null
             })
@@ -153,7 +153,7 @@ export default function PricingPage() {
           }
 
           const limits = planLimits[planName as "Free" | "Pro"]
-          
+
           const usageResponse = await fetch("/api/plan-usage", {
             method: "POST",
             headers: {
@@ -199,7 +199,7 @@ export default function PricingPage() {
             transition={{ duration: 0.8 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-muted-foreground to-muted-foreground bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
               Choose Your Plan
             </h1>
             <p className="text-xl text-muted-foreground">
@@ -219,11 +219,10 @@ export default function PricingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`relative border rounded-2xl p-8 ${
-                  plan.popular
+                className={`relative border rounded-2xl p-8 ${plan.popular
                     ? "border-primary/30 bg-card"
                     : "border-border bg-card"
-                }`}
+                  }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -236,7 +235,7 @@ export default function PricingPage() {
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                   <div className="mb-2">
-                    <span className="text-4xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                    <span className="text-4xl font-bold text-foreground">
                       {plan.price}
                     </span>
                     {plan.period !== "contact us" && (
@@ -247,11 +246,10 @@ export default function PricingPage() {
                 </div>
 
                 <Button
-                  className={`w-full mb-8 ${
-                    plan.popular
+                  className={`w-full mb-8 ${plan.popular
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
                       : ""
-                  }`}
+                    }`}
                   variant={plan.popular ? "default" : "outline"}
                   size="lg"
                   onClick={() => handlePlanSelect(plan.name)}
@@ -290,10 +288,10 @@ export default function PricingPage() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto mt-20"
           >
-            <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold text-center mb-12 text-foreground">
               Frequently Asked Questions
             </h2>
-            
+
             <div className="space-y-6">
               {[
                 {
@@ -331,7 +329,7 @@ export default function PricingPage() {
       </section>
 
       <Footer />
-      
+
       <SignupModal open={signupOpen} onOpenChange={setSignupOpen} />
     </div>
   )

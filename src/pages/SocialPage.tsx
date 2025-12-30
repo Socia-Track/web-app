@@ -62,10 +62,10 @@ export default function SocialPage() {
 
   const fetchPosts = async () => {
     if (!session?.user?.uid) return
-    
+
     setLoading(true)
     const token = localStorage.getItem("bearer_token")
-    
+
     try {
       const response = await fetch('/api/social-posts?limit=100', {
         headers: { Authorization: `Bearer ${token}` }
@@ -91,9 +91,9 @@ export default function SocialPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const token = localStorage.getItem("bearer_token")
-    
+
     try {
       const response = await fetch('/api/social-posts', {
         method: 'POST',
@@ -141,173 +141,166 @@ export default function SocialPage() {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-8 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Social Posts(COMMING SOON)
-              </h1>
-              <p className="text-gray-400">Track and manage social media posts for attribution</p>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={fetchPosts}
-                className="border-white/10"
-                disabled={loading}
-              >
-                <RefreshCw size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    style={{
-                      background: 'linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(100, 100, 100, 0.8))'
-                    }}
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Add Post
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-card border-white/10">
-                  <DialogHeader>
-                    <DialogTitle>Add Social Post</DialogTitle>
-                    <DialogDescription>
-                      Add a social media post to track for attribution
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="platform">Platform</Label>
-                      <Select
-                        value={formData.platform}
-                        onValueChange={(value) => setFormData({ ...formData, platform: value })}
-                      >
-                        <SelectTrigger id="platform">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="twitter">Twitter</SelectItem>
-                          <SelectItem value="discord">Discord</SelectItem>
-                          <SelectItem value="telegram">Telegram</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="postId">Post ID</Label>
-                      <Input
-                        id="postId"
-                        value={formData.postId}
-                        onChange={(e) => setFormData({ ...formData, postId: e.target.value })}
-                        placeholder="Post ID from platform"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="content">Content</Label>
-                      <Input
-                        id="content"
-                        value={formData.content}
-                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                        placeholder="Post content or excerpt"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="authorId">Author ID</Label>
-                      <Input
-                        id="authorId"
-                        value={formData.authorId}
-                        onChange={(e) => setFormData({ ...formData, authorId: e.target.value })}
-                        placeholder="Author username or ID"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="postUrl">Post URL</Label>
-                      <Input
-                        id="postUrl"
-                        value={formData.postUrl}
-                        onChange={(e) => setFormData({ ...formData, postUrl: e.target.value })}
-                        placeholder="https://..."
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="postedAt">Posted At</Label>
-                      <Input
-                        id="postedAt"
-                        type="datetime-local"
-                        value={formData.postedAt}
-                        onChange={(e) => setFormData({ ...formData, postedAt: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full">Add Post</Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 text-foreground">
+              Social Posts(COMMING SOON)
+            </h1>
+            <p className="text-gray-400">Track and manage social media posts for attribution</p>
           </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={fetchPosts}
+              className="border-white/10"
+              disabled={loading}
+            >
+              <RefreshCw size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-primary-foreground">
+                  <Plus size={16} className="mr-2" />
+                  Add Post
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-card border-white/10">
+                <DialogHeader>
+                  <DialogTitle>Add Social Post</DialogTitle>
+                  <DialogDescription>
+                    Add a social media post to track for attribution
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="platform">Platform</Label>
+                    <Select
+                      value={formData.platform}
+                      onValueChange={(value) => setFormData({ ...formData, platform: value })}
+                    >
+                      <SelectTrigger id="platform">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="twitter">Twitter</SelectItem>
+                        <SelectItem value="discord">Discord</SelectItem>
+                        <SelectItem value="telegram">Telegram</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="postId">Post ID</Label>
+                    <Input
+                      id="postId"
+                      value={formData.postId}
+                      onChange={(e) => setFormData({ ...formData, postId: e.target.value })}
+                      placeholder="Post ID from platform"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="content">Content</Label>
+                    <Input
+                      id="content"
+                      value={formData.content}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                      placeholder="Post content or excerpt"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="authorId">Author ID</Label>
+                    <Input
+                      id="authorId"
+                      value={formData.authorId}
+                      onChange={(e) => setFormData({ ...formData, authorId: e.target.value })}
+                      placeholder="Author username or ID"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="postUrl">Post URL</Label>
+                    <Input
+                      id="postUrl"
+                      value={formData.postUrl}
+                      onChange={(e) => setFormData({ ...formData, postUrl: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="postedAt">Posted At</Label>
+                    <Input
+                      id="postedAt"
+                      type="datetime-local"
+                      value={formData.postedAt}
+                      onChange={(e) => setFormData({ ...formData, postedAt: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">Add Post</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
 
-          {posts.length === 0 ? (
-            <div className="text-center py-16 rounded-xl border border-white/10 bg-card">
-              <MessageSquare className="mx-auto mb-4 text-gray-500" size={64} />
-              <h3 className="text-xl font-semibold text-white mb-2">No social posts yet</h3>
-              <p className="text-gray-400 mb-6">Start tracking social media posts for attribution analysis</p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus size={16} className="mr-2" />
-                Add Your First Post
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {posts.map((post, index) => (
-                <motion.div
-                  key={post.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="rounded-lg border border-white/10 p-6 hover:border-white/20 transition-all"
-                  style={{
-                    background: 'linear-gradient(to right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.7))'
-                  }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {post.platform === 'twitter' ? (
-                        <Twitter className="text-primary" size={20} />
-                      ) : (
-                        <MessageSquare className="text-primary" size={20} />
+        {posts.length === 0 ? (
+          <div className="text-center py-16 rounded-xl border border-white/10 bg-card">
+            <MessageSquare className="mx-auto mb-4 text-gray-500" size={64} />
+            <h3 className="text-xl font-semibold text-white mb-2">No social posts yet</h3>
+            <p className="text-gray-400 mb-6">Start tracking social media posts for attribution analysis</p>
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus size={16} className="mr-2" />
+              Add Your First Post
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {posts.map((post, index) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="rounded-lg border bg-card p-6 hover:shadow-md transition-all"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    {post.platform === 'twitter' ? (
+                      <Twitter className="text-primary" size={20} />
+                    ) : (
+                      <MessageSquare className="text-primary" size={20} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-semibold text-white capitalize">{post.platform}</span>
+                      <span className="text-xs text-gray-500">@{post.authorId}</span>
+                    </div>
+                    <p className="text-gray-300 mb-3">{post.content}</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar size={12} />
+                        {new Date(post.postedAt).toLocaleString()}
+                      </div>
+                      {post.postUrl && (
+                        <a
+                          href={post.postUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          View Post
+                        </a>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-semibold text-white capitalize">{post.platform}</span>
-                        <span className="text-xs text-gray-500">@{post.authorId}</span>
-                      </div>
-                      <p className="text-gray-300 mb-3">{post.content}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          {new Date(post.postedAt).toLocaleString()}
-                        </div>
-                        {post.postUrl && (
-                          <a
-                            href={post.postUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            View Post
-                          </a>
-                        )}
-                      </div>
-                    </div>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   )
