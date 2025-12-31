@@ -66,37 +66,38 @@ export default function AdminPage() {
 
   // Check admin access
   useEffect(() => {
-    // Check for mock admin session first (for admin bypass login)
-    const adminSession = localStorage.getItem('admin_session')
-    if (adminSession) {
-      try {
-        const mockSession = JSON.parse(adminSession)
-        if (mockSession.user?.email === 'admin7337@gmail.com') {
-          console.log("✅ Admin session found in localStorage")
-          return // Allow access
+    // Add a small delay to ensure localStorage is properly loaded (important for mobile)
+    const checkAdminAccess = () => {
+      // Check for admin session (from AdminLoginPage)
+      const adminSession = localStorage.getItem('admin_session')
+      if (adminSession) {
+        try {
+          const mockSession = JSON.parse(adminSession)
+          if (mockSession.user?.email === 'admin7337@gmail.com') {
+            console.log("✅ Admin session verified")
+            return true // Allow access
+          }
+        } catch (e) {
+          console.log("❌ Invalid admin session data")
+          localStorage.removeItem('admin_session')
         }
-      } catch (e) {
-        console.log("❌ Invalid admin session data")
-        localStorage.removeItem('admin_session')
       }
+      return false
     }
 
-    // Check regular session
-    if (!isPending && !session?.user) {
-      console.log("❌ No session found, redirecting to home")
-      navigate("/")
-    } else if (session?.user) {
-      // Check if user is admin
-      const userEmail = session.user.email
-      if (userEmail !== 'admin7337@gmail.com') {
-        console.log("❌ Unauthorized access attempt to admin page")
-        navigate("/dashboard")
-        toast.error("Unauthorized access")
-        return
+    // Small delay for mobile browsers to finish localStorage operations
+    const timer = setTimeout(() => {
+      if (checkAdminAccess()) {
+        return // Access granted
       }
-      console.log("✅ Admin logged in:", session.user.email)
-    }
-  }, [session, isPending, navigate])
+
+      // If no valid admin session, redirect to home
+      console.log("❌ No admin session found, redirecting to home")
+      navigate("/")
+    }, 150)
+
+    return () => clearTimeout(timer)
+  }, [navigate])
 
   const fetchAccessRequests = async () => {
     // Check if we have admin access (either through regular session or admin bypass)
@@ -278,11 +279,11 @@ export default function AdminPage() {
 
   if (isPending || (loading && !error)) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center" style={{backgroundColor: '#FAF9F6'}}>
         <div className="text-center">
           <Spinner className="mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-white">Loading Admin Panel...</h2>
-          <p className="text-muted-foreground">Setting up the dashboard</p>
+          <h2 className="text-lg font-semibold" style={{color: '#1A1A1A'}}>Loading Admin Panel...</h2>
+          <p style={{color: '#6B7280'}}>Setting up the dashboard</p>
         </div>
       </div>
     )
@@ -297,12 +298,18 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center" style={{backgroundColor: '#FAF9F6'}}>
         <div className="text-center max-w-md">
-          <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
-          <h2 className="text-xl font-bold text-white mb-2">Error Loading Admin Panel</h2>
-          <p className="text-gray-400 mb-4">{error}</p>
-          <Button onClick={handleRefresh}>
+          <AlertCircle className="mx-auto mb-4 h-12 w-12" style={{color: '#EF4444'}} />
+          <h2 className="text-xl font-bold mb-2" style={{color: '#1A1A1A'}}>Error Loading Admin Panel</h2>
+          <p className="mb-4" style={{color: '#6B7280'}}>{error}</p>
+          <Button 
+            onClick={handleRefresh}
+            style={{
+              backgroundColor: '#1A1A1A',
+              color: '#FFFFFF'
+            }}
+          >
             <RefreshCw size={16} className="mr-2" />
             Try Again
           </Button>
@@ -379,6 +386,13 @@ export default function AdminPage() {
           <div className="flex items-center gap-2 mb-8">
             <Shield className="h-6 w-6 text-lime-500" />
             <h2 className="text-xl font-bold text-foreground">Admin Panel</h2>
+    <div className="min-h-screen" style={{backgroundColor: '#FAF9F6'}}>
+      {/* Admin Sidebar */}
+      <div className="fixed left-0 top-0 h-screen w-64 bg-white border-r z-40 flex flex-col" style={{borderColor: '#E5E7EB'}}>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-8">
+            <Shield className="h-6 w-6" style={{color: '#D4E157'}} />
+            <h2 className="text-xl font-bold" style={{color: '#1A1A1A'}}>Admin Panel</h2>
           </div>
           
           <nav className="space-y-2">
@@ -391,7 +405,13 @@ export default function AdminPage() {
                 activeView === 'requests' 
                   ? 'bg-lime-500/10 text-lime-500 border border-lime-500/20' 
                   : 'text-muted-foreground hover:bg-muted/50'
+                  ? 'text-black' 
+                  : 'hover:bg-gray-50'
               }`}
+              style={{
+                backgroundColor: activeView === 'requests' ? '#EDF4B3' : 'transparent',
+                color: activeView === 'requests' ? '#1A1A1A' : '#6B7280'
+              }}
             >
               <UserCog className="h-5 w-5" />
               <span className="font-medium">Access Requests</span>
@@ -406,7 +426,13 @@ export default function AdminPage() {
                 activeView === 'users' 
                   ? 'bg-lime-500/10 text-lime-500 border border-lime-500/20' 
                   : 'text-muted-foreground hover:bg-muted/50'
+                  ? 'text-black' 
+                  : 'hover:bg-gray-50'
               }`}
+              style={{
+                backgroundColor: activeView === 'users' ? '#EDF4B3' : 'transparent',
+                color: activeView === 'users' ? '#1A1A1A' : '#6B7280'
+              }}
             >
               <Users className="h-5 w-5" />
               <span className="font-medium">User Details</span>
@@ -414,11 +440,15 @@ export default function AdminPage() {
           </nav>
         </div>
 
-        <div className="mt-auto p-6 border-t border-sidebar-border">
+        <div className="mt-auto p-6 border-t" style={{borderColor: '#E5E7EB'}}>
           <Button 
             variant="outline" 
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            className="w-full flex items-center gap-2"
+            style={{
+              color: '#6B7280',
+              borderColor: '#E5E7EB'
+            }}
           >
             <LogOut className="h-4 w-4" />
             Logout Admin
@@ -441,6 +471,11 @@ export default function AdminPage() {
               </h1>
             </div>
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mb-4">
+              <h1 className="text-4xl font-bold" style={{color: '#1A1A1A'}}>
+                {activeView === 'requests' ? 'ACCESS REQUEST MANAGEMENT' : 'USER MANAGEMENT'}
+              </h1>
+            </div>
+            <p className="text-lg mb-4" style={{color: '#6B7280'}}>
               {activeView === 'requests' 
                 ? 'Review and approve account access requests' 
                 : 'View and manage all user accounts'}
@@ -451,14 +486,19 @@ export default function AdminPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-emerald-500 font-medium">System Online</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2" style={{color: '#6B7280'}}>
+                  <div className="w-2 h-2 rounded-full" style={{backgroundColor: '#10B981'}} />
+                  <span>System Online</span>
                 </div>
                 {activeView === 'requests' && (
-                  <div className="text-muted-foreground">
+                  <div style={{color: '#6B7280'}}>
                     {pendingRequests.length} pending requests
                   </div>
                 )}
                 {activeView === 'users' && (
-                  <div className="text-muted-foreground">
+                  <div style={{color: '#6B7280'}}>
                     {allUsers.length} total users
                   </div>
                 )}
@@ -470,6 +510,10 @@ export default function AdminPage() {
                 size="sm"
                 disabled={loadingUsers}
                 className="w-full sm:w-auto"
+                style={{
+                  borderColor: '#E5E7EB',
+                  color: '#374151'
+                }}
               >
                 <RefreshCw size={16} className={`mr-2 ${loadingUsers ? 'animate-spin' : ''}`} />
                 Refresh
@@ -489,11 +533,16 @@ export default function AdminPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Users className="h-4 w-4 text-yellow-500" />
+            <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2" style={{color: '#1A1A1A'}}>
+                  <Users className="h-4 w-4" style={{color: '#D4E157'}} />
                   Pending Requests
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl lg:text-3xl font-bold text-yellow-500">
+                <div className="text-2xl font-bold" style={{color: '#1A1A1A'}}>
                   {pendingRequests.length}
                 </div>
               </CardContent>
@@ -503,11 +552,16 @@ export default function AdminPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-500" />
+            <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2" style={{color: '#1A1A1A'}}>
+                  <Check className="h-4 w-4" style={{color: '#10B981'}} />
                   Approved
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl lg:text-3xl font-bold text-emerald-500">
+                <div className="text-2xl font-bold" style={{color: '#10B981'}}>
                   {approvedRequests.length}
                 </div>
               </CardContent>
@@ -517,11 +571,16 @@ export default function AdminPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <X className="h-4 w-4 text-red-500" />
+            <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2" style={{color: '#1A1A1A'}}>
+                  <X className="h-4 w-4" style={{color: '#EF4444'}} />
                   Rejected
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl lg:text-3xl font-bold text-red-500">
+                <div className="text-2xl font-bold" style={{color: '#EF4444'}}>
                   {rejectedRequests.length}
                 </div>
               </CardContent>
@@ -536,10 +595,12 @@ export default function AdminPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-          <Card>
+          <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
                 <Users className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2" style={{color: '#1A1A1A'}}>
+                <Users className="h-5 w-5" style={{color: '#D4E157'}} />
                 Access Requests
               </CardTitle>
             </CardHeader>
@@ -640,45 +701,45 @@ export default function AdminPage() {
               <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left p-4 font-medium">User</th>
-                      <th className="text-left p-4 font-medium">Role</th>
-                      <th className="text-left p-4 font-medium">Type</th>
-                      <th className="text-left p-4 font-medium">Status</th>
-                      <th className="text-left p-4 font-medium">Requested</th>
-                      <th className="text-left p-4 font-medium">Actions</th>
+                    <tr className="border-b" style={{borderColor: '#E5E7EB'}}>
+                      <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>User</th>
+                      <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Role</th>
+                      <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Type</th>
+                      <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Status</th>
+                      <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Requested</th>
+                      <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {accessRequests.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="text-center py-8 text-muted-foreground">
+                        <td colSpan={6} className="text-center py-8" style={{color: '#6B7280'}}>
                           No access requests found
                         </td>
                       </tr>
                     ) : (
                       accessRequests.map((request) => (
-                        <tr key={request.id} className="border-b border-border hover:bg-muted/50">
+                        <tr key={request.id} className="border-b hover:bg-gray-50" style={{borderColor: '#E5E7EB'}}>
                           <td className="p-4">
                             <div className="flex items-center gap-3">
                               {request.accountType === 'organization' ? (
-                                <Building className="h-4 w-4 text-muted-foreground" />
+                                <Building className="h-4 w-4" style={{color: '#6B7280'}} />
                               ) : (
-                                <UserIcon className="h-4 w-4 text-muted-foreground" />
+                                <UserIcon className="h-4 w-4" style={{color: '#6B7280'}} />
                               )}
                               <div>
-                                <div className="font-medium">
+                                <div className="font-medium" style={{color: '#1A1A1A'}}>
                                   {request.accountType === 'organization' 
                                     ? request.organizationName 
                                     : `${request.firstName} ${request.lastName}`
                                   }
                                 </div>
-                                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                                <div className="text-sm flex items-center gap-1" style={{color: '#6B7280'}}>
                                   <Mail className="h-3 w-3" />
                                   {request.email}
                                 </div>
                                 {request.phoneNumber && (
-                                  <div className="text-sm text-muted-foreground flex items-center gap-1">
+                                  <div className="text-sm flex items-center gap-1" style={{color: '#6B7280'}}>
                                     <Phone className="h-3 w-3" />
                                     {request.phoneNumber}
                                   </div>
@@ -687,12 +748,12 @@ export default function AdminPage() {
                             </div>
                           </td>
                           <td className="p-4">
-                            <Badge variant="outline" className="text-muted-foreground border-muted">
+                            <Badge variant="outline" style={{color: '#374151', borderColor: '#E5E7EB'}}>
                               {request.role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </Badge>
                           </td>
                           <td className="p-4">
-                            <Badge variant="outline" className="text-muted-foreground border-muted">
+                            <Badge variant="outline" style={{color: '#374151', borderColor: '#E5E7EB'}}>
                               {request.accountType}
                             </Badge>
                           </td>
@@ -704,12 +765,20 @@ export default function AdminPage() {
                                 request.status === 'rejected' ? 'text-red-500 border-red-500 bg-red-500/10' : 
                                 'text-yellow-500 border-yellow-500 bg-yellow-500/10'
                               }
+                              style={{
+                                color: request.status === 'approved' ? '#10B981' :
+                                       request.status === 'rejected' ? '#EF4444' : 
+                                       '#F59E0B',
+                                borderColor: request.status === 'approved' ? '#10B981' :
+                                            request.status === 'rejected' ? '#EF4444' : 
+                                            '#F59E0B'
+                              }}
                             >
                               {request.status}
                             </Badge>
                           </td>
                           <td className="p-4">
-                            <div className="text-sm text-muted-foreground flex items-center gap-1">
+                            <div className="text-sm flex items-center gap-1" style={{color: '#6B7280'}}>
                               <Calendar className="h-3 w-3" />
                               {new Date(request.createdAt).toLocaleDateString()}
                             </div>
@@ -761,10 +830,10 @@ export default function AdminPage() {
             transition={{ delay: 0.3 }}
             className="mt-8"
           >
-            <Card>
+            <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2" style={{color: '#1A1A1A'}}>
+                  <Users className="h-5 w-5" style={{color: '#D4E157'}} />
                   All Users ({allUsers.length})
                 </CardTitle>
               </CardHeader>
@@ -817,47 +886,75 @@ export default function AdminPage() {
       
       {/* Approval Dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white border" style={{borderColor: '#E5E7EB'}}>
           <DialogHeader>
-            <DialogTitle>Approve Account Request</DialogTitle>
+            <DialogTitle style={{color: '#1A1A1A'}}>Approve Account Request</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm" style={{color: '#6B7280'}}>
               You are about to approve the account request for:
             </div>
-            <div className="font-medium">
+            <div className="font-medium" style={{color: '#1A1A1A'}}>
               {selectedRequest?.accountType === 'organization' 
                 ? selectedRequest?.organizationName 
                 : `${selectedRequest?.firstName} ${selectedRequest?.lastName}`
               }
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm" style={{color: '#6B7280'}}>
               {selectedRequest?.email}
             </div>
             
             <div className="space-y-2">
-              <Label>Generated Password</Label>
+              <Label style={{color: '#374151'}}>Generated Password</Label>
               <div className="flex gap-2">
-                <Input value={generatedPassword} readOnly />
+                <Input 
+                  value={generatedPassword} 
+                  readOnly 
+                  className="bg-white border" 
+                  style={{
+                    borderColor: '#D1D5DB',
+                    color: '#1A1A1A'
+                  }}
+                />
                 <Button 
                   type="button" 
                   variant="outline" 
                   size="sm"
                   onClick={() => setGeneratedPassword(generateSecurePassword())}
+                  style={{
+                    borderColor: '#E5E7EB',
+                    color: '#374151'
+                  }}
                 >
                   <RefreshCw className="h-3 w-3" />
                 </Button>
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs" style={{color: '#9CA3AF'}}>
                 This password will be sent to the user's email
               </div>
             </div>
             
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowApprovalDialog(false)}
+                style={{
+                  borderColor: '#E5E7EB',
+                  color: '#374151'
+                }}
+              >
                 Cancel
               </Button>
               <Button onClick={confirmApproval} variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white">
+              <Button 
+                onClick={confirmApproval} 
+                style={{
+                  backgroundColor: '#10B981',
+                  color: '#FFFFFF',
+                  borderColor: '#10B981'
+                }}
+                className="hover:bg-green-600"
+              >
                 <Key className="h-3 w-3 mr-1" />
                 Approve & Send Credentials
               </Button>
@@ -868,43 +965,60 @@ export default function AdminPage() {
 
       {/* Rejection Dialog */}
       <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white border" style={{borderColor: '#E5E7EB'}}>
           <DialogHeader>
-            <DialogTitle>Reject Account Request</DialogTitle>
+            <DialogTitle style={{color: '#1A1A1A'}}>Reject Account Request</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm" style={{color: '#6B7280'}}>
               You are about to reject the account request for:
             </div>
-            <div className="font-medium">
+            <div className="font-medium" style={{color: '#1A1A1A'}}>
               {selectedRequest?.accountType === 'organization' 
                 ? selectedRequest?.organizationName 
                 : `${selectedRequest?.firstName} ${selectedRequest?.lastName}`
               }
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm" style={{color: '#6B7280'}}>
               {selectedRequest?.email}
             </div>
             
             <div className="space-y-2">
-              <Label>Reason for Rejection *</Label>
+              <Label style={{color: '#374151'}}>Reason for Rejection *</Label>
               <Textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Please provide a reason for rejecting this request..."
-                className="min-h-20"
+                className="min-h-20 bg-white border"
+                style={{
+                  borderColor: '#D1D5DB',
+                  color: '#1A1A1A'
+                }}
               />
             </div>
             
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowRejectionDialog(false)}>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowRejectionDialog(false)}
+                style={{
+                  borderColor: '#E5E7EB',
+                  color: '#374151'
+                }}
+              >
                 Cancel
               </Button>
               <Button 
-                variant="outline" 
                 onClick={confirmRejection}
                 disabled={!rejectionReason.trim()}
                 className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white disabled:opacity-50"
+                style={{
+                  backgroundColor: '#EF4444',
+                  color: '#FFFFFF',
+                  borderColor: '#EF4444',
+                  opacity: !rejectionReason.trim() ? 0.5 : 1
+                }}
+                className="hover:bg-red-600 disabled:hover:bg-red-400"
               >
                 <X className="h-3 w-3 mr-1" />
                 Reject Request
