@@ -62,6 +62,7 @@ export default function AdminPage() {
   const [allUsers, setAllUsers] = useState<any[]>([])
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [activeView, setActiveView] = useState<'requests' | 'users'>('requests')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Check admin access
   useEffect(() => {
@@ -352,20 +353,43 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-lime-500/10 border border-lime-500/20 text-lime-500"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+      </button>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Admin Sidebar */}
-      <div className="fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border z-40 flex flex-col">
+      <div className={`fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border z-40 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
         <div className="p-6">
           <div className="flex items-center gap-2 mb-8">
-            <Shield className="h-6 w-6 text-primary" />
+            <Shield className="h-6 w-6 text-lime-500" />
             <h2 className="text-xl font-bold text-foreground">Admin Panel</h2>
           </div>
           
           <nav className="space-y-2">
             <button
-              onClick={showAccessRequests}
+              onClick={() => {
+                showAccessRequests()
+                setSidebarOpen(false)
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                 activeView === 'requests' 
-                  ? 'bg-primary/10 text-primary' 
+                  ? 'bg-lime-500/10 text-lime-500 border border-lime-500/20' 
                   : 'text-muted-foreground hover:bg-muted/50'
               }`}
             >
@@ -374,10 +398,13 @@ export default function AdminPage() {
             </button>
             
             <button
-              onClick={fetchAllUsers}
+              onClick={() => {
+                fetchAllUsers()
+                setSidebarOpen(false)
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                 activeView === 'users' 
-                  ? 'bg-primary/10 text-primary' 
+                  ? 'bg-lime-500/10 text-lime-500 border border-lime-500/20' 
                   : 'text-muted-foreground hover:bg-muted/50'
               }`}
             >
@@ -400,30 +427,30 @@ export default function AdminPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="ml-64">
+      <div className="lg:ml-64 pt-16 lg:pt-0">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           {/* Admin Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-10 relative"
+            className="mb-6 lg:mb-10 relative"
           >
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-4xl font-bold text-foreground">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
                 {activeView === 'requests' ? 'ACCESS REQUEST MANAGEMENT' : 'USER MANAGEMENT'}
               </h1>
             </div>
-            <p className="text-lg text-muted-foreground mb-4">
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mb-4">
               {activeView === 'requests' 
                 ? 'Review and approve account access requests' 
                 : 'View and manage all user accounts'}
             </p>
             
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="w-2 h-2 rounded-full bg-foreground" />
-                  <span>System Online</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-emerald-500 font-medium">System Online</span>
                 </div>
                 {activeView === 'requests' && (
                   <div className="text-muted-foreground">
@@ -442,6 +469,7 @@ export default function AdminPage() {
                 variant="outline" 
                 size="sm"
                 disabled={loadingUsers}
+                className="w-full sm:w-auto"
               >
                 <RefreshCw size={16} className={`mr-2 ${loadingUsers ? 'animate-spin' : ''}`} />
                 Refresh
@@ -455,45 +483,45 @@ export default function AdminPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8"
           >
-            <Card>
+            <Card className="border-yellow-500/20 bg-yellow-500/5">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Users className="h-4 w-4 text-foreground" />
+                  <Users className="h-4 w-4 text-yellow-500" />
                   Pending Requests
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-2xl lg:text-3xl font-bold text-yellow-500">
                   {pendingRequests.length}
                 </div>
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="border-emerald-500/20 bg-emerald-500/5">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Check className="h-4 w-4 text-muted-foreground" />
+                  <Check className="h-4 w-4 text-emerald-500" />
                   Approved
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-muted-foreground">
+                <div className="text-2xl lg:text-3xl font-bold text-emerald-500">
                   {approvedRequests.length}
                 </div>
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="border-red-500/20 bg-red-500/5 sm:col-span-2 lg:col-span-1">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <X className="h-4 w-4 text-muted-foreground" />
+                  <X className="h-4 w-4 text-red-500" />
                   Rejected
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-muted-foreground">
+                <div className="text-2xl lg:text-3xl font-bold text-red-500">
                   {rejectedRequests.length}
                 </div>
               </CardContent>
@@ -510,13 +538,106 @@ export default function AdminPage() {
           >
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
                 <Users className="h-5 w-5" />
                 Access Requests
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              {/* Mobile Card View */}
+              <div className="block lg:hidden divide-y divide-border">
+                {accessRequests.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground px-4">
+                    No access requests found
+                  </div>
+                ) : (
+                  accessRequests.map((request) => (
+                    <div key={request.id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {request.accountType === 'organization' ? (
+                            <Building className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                          ) : (
+                            <UserIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium truncate">
+                              {request.accountType === 'organization' 
+                                ? request.organizationName 
+                                : `${request.firstName} ${request.lastName}`
+                              }
+                            </div>
+                            <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{request.email}</span>
+                            </div>
+                            {request.phoneNumber && (
+                              <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                <Phone className="h-3 w-3 flex-shrink-0" />
+                                <span>{request.phoneNumber}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Badge 
+                          variant="outline"
+                          className={
+                            request.status === 'approved' ? 'text-emerald-500 border-emerald-500 bg-emerald-500/10' :
+                            request.status === 'rejected' ? 'text-red-500 border-red-500 bg-red-500/10' : 
+                            'text-yellow-500 border-yellow-500 bg-yellow-500/10'
+                          }
+                        >
+                          {request.status}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {request.role.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {request.accountType}
+                        </Badge>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(request.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      
+                      {request.status === 'pending' && (
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApprove(request)}
+                            variant="outline"
+                            className="flex-1 border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleReject(request)}
+                            className="flex-1 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      )}
+                      {request.status !== 'pending' && (
+                        <div className="text-sm text-muted-foreground pt-2">
+                          {request.status === 'approved' ? 'Account Created' : 'Request Rejected'}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
@@ -579,9 +700,9 @@ export default function AdminPage() {
                             <Badge 
                               variant="outline"
                               className={
-                                request.status === 'approved' ? 'text-foreground border-foreground' :
-                                request.status === 'rejected' ? 'text-muted-foreground border-muted' : 
-                                'text-foreground border-border'
+                                request.status === 'approved' ? 'text-emerald-500 border-emerald-500 bg-emerald-500/10' :
+                                request.status === 'rejected' ? 'text-red-500 border-red-500 bg-red-500/10' : 
+                                'text-yellow-500 border-yellow-500 bg-yellow-500/10'
                               }
                             >
                               {request.status}
@@ -600,7 +721,7 @@ export default function AdminPage() {
                                   size="sm"
                                   onClick={() => handleApprove(request)}
                                   variant="outline"
-                                  className="border-foreground text-foreground hover:bg-foreground hover:text-background"
+                                  className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
                                 >
                                   <Check className="h-3 w-3 mr-1" />
                                   Approve
@@ -609,7 +730,7 @@ export default function AdminPage() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleReject(request)}
-                                  className="border-muted-foreground text-muted-foreground hover:bg-muted hover:text-foreground"
+                                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                                 >
                                   <X className="h-3 w-3 mr-1" />
                                   Reject
@@ -736,7 +857,7 @@ export default function AdminPage() {
               <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={confirmApproval} variant="outline" className="border-foreground text-foreground hover:bg-foreground hover:text-background">
+              <Button onClick={confirmApproval} variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white">
                 <Key className="h-3 w-3 mr-1" />
                 Approve & Send Credentials
               </Button>
@@ -783,7 +904,7 @@ export default function AdminPage() {
                 variant="outline" 
                 onClick={confirmRejection}
                 disabled={!rejectionReason.trim()}
-                className="border-muted-foreground text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white disabled:opacity-50"
               >
                 <X className="h-3 w-3 mr-1" />
                 Reject Request
