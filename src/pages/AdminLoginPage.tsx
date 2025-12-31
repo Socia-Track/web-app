@@ -67,16 +67,16 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
-      <Card className="w-full max-w-md border-zinc-800 bg-zinc-950/50 backdrop-blur-sm">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor: '#FAF9F6'}}>
+      <Card className="w-full max-w-md border border-gray-200 bg-white shadow-lg">
         <CardHeader className="space-y-6 pb-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-white flex items-center justify-center">
-              <Shield className="h-6 w-6 text-black" />
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{backgroundColor: '#D4E157'}}>
+              <Shield className="h-6 w-6" style={{color: '#1A1A1A'}} />
             </div>
             <div>
-              <CardTitle className="text-2xl font-bold text-white">Admin Panel</CardTitle>
-              <CardDescription className="text-zinc-500 text-sm">
+              <CardTitle className="text-2xl font-bold" style={{color: '#1A1A1A'}}>Admin Panel</CardTitle>
+              <CardDescription className="text-sm" style={{color: '#6B7280'}}>
                 Secure admin access
               </CardDescription>
             </div>
@@ -85,7 +85,7 @@ export default function AdminLoginPage() {
         <CardContent className="space-y-6">
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-400 text-sm">Email</Label>
+              <Label htmlFor="email" className="text-sm" style={{color: '#374151'}}>Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -94,11 +94,15 @@ export default function AdminLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
-                className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-emerald-500/20 h-11"
+                className="bg-white border-gray-300 h-11" 
+                style={{
+                  color: '#1A1A1A',
+                  borderColor: '#D1D5DB'
+                }}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-400 text-sm">Password</Label>
+              <Label htmlFor="password" className="text-sm" style={{color: '#374151'}}>Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -107,12 +111,20 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
-                className="bg-black border-zinc-800 text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-emerald-500/20 h-11"
+                className="bg-white border-gray-300 h-11"
+                style={{
+                  color: '#1A1A1A',
+                  borderColor: '#D1D5DB'
+                }}
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-white hover:bg-zinc-200 text-black font-medium h-11 mt-6"
+              className="w-full font-medium h-11 mt-6"
+              style={{
+                backgroundColor: '#1A1A1A',
+                color: '#FFFFFF'
+              }}
               disabled={loading}
             >
               {loading ? (
