@@ -31,7 +31,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface AccessRequest {
   id: string
@@ -63,6 +63,10 @@ export default function AdminPage() {
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [activeView, setActiveView] = useState<'requests' | 'users'>('requests')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [showLimitsDialog, setShowLimitsDialog] = useState(false)
+  const [maxCampaigns, setMaxCampaigns] = useState(3)
+  const [maxTokens, setMaxTokens] = useState(3)
 
   // Check admin access
   useEffect(() => {
@@ -254,6 +258,52 @@ export default function AdminPage() {
   const handleRefresh = () => {
     fetchAccessRequests()
     toast.success("Access requests refreshed")
+  }
+
+  const handleEditLimits = (user: any) => {
+    setSelectedUser(user)
+    setMaxCampaigns(user.maxCampaigns || 3)
+    setMaxTokens(user.maxTokens || 3)
+    setShowLimitsDialog(true)
+  }
+
+  const handleUpdateLimits = async () => {
+    if (!selectedUser) return
+
+    try {
+      const token = localStorage.getItem("bearer_token")
+      
+      const response = await fetch(`/api/users/${selectedUser.id}/limits`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          maxCampaigns: parseInt(maxCampaigns.toString()),
+          maxTokens: parseInt(maxTokens.toString())
+        })
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update limits')
+      }
+
+      // Update local state
+      setAllUsers(prev => prev.map(user => 
+        user.id === selectedUser.id 
+          ? { ...user, maxCampaigns, maxTokens }
+          : user
+      ))
+      
+      toast.success(`Updated limits for ${selectedUser.firstName} ${selectedUser.lastName}`)
+      setShowLimitsDialog(false)
+      setSelectedUser(null)
+    } catch (error) {
+      console.error('Error updating limits:', error)
+      toast.error(error instanceof Error ? error.message : "Failed to update limits")
+    }
   }
 
   const handleLogout = async () => {
@@ -775,36 +825,63 @@ export default function AdminPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left p-4 font-medium">Name</th>
-                        <th className="text-left p-4 font-medium">Email</th>
-                        <th className="text-left p-4 font-medium">Role</th>
-                        <th className="text-left p-4 font-medium">Joined</th>
-                        <th className="text-left p-4 font-medium">Actions</th>
+                      <tr className="border-b" style={{borderColor: '#E5E7EB'}}>
+                        <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Name</th>
+                        <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Email</th>
+                        <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Role</th>
+                        <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Limits</th>
+                        <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Joined</th>
+                        <th className="text-left p-4 font-medium" style={{color: '#1A1A1A'}}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {allUsers.map((user) => (
-                        <tr key={user.id} className="border-b border-border hover:bg-muted/50">
+                        <tr key={user.id} className="border-b hover:bg-gray-50" style={{borderColor: '#E5E7EB'}}>
                           <td className="p-4">
-                            <div className="font-medium">{user.firstName} {user.lastName}</div>
+                            <div className="font-medium" style={{color: '#1A1A1A'}}>{user.firstName} {user.lastName}</div>
                           </td>
-                          <td className="p-4 text-sm text-muted-foreground">{user.email}</td>
+                          <td className="p-4 text-sm" style={{color: '#6B7280'}}>{user.email}</td>
                           <td className="p-4">
-                            <Badge variant="outline" className="text-xs">{user.role}</Badge>
+                            <Badge variant="outline" className="text-xs" style={{color: '#374151', borderColor: '#E5E7EB'}}>{user.role}</Badge>
                           </td>
-                          <td className="p-4 text-sm text-muted-foreground">
+                          <td className="p-4">
+                            <div className="text-sm" style={{color: '#6B7280'}}>
+                              <div>Campaigns: {user.maxCampaigns || 3}</div>
+                              <div>Tokens: {user.maxTokens || 3}</div>
+                            </div>
+                          </td>
+                          <td className="p-4 text-sm" style={{color: '#6B7280'}}>
                             {new Date(user.createdAt).toLocaleDateString()}
                           </td>
                           <td className="p-4">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => navigate(`/admin/users/${user.id}`)}
-                            >
-                              <Eye className="h-3 w-3 mr-1" />
-                              View Details
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate(`/admin/users/${user.id}`)}
+                                style={{
+                                  borderColor: '#E5E7EB',
+                                  color: '#374151'
+                                }}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditLimits(user)}
+                                style={{
+                                  borderColor: '#D4E157',
+                                  color: '#1A1A1A',
+                                  backgroundColor: 'transparent'
+                                }}
+                                className="hover:bg-yellow-50"
+                              >
+                                <UserCog className="h-3 w-3 mr-1" />
+                                Limits
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -823,6 +900,9 @@ export default function AdminPage() {
         <DialogContent className="sm:max-w-md bg-white border" style={{borderColor: '#E5E7EB'}}>
           <DialogHeader>
             <DialogTitle style={{color: '#1A1A1A'}}>Approve Account Request</DialogTitle>
+            <DialogDescription style={{color: '#6B7280'}}>
+              Approve this account request to grant the user access to the platform.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="text-sm" style={{color: '#6B7280'}}>
@@ -901,6 +981,9 @@ export default function AdminPage() {
         <DialogContent className="sm:max-w-md bg-white border" style={{borderColor: '#E5E7EB'}}>
           <DialogHeader>
             <DialogTitle style={{color: '#1A1A1A'}}>Reject Account Request</DialogTitle>
+            <DialogDescription style={{color: '#6B7280'}}>
+              Provide a reason for rejecting this account request.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="text-sm" style={{color: '#6B7280'}}>
@@ -954,6 +1037,91 @@ export default function AdminPage() {
               >
                 <X className="h-3 w-3 mr-1" />
                 Reject Request
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* User Limits Dialog */}
+      <Dialog open={showLimitsDialog} onOpenChange={setShowLimitsDialog}>
+        <DialogContent className="sm:max-w-md bg-white border" style={{borderColor: '#E5E7EB'}}>
+          <DialogHeader>
+            <DialogTitle style={{color: '#1A1A1A'}}>Update User Limits</DialogTitle>
+            <DialogDescription style={{color: '#6B7280'}}>
+              Set the maximum number of campaigns and tokens this user can create.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm" style={{color: '#6B7280'}}>
+              Update creation limits for:
+            </div>
+            <div className="font-medium" style={{color: '#1A1A1A'}}>
+              {selectedUser?.firstName} {selectedUser?.lastName}
+            </div>
+            <div className="text-sm" style={{color: '#6B7280'}}>
+              {selectedUser?.email}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label style={{color: '#374151'}}>Max Campaigns</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={maxCampaigns}
+                  onChange={(e) => setMaxCampaigns(parseInt(e.target.value) || 0)}
+                  className="bg-white border"
+                  style={{
+                    borderColor: '#D1D5DB',
+                    color: '#1A1A1A'
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label style={{color: '#374151'}}>Max Tokens</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={maxTokens}
+                  onChange={(e) => setMaxTokens(parseInt(e.target.value) || 0)}
+                  className="bg-white border"
+                  style={{
+                    borderColor: '#D1D5DB',
+                    color: '#1A1A1A'
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="text-xs" style={{color: '#6B7280'}}>
+              Set to 0 for unlimited access
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLimitsDialog(false)}
+                style={{
+                  borderColor: '#E5E7EB',
+                  color: '#374151'
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleUpdateLimits}
+                style={{
+                  backgroundColor: '#D4E157',
+                  color: '#1A1A1A',
+                  borderColor: '#D4E157'
+                }}
+                className="hover:bg-yellow-300"
+              >
+                <UserCog className="h-3 w-3 mr-1" />
+                Update Limits
               </Button>
             </div>
           </div>

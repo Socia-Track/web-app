@@ -32,9 +32,14 @@ export default function SettingsPage() {
 
   const [userStats, setUserStats] = useState({
     totalCampaigns: 0,
+    totalTokens: 0,
     totalTransactions: 0,
     totalRevenue: 0,
-    memberSince: null
+    memberSince: null,
+    maxCampaigns: 3,
+    maxTokens: 3,
+    remainingCampaigns: 3,
+    remainingTokens: 3
   })
 
   // Load user profile data and stats
@@ -211,10 +216,14 @@ export default function SettingsPage() {
                       <h2 className="text-2xl font-bold text-foreground mb-2">Account Overview</h2>
                       <p className="text-muted-foreground mb-6">View your account statistics and activity</p>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div className="rounded-xl bg-card border border-border p-4">
                           <div className="text-2xl font-bold text-foreground">{userStats.totalCampaigns}</div>
                           <div className="text-sm text-muted-foreground mt-1">Campaigns</div>
+                        </div>
+                        <div className="rounded-xl bg-card border border-border p-4">
+                          <div className="text-2xl font-bold text-foreground">{userStats.totalTokens}</div>
+                          <div className="text-sm text-muted-foreground mt-1">Tokens</div>
                         </div>
                         <div className="rounded-xl bg-card border border-border p-4">
                           <div className="text-2xl font-bold text-foreground">{userStats.totalTransactions}</div>
@@ -227,6 +236,70 @@ export default function SettingsPage() {
                         <div className="rounded-xl bg-card border border-border p-4">
                           <div className="text-2xl font-bold text-foreground">{userStats.memberSince ? new Date(userStats.memberSince).getFullYear() : '2024'}</div>
                           <div className="text-sm text-muted-foreground mt-1">Member Since</div>
+                        </div>
+                      </div>
+
+                      {/* Usage Limits Section */}
+                      <div className="mt-8">
+                        <h3 className="text-lg font-semibold text-foreground mb-4">Usage Limits</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="rounded-xl bg-card border border-border p-6">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium text-foreground">Campaign Usage</h4>
+                              <div className="text-sm text-muted-foreground">
+                                {userStats.totalCampaigns} / {userStats.maxCampaigns}
+                              </div>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2 mb-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  userStats.totalCampaigns >= userStats.maxCampaigns 
+                                    ? 'bg-destructive' 
+                                    : userStats.totalCampaigns / userStats.maxCampaigns > 0.8 
+                                    ? 'bg-yellow-500' 
+                                    : 'bg-primary'
+                                }`}
+                                style={{ 
+                                  width: `${Math.min(100, (userStats.totalCampaigns / userStats.maxCampaigns) * 100)}%` 
+                                }}
+                              />
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {userStats.remainingCampaigns > 0 
+                                ? `${userStats.remainingCampaigns} remaining` 
+                                : 'Limit reached'
+                              }
+                            </div>
+                          </div>
+
+                          <div className="rounded-xl bg-card border border-border p-6">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium text-foreground">Token Usage</h4>
+                              <div className="text-sm text-muted-foreground">
+                                {userStats.totalTokens} / {userStats.maxTokens}
+                              </div>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2 mb-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  userStats.totalTokens >= userStats.maxTokens 
+                                    ? 'bg-destructive' 
+                                    : userStats.totalTokens / userStats.maxTokens > 0.8 
+                                    ? 'bg-yellow-500' 
+                                    : 'bg-primary'
+                                }`}
+                                style={{ 
+                                  width: `${Math.min(100, (userStats.totalTokens / userStats.maxTokens) * 100)}%` 
+                                }}
+                              />
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {userStats.remainingTokens > 0 
+                                ? `${userStats.remainingTokens} remaining` 
+                                : 'Limit reached'
+                              }
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

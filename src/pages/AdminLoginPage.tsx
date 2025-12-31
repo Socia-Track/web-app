@@ -26,39 +26,60 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      // Check for admin credentials
-      if (email.trim() === "admin7337@gmail.com" && password === "admin") {
-        console.log("✅ Admin login successful")
-        
-        const adminToken = 'admin-token-' + Date.now()
-        localStorage.setItem('bearer_token', adminToken)
-        
-        const mockAdminSession = {
-          user: {
-            uid: 'admin-uid',
-            email: 'admin7337@gmail.com',
-            name: 'Admin User'
-          },
-          token: adminToken
-        }
-        
-        localStorage.setItem('admin_session', JSON.stringify(mockAdminSession))
-        
-        toast.success("Admin access granted!")
-        
-        // Small delay to ensure localStorage is saved (important for mobile)
-        setTimeout(() => {
+      // Make API call to login endpoint
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        toast.error(errorData.error || "Invalid credentials")
+        setLoading(false)
+        return
+      }
+
+      const data = await response.json()
+      
+      // Check if user is admin
+      if (data.user.email !== 'admin7337@gmail.com') {
+        toast.error("Admin access required")
+        setLoading(false)
+        return
+      }
+
+      console.log("✅ Admin login successful")
+      
+      // Store the real JWT token
+      localStorage.setItem('bearer_token', data.token)
+      
+      // Store admin session
+      const adminSession = {
+        user: {
+          uid: data.user.id,
+          email: data.user.email,
+          name: `${data.user.firstName} ${data.user.lastName}`
+        },
+        token: data.token
+      }
+      
+      localStorage.setItem('admin_session', JSON.stringify(adminSession))
+      
+      toast.success("Admin access granted!")
+      
+      // Small delay to ensure localStorage is saved (important for mobile)
+      setTimeout(() => {
           setLoading(false)
           // Navigate to /admin on same domain to maintain backend access
           navigate("/admin")
         }, 200)
-        
-        return
-      }
 
-      // Invalid credentials
-      toast.error("Invalid admin credentials")
-      setLoading(false)
     } catch (error) {
       console.error("Admin login error:", error)
       toast.error("An error occurred during login")
