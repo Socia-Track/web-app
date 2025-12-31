@@ -4,6 +4,9 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useSession } from "@/lib/auth-client"
 import DashboardLayout from "@/components/DashboardLayout"
+import HeroHeader from "@/components/HeroHeader"
+import Section from "@/components/Section"
+import Highlight from "@/components/Highlight"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { motion } from "framer-motion"
-import { ArrowLeft, Loader2, Link, Copy, Plus } from "lucide-react"
+import { ArrowLeft, Loader2, Link, Copy, Plus, Rocket } from "lucide-react"
 import { toast } from "sonner"
 import { Spinner } from "@/components/ui/spinner"
 import { useNetworks } from "@/hooks/useNetworks"
@@ -36,20 +39,20 @@ export default function NewCampaignPage() {
     tokenIds: [] as string[]
   })
   const [generatingLinks, setGeneratingLinks] = useState(false)
-  
+
   // Set default blockchain when networks are loaded
   useEffect(() => {
     if (networks.length > 0 && !formData.blockchain) {
       setFormData(prev => ({ ...prev, blockchain: networks[0].key }))
     }
   }, [networks, formData.blockchain])
-  
+
   // New state for dynamic link generation
   const [linkCounts, setLinkCounts] = useState<Record<string, number>>({
     Discord: 0,
     Twitter: 0
   })
-  
+
   // State for managing tokenId inputs
   const [tokenIdInput, setTokenIdInput] = useState("")
   const [personNames, setPersonNames] = useState<Record<string, string[]>>({
@@ -63,7 +66,7 @@ export default function NewCampaignPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!session?.user?.uid) {
       toast.error("You must be logged in to create a campaign")
       navigate("/")
@@ -80,14 +83,14 @@ export default function NewCampaignPage() {
       toast.error("At least one token ID is required for single NFT promotion")
       return
     }
-    
+
     setLoading(true)
 
     const token = localStorage.getItem("bearer_token")
     try {
       // Calculate total planned links
       const totalLinksPlanned = Object.values(linkCounts).reduce((sum, count) => sum + count, 0)
-      
+
       // Prepare planned links data
       const plannedLinksData = {
         platforms: formData.platforms,
@@ -144,7 +147,7 @@ export default function NewCampaignPage() {
       ...prev,
       [platform]: numCount
     }))
-    
+
     // Initialize person names array
     if (numCount > 0) {
       setPersonNames(prev => ({
@@ -198,14 +201,14 @@ export default function NewCampaignPage() {
 
     try {
       const token = localStorage.getItem("bearer_token")
-      
+
       // Generate links for each person on each platform
       const allGeneratedLinks: Record<string, string> = {}
-      
+
       for (const platform of formData.platforms) {
         const count = linkCounts[platform]
         const names = personNames[platform] || []
-        
+
         if (count > 0 && names.length > 0) {
           // Generate multiple links for this platform
           for (let i = 0; i < names.length; i++) {
@@ -284,495 +287,481 @@ export default function NewCampaignPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-4xl">
-            {/* Header */}
-            <div className="mb-6 sm:mb-8">
-              <Button
-                variant="ghost"
-                onClick={() => navigate(-1)}
-                className="mb-4 text-sm sm:text-base"
-              >
-                <ArrowLeft size={16} className="mr-2" />
-                Back
-              </Button>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Create New Campaign
-              </h1>
-              <p className="text-sm sm:text-base text-gray-400">Set up a new Web3 marketing attribution campaign</p>
+      {/* Hero Header */}
+      <HeroHeader
+        title={
+          <>
+            Create <Highlight>New Campaign</Highlight>
+          </>
+        }
+        description="Set up a new Web3 marketing attribution campaign to track your NFT or token promotions"
+        badge="Campaign Setup"
+        icon={
+          <div className="p-4 rounded-2xl bg-accent/10">
+            <Rocket size={48} className="text-accent" />
+          </div>
+        }
+        actions={
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="border-border"
+          >
+            <ArrowLeft size={16} className="mr-2" />
+            Back
+          </Button>
+        }
+      />
+
+      {/* Form Section */}
+      <Section>
+        <motion.form
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">Basic Information</h2>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name" className="text-foreground">Campaign Name *</Label>
+                <Input
+                  id="name"
+                  placeholder="e.g., NFT Launch Campaign"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                  className="mt-2"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="description" className="text-foreground">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe your campaign objectives and target audience"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="mt-2 min-h-24"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="objectives" className="text-foreground">Campaign Objectives</Label>
+                <Textarea
+                  id="objectives"
+                  placeholder="e.g., Drive NFT mints, increase token holders"
+                  value={formData.objectives}
+                  onChange={(e) => setFormData(prev => ({ ...prev, objectives: e.target.value }))}
+                  className="mt-2 min-h-20"
+                />
+              </div>
             </div>
+          </div>
 
-            {/* Form */}
-            <motion.form
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              onSubmit={handleSubmit}
-              className="space-y-6"
-            >
-              <div className="rounded-xl border border-white/10 p-6"
-                style={{
-                  background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-                }}
-              >
-                <h2 className="text-xl font-bold text-white mb-4">Basic Information</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name" className="text-gray-300">Campaign Name *</Label>
-                    <Input
-                      id="name"
-                      placeholder="e.g., NFT Launch Campaign"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                      className="mt-2 bg-black/50 border-white/10 text-white"
-                    />
-                  </div>
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">Platform Configuration</h2>
 
-                  <div>
-                    <Label htmlFor="description" className="text-gray-300">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Describe your campaign objectives and target audience"
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      className="mt-2 bg-black/50 border-white/10 text-white min-h-24"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="objectives" className="text-gray-300">Campaign Objectives</Label>
-                    <Textarea
-                      id="objectives"
-                      placeholder="e.g., Drive NFT mints, increase token holders"
-                      value={formData.objectives}
-                      onChange={(e) => setFormData(prev => ({ ...prev, objectives: e.target.value }))}
-                      className="mt-2 bg-black/50 border-white/10 text-white min-h-20"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-white/10 p-6"
-                style={{
-                  background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-                }}
-              >
-                <h2 className="text-xl font-bold text-white mb-4">Platform Configuration</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-gray-300 mb-3 block">Social Platforms *</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {/* Discord - Left Side */}
-                      <div
-                        className={`p-4 rounded-lg border transition-all ${
-                          formData.platforms.includes('Discord')
-                            ? 'border-white bg-linear-to-r from-white/20 to-black/60'
-                            : 'border-white/10 bg-black/30'
-                        }`}
-                      >
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={formData.platforms.includes('Discord')}
-                            onCheckedChange={() => togglePlatform('Discord')}
-                          />
-                          <span className="text-white font-medium">Discord</span>
-                        </label>
-                      </div>
-
-                      {/* Twitter - Right Side */}
-                      <div
-                        className={`p-4 rounded-lg border transition-all ${
-                          formData.platforms.includes('Twitter')
-                            ? 'border-white bg-linear-to-r from-white/20 to-black/60'
-                            : 'border-white/10 bg-black/30'
-                        }`}
-                      >
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={formData.platforms.includes('Twitter')}
-                            onCheckedChange={() => togglePlatform('Twitter')}
-                          />
-                          <span className="text-white font-medium">Twitter</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Show link count inputs for selected platforms in grid layout */}
-                  {formData.platforms.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                      {/* Discord Column - Left */}
-                      {formData.platforms.includes('Discord') && (
-                        <div className="space-y-3">
-                          <div>
-                            <Label htmlFor="Discord-count" className="text-gray-300">
-                              How many links for Discord? *
-                            </Label>
-                            <Input
-                              id="Discord-count"
-                              type="number"
-                              min="1"
-                              max="50"
-                              placeholder="Enter number"
-                              value={linkCounts['Discord'] || ''}
-                              onChange={(e) => handleLinkCountChange('Discord', e.target.value)}
-                              className="mt-2 bg-black/50 border-white/10 text-white"
-                            />
-                          </div>
-
-                          {/* Show person name inputs after count is entered */}
-                          {showNameInputs['Discord'] && linkCounts['Discord'] > 0 && (
-                            <div className="space-y-3 pl-4 border-l-2 border-white/20">
-                              <Label className="text-gray-300 text-sm">
-                                Enter names ({linkCounts['Discord']} {linkCounts['Discord'] === 1 ? 'link' : 'links'})
-                              </Label>
-                              {Array.from({ length: linkCounts['Discord'] }).map((_, index) => (
-                                <div key={index}>
-                                  <Input
-                                    placeholder={`Person ${index + 1} name`}
-                                    value={personNames['Discord']?.[index] || ''}
-                                    onChange={(e) => handlePersonNameChange('Discord', index, e.target.value)}
-                                    className="bg-black/50 border-white/10 text-white"
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Twitter Column - Right */}
-                      {formData.platforms.includes('Twitter') && (
-                        <div className="space-y-3">
-                          <div>
-                            <Label htmlFor="Twitter-count" className="text-gray-300">
-                              How many links for Twitter? *
-                            </Label>
-                            <Input
-                              id="Twitter-count"
-                              type="number"
-                              min="1"
-                              max="50"
-                              placeholder="Enter number"
-                              value={linkCounts['Twitter'] || ''}
-                              onChange={(e) => handleLinkCountChange('Twitter', e.target.value)}
-                              className="mt-2 bg-black/50 border-white/10 text-white"
-                            />
-                          </div>
-
-                          {/* Show person name inputs after count is entered */}
-                          {showNameInputs['Twitter'] && linkCounts['Twitter'] > 0 && (
-                            <div className="space-y-3 pl-4 border-l-2 border-white/20">
-                              <Label className="text-gray-300 text-sm">
-                                Enter names ({linkCounts['Twitter']} {linkCounts['Twitter'] === 1 ? 'link' : 'links'})
-                              </Label>
-                              {Array.from({ length: linkCounts['Twitter'] }).map((_, index) => (
-                                <div key={index}>
-                                  <Input
-                                    placeholder={`Person ${index + 1} name`}
-                                    value={personNames['Twitter']?.[index] || ''}
-                                    onChange={(e) => handlePersonNameChange('Twitter', index, e.target.value)}
-                                    className="bg-black/50 border-white/10 text-white"
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <NetworkSelector
-                    value={formData.blockchain}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, blockchain: value }))}
-                    label="Blockchain"
-                    required={true}
-                    showCurrency={true}
-                    showChainId={false}
-                    className=""
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-white/10 p-6"
-                style={{
-                  background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-                }}
-              >
-                <h2 className="text-xl font-bold text-white mb-4">NFT Promotion Tracking</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-gray-300 mb-3 block">Promotion Type *</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div
-                        className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                          formData.promotionType === 'collection'
-                            ? 'border-white bg-linear-to-r from-white/20 to-black/60'
-                            : 'border-white/10 bg-black/30'
-                        }`}
-                        onClick={() => setFormData(prev => ({ ...prev, promotionType: 'collection', tokenIds: [] }))}
-                      >
-                        <div className="text-white font-medium mb-2">Collection Promotion</div>
-                        <div className="text-gray-400 text-sm">Track purchases of any NFT from a collection</div>
-                      </div>
-                      
-                      <div
-                        className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                          formData.promotionType === 'single'
-                            ? 'border-white bg-linear-to-r from-white/20 to-black/60'
-                            : 'border-white/10 bg-black/30'
-                        }`}
-                        onClick={() => setFormData(prev => ({ ...prev, promotionType: 'single' }))}
-                      >
-                        <div className="text-white font-medium mb-2">Single NFT Promotion</div>
-                        <div className="text-gray-400 text-sm">Track purchases of specific NFT(s) by token ID</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="contractAddress" className="text-gray-300">
-                      Contract Address *
-                    </Label>
-                    <Input
-                      id="contractAddress"
-                      placeholder="e.g., 0x1234567890abcdef..."
-                      value={formData.contractAddress}
-                      onChange={(e) => setFormData(prev => ({ ...prev, contractAddress: e.target.value }))}
-                      className="mt-2 bg-black/50 border-white/10 text-white"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">
-                      The smart contract address of the NFT collection
-                    </p>
-                  </div>
-
-                  {formData.promotionType === 'single' && (
-                    <div>
-                      <Label className="text-gray-300 mb-2 block">Token IDs *</Label>
-                      <div className="space-y-3">
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Enter token ID (e.g., 1234)"
-                            value={tokenIdInput}
-                            onChange={(e) => setTokenIdInput(e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault()
-                                if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
-                                  setFormData(prev => ({ 
-                                    ...prev, 
-                                    tokenIds: [...prev.tokenIds, tokenIdInput.trim()] 
-                                  }))
-                                  setTokenIdInput("")
-                                }
-                              }
-                            }}
-                            className="bg-black/50 border-white/10 text-white"
-                          />
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
-                                setFormData(prev => ({ 
-                                  ...prev, 
-                                  tokenIds: [...prev.tokenIds, tokenIdInput.trim()] 
-                                }))
-                                setTokenIdInput("")
-                              }
-                            }}
-                            className="px-4 bg-white/10 hover:bg-white/20 text-white border border-white/10"
-                          >
-                            Add
-                          </Button>
-                        </div>
-                        
-                        {formData.tokenIds.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-sm text-gray-400">Added Token IDs:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {formData.tokenIds.map((tokenId, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-sm text-white"
-                                >
-                                  <span>{tokenId}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        tokenIds: prev.tokenIds.filter((_, i) => i !== index)
-                                      }))
-                                    }}
-                                    className="text-gray-400 hover:text-white ml-1"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <p className="text-xs text-gray-400">
-                          For single NFT promotion, specify which exact tokens to track. Press Enter or click Add to add each token ID.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {formData.promotionType === 'collection' && (
-                    <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                      <p className="text-blue-300 text-sm">
-                        <strong>Collection Promotion:</strong> We'll track when users purchase any NFT from this collection using the contract address. No specific token IDs needed.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-white/10 p-6"
-                style={{
-                  background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-                }}
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Link className="w-5 h-5 text-white" />
-                  <h2 className="text-xl font-bold text-white">Link Generation</h2>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="originalLink" className="text-gray-300">Original Link</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Input 
-                        id="originalLink"
-                        type="url"
-                        placeholder="Enter your original link to track"
-                        value={formData.originalLink}
-                        onChange={(e) => setFormData(prev => ({ ...prev, originalLink: e.target.value }))}
-                        className="bg-black/50 border-white/10 text-white"
+            <div className="space-y-4">
+              <div>
+                <Label className="text-foreground mb-3 block">Social Platforms *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Discord - Left Side */}
+                  <div
+                    className={`p-4 rounded-lg border transition-all ${formData.platforms.includes('Discord')
+                      ? 'border-accent bg-accent/10'
+                      : 'border-border bg-muted'
+                      }`}
+                  >
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={formData.platforms.includes('Discord')}
+                        onCheckedChange={() => togglePlatform('Discord')}
                       />
-                      <Button 
-                        type="button" 
-                        onClick={generateTrackingLinks}
-                        disabled={generatingLinks || !formData.originalLink || formData.platforms.length === 0}
-                        className={`px-6 whitespace-nowrap ${
-                          formData.originalLink && formData.platforms.length > 0
-                            ? 'bg-linear-to-r from-white to-gray-200 text-black hover:from-gray-100 hover:to-gray-300 font-semibold'
-                            : 'bg-gray-700 text-gray-400'
-                        }`}
+                      <span className="text-foreground font-medium">Discord</span>
+                    </label>
+                  </div>
+
+                  {/* Twitter - Right Side */}
+                  <div
+                    className={`p-4 rounded-lg border transition-all ${formData.platforms.includes('Twitter')
+                      ? 'border-accent bg-accent/10'
+                      : 'border-border bg-muted'
+                      }`}
+                  >
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={formData.platforms.includes('Twitter')}
+                        onCheckedChange={() => togglePlatform('Twitter')}
+                      />
+                      <span className="text-foreground font-medium">Twitter</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Show link count inputs for selected platforms in grid layout */}
+              {formData.platforms.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  {/* Discord Column - Left */}
+                  {formData.platforms.includes('Discord') && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="Discord-count" className="text-foreground">
+                          How many links for Discord? *
+                        </Label>
+                        <Input
+                          id="Discord-count"
+                          type="number"
+                          min="1"
+                          max="50"
+                          placeholder="Enter number"
+                          value={linkCounts['Discord'] || ''}
+                          onChange={(e) => handleLinkCountChange('Discord', e.target.value)}
+                          className="mt-2"
+                        />
+                      </div>
+
+                      {/* Show person name inputs after count is entered */}
+                      {showNameInputs['Discord'] && linkCounts['Discord'] > 0 && (
+                        <div className="space-y-3 pl-4 border-l-2 border-border">
+                          <Label className="text-foreground text-sm">
+                            Enter names ({linkCounts['Discord']} {linkCounts['Discord'] === 1 ? 'link' : 'links'})
+                          </Label>
+                          {Array.from({ length: linkCounts['Discord'] }).map((_, index) => (
+                            <div key={index}>
+                              <Input
+                                placeholder={`Person ${index + 1} name`}
+                                value={personNames['Discord']?.[index] || ''}
+                                onChange={(e) => handlePersonNameChange('Discord', index, e.target.value)}
+                                className=""
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Twitter Column - Right */}
+                  {formData.platforms.includes('Twitter') && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="Twitter-count" className="text-foreground">
+                          How many links for Twitter? *
+                        </Label>
+                        <Input
+                          id="Twitter-count"
+                          type="number"
+                          min="1"
+                          max="50"
+                          placeholder="Enter number"
+                          value={linkCounts['Twitter'] || ''}
+                          onChange={(e) => handleLinkCountChange('Twitter', e.target.value)}
+                          className="mt-2"
+                        />
+                      </div>
+
+                      {/* Show person name inputs after count is entered */}
+                      {showNameInputs['Twitter'] && linkCounts['Twitter'] > 0 && (
+                        <div className="space-y-3 pl-4 border-l-2 border-border">
+                          <Label className="text-foreground text-sm">
+                            Enter names ({linkCounts['Twitter']} {linkCounts['Twitter'] === 1 ? 'link' : 'links'})
+                          </Label>
+                          {Array.from({ length: linkCounts['Twitter'] }).map((_, index) => (
+                            <div key={index}>
+                              <Input
+                                placeholder={`Person ${index + 1} name`}
+                                value={personNames['Twitter']?.[index] || ''}
+                                onChange={(e) => handlePersonNameChange('Twitter', index, e.target.value)}
+                                className=""
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <NetworkSelector
+                value={formData.blockchain}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, blockchain: value }))}
+                label="Blockchain"
+                required={true}
+                showCurrency={true}
+                showChainId={false}
+                className=""
+              />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">NFT Promotion Tracking</h2>
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-foreground mb-3 block">Promotion Type *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div
+                    className={`p-4 rounded-lg border transition-all cursor-pointer ${formData.promotionType === 'collection'
+                      ? 'border-accent bg-accent/10'
+                      : 'border-border bg-muted'
+                      }`}
+                    onClick={() => setFormData(prev => ({ ...prev, promotionType: 'collection', tokenIds: [] }))}
+                  >
+                    <div className="text-foreground font-medium mb-2">Collection Promotion</div>
+                    <div className="text-muted-foreground text-sm">Track purchases of any NFT from a collection</div>
+                  </div>
+
+                  <div
+                    className={`p-4 rounded-lg border transition-all cursor-pointer ${formData.promotionType === 'single'
+                      ? 'border-accent bg-accent/10'
+                      : 'border-border bg-muted'
+                      }`}
+                    onClick={() => setFormData(prev => ({ ...prev, promotionType: 'single' }))}
+                  >
+                    <div className="text-foreground font-medium mb-2">Single NFT Promotion</div>
+                    <div className="text-muted-foreground text-sm">Track purchases of specific NFT(s) by token ID</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="contractAddress" className="text-foreground">
+                  Contract Address *
+                </Label>
+                <Input
+                  id="contractAddress"
+                  placeholder="e.g., 0x1234567890abcdef..."
+                  value={formData.contractAddress}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contractAddress: e.target.value }))}
+                  className="mt-2"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  The smart contract address of the NFT collection
+                </p>
+              </div>
+
+              {formData.promotionType === 'single' && (
+                <div>
+                  <Label className="text-foreground mb-2 block">Token IDs *</Label>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter token ID (e.g., 1234)"
+                        value={tokenIdInput}
+                        onChange={(e) => setTokenIdInput(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
+                              setFormData(prev => ({
+                                ...prev,
+                                tokenIds: [...prev.tokenIds, tokenIdInput.trim()]
+                              }))
+                              setTokenIdInput("")
+                            }
+                          }
+                        }}
+                        className=""
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
+                            setFormData(prev => ({
+                              ...prev,
+                              tokenIds: [...prev.tokenIds, tokenIdInput.trim()]
+                            }))
+                            setTokenIdInput("")
+                          }
+                        }}
+                        className="px-4 bg-white/10 hover:bg-white/20 text-white border border-white/10"
                       >
-                        {generatingLinks ? <Spinner size="sm" className="w-4 h-4" /> : "Generate"}
+                        Add
                       </Button>
                     </div>
-                  </div>
 
-                  {Object.keys(formData.generatedLinks).length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm text-gray-300 mb-3">Generated Tracking Links</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Discord Links - Left Column */}
-                        <div className="space-y-2">
-                          {Object.entries(formData.generatedLinks)
-                            .filter(([key]) => key.toLowerCase().startsWith('discord'))
-                            .map(([key, link]) => {
-                              const parts = key.split('_')
-                              const personName = parts.slice(1).join('_') || ''
-                              
-                              return (
-                                <div key={key} className="flex flex-col gap-2 p-3 bg-black/30 rounded-lg border border-white/10">
-                                  <span className="font-medium text-sm text-gray-300">
-                                    Discord{personName && ` - ${personName}`}
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex-1 text-xs text-gray-400 font-mono break-all">
-                                      {link}
-                                    </div>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(link, personName ? `Discord (${personName})` : 'Discord')}
-                                      className="px-2 text-gray-300 hover:text-white shrink-0"
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              )
-                            })}
-                        </div>
-
-                        {/* Twitter Links - Right Column */}
-                        <div className="space-y-2">
-                          {Object.entries(formData.generatedLinks)
-                            .filter(([key]) => key.toLowerCase().startsWith('twitter'))
-                            .map(([key, link]) => {
-                              const parts = key.split('_')
-                              const personName = parts.slice(1).join('_') || ''
-                              
-                              return (
-                                <div key={key} className="flex flex-col gap-2 p-3 bg-black/30 rounded-lg border border-white/10">
-                                  <span className="font-medium text-sm text-gray-300">
-                                    Twitter{personName && ` - ${personName}`}
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex-1 text-xs text-gray-400 font-mono break-all">
-                                      {link}
-                                    </div>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(link, personName ? `Twitter (${personName})` : 'Twitter')}
-                                      className="px-2 text-gray-300 hover:text-white shrink-0"
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              )
-                            })}
+                    {formData.tokenIds.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">Added Token IDs:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.tokenIds.map((tokenId, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-sm text-white"
+                            >
+                              <span>{tokenId}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    tokenIds: prev.tokenIds.filter((_, i) => i !== index)
+                                  }))
+                                }}
+                                className="text-gray-400 hover:text-white ml-1"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    <p className="text-xs text-muted-foreground">
+                      For single NFT promotion, specify which exact tokens to track. Press Enter or click Add to add each token ID.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {formData.promotionType === 'collection' && (
+                <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                  <p className="text-blue-300 text-sm">
+                    <strong>Collection Promotion:</strong> We'll track when users purchase any NFT from this collection using the contract address. No specific token IDs needed.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Link className="w-5 h-5 text-foreground" />
+              <h2 className="text-xl font-bold text-foreground">Link Generation</h2>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="originalLink" className="text-foreground">Original Link</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="originalLink"
+                    type="url"
+                    placeholder="Enter your original link to track"
+                    value={formData.originalLink}
+                    onChange={(e) => setFormData(prev => ({ ...prev, originalLink: e.target.value }))}
+                    className="bg-black/50 border-white/10 text-white"
+                  />
+                  <Button
+                    type="button"
+                    onClick={generateTrackingLinks}
+                    disabled={generatingLinks || !formData.originalLink || formData.platforms.length === 0}
+                    className={`px-6 whitespace-nowrap ${formData.originalLink && formData.platforms.length > 0
+                      ? 'bg-linear-to-r from-white to-gray-200 text-black hover:from-gray-100 hover:to-gray-300 font-semibold'
+                      : 'bg-gray-700 text-gray-400'
+                      }`}
+                  >
+                    {generatingLinks ? <Spinner size="sm" className="w-4 h-4" /> : "Generate"}
+                  </Button>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(-1)}
-                  className="flex-1 border-white/10"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1"
-                  style={{
-                    background: 'linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(100, 100, 100, 0.8))'
-                  }}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Campaign'
-                  )}
-                </Button>
-              </div>
-            </motion.form>
-      </div>
+              {Object.keys(formData.generatedLinks).length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm text-foreground mb-3">Generated Tracking Links</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Discord Links - Left Column */}
+                    <div className="space-y-2">
+                      {Object.entries(formData.generatedLinks)
+                        .filter(([key]) => key.toLowerCase().startsWith('discord'))
+                        .map(([key, link]) => {
+                          const parts = key.split('_')
+                          const personName = parts.slice(1).join('_') || ''
+
+                          return (
+                            <div key={key} className="flex flex-col gap-2 p-3 bg-muted rounded-lg border border-border">
+                              <span className="font-medium text-sm text-foreground">
+                                Discord{personName && ` - ${personName}`}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 text-xs text-muted-foreground font-mono break-all">
+                                  {link}
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(link, personName ? `Discord (${personName})` : 'Discord')}
+                                  className="px-2 text-gray-300 hover:text-white shrink-0"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                    </div>
+
+                    {/* Twitter Links - Right Column */}
+                    <div className="space-y-2">
+                      {Object.entries(formData.generatedLinks)
+                        .filter(([key]) => key.toLowerCase().startsWith('twitter'))
+                        .map(([key, link]) => {
+                          const parts = key.split('_')
+                          const personName = parts.slice(1).join('_') || ''
+
+                          return (
+                            <div key={key} className="flex flex-col gap-2 p-3 bg-black/30 rounded-lg border border-white/10">
+                              <span className="font-medium text-sm text-foreground">
+                                Twitter{personName && ` - ${personName}`}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 text-xs text-muted-foreground font-mono break-all">
+                                  {link}
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(link, personName ? `Twitter (${personName})` : 'Twitter')}
+                                  className="px-2 text-gray-300 hover:text-white shrink-0"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="flex-1 border-white/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex-1"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Campaign'
+              )}
+            </Button>
+          </div>
+        </motion.form>
+      </Section>
     </DashboardLayout>
   )
 }

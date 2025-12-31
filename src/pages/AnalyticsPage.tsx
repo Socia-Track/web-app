@@ -1538,7 +1538,7 @@ export default function AnalyticsPage() {
                   <DialogTrigger>
                     <Button
                       variant="outline"
-                      className="border-white/10"
+                      className="border-border bg-card text-foreground hover:bg-muted"
                       onClick={() => fetchCampaignLinks(selectedCampaign.id)}
                     >
                       <Link2 size={20} className="mr-2" />
@@ -1546,7 +1546,7 @@ export default function AnalyticsPage() {
                     </Button>
                   </DialogTrigger>
                   <DialogContent
-                    className="bg-gradient-to-br from-white/5 to-black/50 border-white/10 backdrop-blur-sm text-white p-12 overflow-hidden flex flex-col"
+                    className="bg-background border-border text-foreground p-6 sm:p-12 overflow-hidden flex flex-col"
                     style={{
                       width: '85vw',
                       height: '70vh',
@@ -1555,19 +1555,19 @@ export default function AnalyticsPage() {
                       aspectRatio: '16/10'
                     }}
                   >
-                    <DialogHeader className="border-b border-white/10 pb-6 mb-6 flex-shrink-0">
+                    <DialogHeader className="border-b border-border pb-6 mb-6 flex-shrink-0">
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 rounded-full bg-white/10 border border-white/20">
-                          <Link2 className="h-6 w-6 text-white" />
+                        <div className="p-3 rounded-full bg-accent/10 border border-accent/20">
+                          <Link2 className="h-6 w-6 text-accent" />
                         </div>
                         <div>
                           <DialogTitle>
-                            <span className="text-2xl font-bold text-white mb-1">Campaign Links</span>
+                            <span className="text-2xl font-bold text-foreground mb-1">Campaign Links</span>
                           </DialogTitle>
-                          <p className="text-lg text-gray-400">{selectedCampaign.name}</p>
+                          <p className="text-lg text-muted-foreground">{selectedCampaign.name}</p>
                         </div>
                       </div>
-                      <p className="text-gray-400 text-sm px-2">
+                      <p className="text-muted-foreground text-sm px-2">
                         Manage and track all links for this campaign. Click any URL to copy it to your clipboard.
                       </p>
                     </DialogHeader>
@@ -1576,7 +1576,7 @@ export default function AnalyticsPage() {
                       <div className="flex items-center justify-center py-12">
                         <div className="text-center">
                           <Spinner className="mx-auto mb-4" />
-                          <p className="text-gray-400">Loading campaign links...</p>
+                          <p className="text-muted-foreground">Loading campaign links...</p>
                         </div>
                       </div>
                     ) : campaignLinks.length === 0 ? (
@@ -1584,18 +1584,18 @@ export default function AnalyticsPage() {
                         <motion.div
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="rounded-xl border border-white/10 p-8 bg-gradient-to-br from-white/5 to-black/50 max-w-md mx-auto"
+                          className="rounded-xl border border-border p-8 bg-card max-w-md mx-auto shadow-sm"
                         >
-                          <Link2 className="mx-auto h-16 w-16 text-gray-500 mb-4" />
-                          <h3 className="text-xl font-bold text-white mb-3">No Tracking Links</h3>
-                          <p className="text-gray-400 text-base">No tracking links found for this campaign</p>
+                          <Link2 className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                          <h3 className="text-xl font-bold text-foreground mb-3">No Tracking Links</h3>
+                          <p className="text-muted-foreground text-base">No tracking links found for this campaign</p>
                         </motion.div>
                       </div>
                     ) : (
                       <div className="space-y-4 flex-1 overflow-y-auto pr-4"
                         style={{
                           scrollbarWidth: 'thin',
-                          scrollbarColor: 'rgba(255, 255, 255, 0.3) transparent'
+                          scrollbarColor: ''
                         }}
                       >
                         {campaignLinks.map((link, index) => (
@@ -1604,38 +1604,38 @@ export default function AnalyticsPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="rounded-xl border border-white/10 p-6 hover:border-white/20 transition-all duration-300 bg-gradient-to-br from-white/5 to-black/50"
+                            className="rounded-xl border border-border p-6 hover:shadow-md transition-all duration-300 bg-card group"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-4 mb-4">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white text-base font-bold">
+                                    <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-base font-bold">
                                       {link.platform.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                      <h4 className="text-white font-semibold text-lg mb-1">
+                                      <h4 className="text-foreground font-semibold text-lg mb-1">
                                         {link.linkName || `${link.platform.charAt(0).toUpperCase() + link.platform.slice(1)} Link`}
                                       </h4>
-                                      <p className="text-sm text-gray-400 capitalize">{link.platform} • Created {new Date(link.createdAt).toLocaleDateString()}</p>
+                                      <p className="text-sm text-muted-foreground capitalize">{link.platform} • Created {new Date(link.createdAt).toLocaleDateString()}</p>
                                     </div>
                                   </div>
                                   <div className={`px-3 py-1 rounded-full text-sm font-medium ${link.status === 'active'
-                                    ? 'bg-white/10 text-white border border-white/20'
-                                    : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                                    ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                                    : 'bg-muted text-muted-foreground border border-border'
                                     }`}>
                                     {link.status}
                                   </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                  <div className="rounded-lg bg-black/30 border border-white/10 p-4">
+                                  <div className="rounded-lg bg-muted/50 border border-border p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <span className="text-sm font-medium text-gray-300">Tracking URL:</span>
+                                      <span className="text-sm font-medium text-muted-foreground">Tracking URL:</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <div className="flex-1 min-w-0">
-                                        <code className="text-sm bg-black/50 px-3 py-2 rounded-md text-white font-mono border border-white/10 block w-full break-all">
+                                        <code className="text-sm bg-background px-3 py-2 rounded-md text-foreground font-mono border border-border block w-full break-all">
                                           {link.longUrl || link.shortUrl}
                                         </code>
                                       </div>
@@ -1644,7 +1644,7 @@ export default function AnalyticsPage() {
                                           size="sm"
                                           variant="ghost"
                                           onClick={() => copyToClipboard(link.longUrl || link.shortUrl, 'Tracking URL')}
-                                          className="h-8 w-8 p-0 hover:bg-white/10"
+                                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                           title="Copy tracking URL"
                                         >
                                           <Copy size={14} />
@@ -1653,7 +1653,7 @@ export default function AnalyticsPage() {
                                           size="sm"
                                           variant="ghost"
                                           onClick={() => window.open(link.longUrl || link.shortUrl, '_blank')}
-                                          className="h-8 w-8 p-0 hover:bg-white/10"
+                                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                           title="Open in new tab"
                                         >
                                           <ExternalLink size={14} />
@@ -1662,13 +1662,13 @@ export default function AnalyticsPage() {
                                     </div>
                                   </div>
 
-                                  <div className="rounded-lg bg-black/30 border border-white/10 p-4">
+                                  <div className="rounded-lg bg-muted/50 border border-border p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <span className="text-sm font-medium text-gray-300">Destination URL:</span>
+                                      <span className="text-sm font-medium text-muted-foreground">Destination URL:</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <div className="flex-1 min-w-0">
-                                        <code className="text-sm bg-black/50 px-3 py-2 rounded-md text-gray-400 font-mono border border-white/10 block w-full break-all">
+                                        <code className="text-sm bg-background px-3 py-2 rounded-md text-foreground font-mono border border-border block w-full break-all">
                                           {link.originalUrl}
                                         </code>
                                       </div>
@@ -1677,7 +1677,7 @@ export default function AnalyticsPage() {
                                           size="sm"
                                           variant="ghost"
                                           onClick={() => copyToClipboard(link.originalUrl, 'Destination URL')}
-                                          className="h-8 w-8 p-0 hover:bg-white/10"
+                                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                           title="Copy destination URL"
                                         >
                                           <Copy size={14} />
@@ -1696,7 +1696,7 @@ export default function AnalyticsPage() {
                   </DialogContent>
                 </Dialog>
 
-                <Button variant="outline" className="border-white/10">
+                <Button variant="outline" className="border-border">
                   <Download size={20} className="mr-2" />
                   Export Report
                 </Button>
@@ -2002,7 +2002,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Platform Performance */}
-        <div className="rounded-xl border border-border p-6 mb-8 bg-card"
+        <div className="rounded-2xl border border-border p-6 mb-8 bg-card"
         >
           {platformFilter === "all" && (
             <>
@@ -2044,40 +2044,32 @@ export default function AnalyticsPage() {
           <Calendar27 chartData={getChartData()} />
 
           {/* Multi Line Chart */}
-          <div className="rounded-xl border border-white/10"
-            style={{
-              background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-            }}
-          >
+          <div className="rounded-2xl border border-border bg-card">
             <DottedMultiLineChart />
           </div>
         </div>
 
         {/* Recent Transactions */}
-        <div className="rounded-xl border border-white/10 p-6"
-          style={{
-            background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-          }}
-        >
+        <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-white">Recent Transactions</h3>
-              <p className="text-sm text-gray-400 mt-1">
+              <h3 className="text-xl font-bold text-foreground">Recent Transactions</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 Live NFT purchases detected from monitored wallet addresses • Auto-refreshes every 5 minutes
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
                 <span>Monitoring {activeWallets} wallets</span>
               </div>
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-muted-foreground">
                 Next check: {new Date(Date.now() + (5 * 60 * 1000) - ((Date.now() % (5 * 60 * 1000)))).toLocaleTimeString()}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="border-white/10 hover:bg-white/10 text-white"
+                className="border-border hover:bg-muted"
                 onClick={handleExportReport}
                 disabled={recentTransactions.length === 0}
               >
@@ -2089,15 +2081,15 @@ export default function AnalyticsPage() {
 
           {recentTransactions.length === 0 ? (
             <div className="text-center py-8">
-              <div className="rounded-lg border border-white/10 p-8 bg-gradient-to-br from-white/5 to-black/50 max-w-md mx-auto">
-                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
-                  <RefreshCw className="w-8 h-8 text-blue-400 animate-spin" />
+              <div className="rounded-xl border border-border bg-muted p-8 max-w-md mx-auto">
+                <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-4">
+                  <RefreshCw className="w-8 h-8 text-accent animate-spin" />
                 </div>
-                <div className="text-white font-semibold mb-2">Monitoring Wallet Transactions</div>
-                <div className="text-sm text-gray-400 mb-4">
+                <div className="text-foreground font-semibold mb-2">Monitoring Wallet Transactions</div>
+                <div className="text-sm text-muted-foreground mb-4">
                   The system checks every 5 minutes for NFT transactions from wallet addresses that clicked your campaign links.
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   • {activeWallets} unique wallets being monitored<br />
                   • Next check: {new Date(Date.now() + (5 * 60 * 1000) - ((Date.now() % (5 * 60 * 1000)))).toLocaleTimeString()}<br />
                   • Transactions will appear automatically when detected
@@ -2108,14 +2100,14 @@ export default function AnalyticsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left p-3 text-gray-400 font-medium">Transaction</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Wallet Address</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">NFT Details</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Value</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Status</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Time</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Actions</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left p-3 text-muted-foreground font-medium">Transaction</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Wallet Address</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">NFT Details</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Value</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Status</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Time</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2125,21 +2117,21 @@ export default function AnalyticsPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      className="border-b border-border/50 hover:bg-muted transition-colors"
                     >
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="font-mono text-xs text-blue-400">
+                          <div className="font-mono text-xs text-accent">
                             {transaction.transactionHash || 'N/A'}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-muted-foreground mt-1">
                             Block #{transaction.blockNumber || 'Pending'}
                           </div>
                         </div>
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="font-mono text-sm text-white">
+                          <div className="font-mono text-sm text-foreground">
                             {transaction.walletAddress || 'N/A'}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
@@ -2149,7 +2141,7 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="text-white font-medium">
+                          <div className="text-foreground font-medium">
                             {transaction.tokenId ? `Token #${transaction.tokenId}` : 'Collection Purchase'}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
@@ -2159,7 +2151,7 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="text-white">
+                          <div className="text-foreground">
                             {(() => {
                               // Log transaction data for debugging
                               console.log('💰 Transaction ETH data:', {
@@ -2175,7 +2167,7 @@ export default function AnalyticsPage() {
                               return formatEthValue(ethAmount);
                             })()}
                           </div>
-                          <div className="text-green-400 font-semibold">
+                          <div className="text-green-700 font-semibold">
                             {(() => {
                               const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
                               const parsedEth = parseFloat(ethAmount.toString());
