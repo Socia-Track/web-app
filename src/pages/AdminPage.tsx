@@ -359,33 +359,6 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-lime-500/10 border border-lime-500/20 text-lime-500"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-        </svg>
-      </button>
-
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Admin Sidebar */}
-      <div className={`fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border z-40 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-8">
-            <Shield className="h-6 w-6 text-lime-500" />
-            <h2 className="text-xl font-bold text-foreground">Admin Panel</h2>
     <div className="min-h-screen" style={{backgroundColor: '#FAF9F6'}}>
       {/* Admin Sidebar */}
       <div className="fixed left-0 top-0 h-screen w-64 bg-white border-r z-40 flex flex-col" style={{borderColor: '#E5E7EB'}}>
@@ -401,13 +374,7 @@ export default function AdminPage() {
                 showAccessRequests()
                 setSidebarOpen(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                activeView === 'requests' 
-                  ? 'bg-lime-500/10 text-lime-500 border border-lime-500/20' 
-                  : 'text-muted-foreground hover:bg-muted/50'
-                  ? 'text-black' 
-                  : 'hover:bg-gray-50'
-              }`}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors"
               style={{
                 backgroundColor: activeView === 'requests' ? '#EDF4B3' : 'transparent',
                 color: activeView === 'requests' ? '#1A1A1A' : '#6B7280'
@@ -422,13 +389,7 @@ export default function AdminPage() {
                 fetchAllUsers()
                 setSidebarOpen(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                activeView === 'users' 
-                  ? 'bg-lime-500/10 text-lime-500 border border-lime-500/20' 
-                  : 'text-muted-foreground hover:bg-muted/50'
-                  ? 'text-black' 
-                  : 'hover:bg-gray-50'
-              }`}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors"
               style={{
                 backgroundColor: activeView === 'users' ? '#EDF4B3' : 'transparent',
                 color: activeView === 'users' ? '#1A1A1A' : '#6B7280'
@@ -466,11 +427,6 @@ export default function AdminPage() {
             className="mb-6 lg:mb-10 relative"
           >
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-                {activeView === 'requests' ? 'ACCESS REQUEST MANAGEMENT' : 'USER MANAGEMENT'}
-              </h1>
-            </div>
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mb-4">
               <h1 className="text-4xl font-bold" style={{color: '#1A1A1A'}}>
                 {activeView === 'requests' ? 'ACCESS REQUEST MANAGEMENT' : 'USER MANAGEMENT'}
               </h1>
@@ -481,11 +437,6 @@ export default function AdminPage() {
                 : 'View and manage all user accounts'}
             </p>
             
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-emerald-500 font-medium">System Online</span>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2" style={{color: '#6B7280'}}>
@@ -529,10 +480,6 @@ export default function AdminPage() {
             transition={{ delay: 0.1 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8"
           >
-            <Card className="border-yellow-500/20 bg-yellow-500/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Users className="h-4 w-4 text-yellow-500" />
             <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2" style={{color: '#1A1A1A'}}>
@@ -541,17 +488,12 @@ export default function AdminPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl lg:text-3xl font-bold text-yellow-500">
                 <div className="text-2xl font-bold" style={{color: '#1A1A1A'}}>
                   {pendingRequests.length}
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-emerald-500/20 bg-emerald-500/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Check className="h-4 w-4 text-emerald-500" />
             <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2" style={{color: '#1A1A1A'}}>
@@ -560,17 +502,12 @@ export default function AdminPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl lg:text-3xl font-bold text-emerald-500">
                 <div className="text-2xl font-bold" style={{color: '#10B981'}}>
                   {approvedRequests.length}
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="border-red-500/20 bg-red-500/5 sm:col-span-2 lg:col-span-1">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <X className="h-4 w-4 text-red-500" />
             <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2" style={{color: '#1A1A1A'}}>
@@ -579,7 +516,6 @@ export default function AdminPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl lg:text-3xl font-bold text-red-500">
                 <div className="text-2xl font-bold" style={{color: '#EF4444'}}>
                   {rejectedRequests.length}
                 </div>
@@ -597,8 +533,6 @@ export default function AdminPage() {
           >
           <Card className="bg-white border" style={{borderColor: '#E5E7EB'}}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
-                <Users className="h-5 w-5" />
               <CardTitle className="flex items-center gap-2" style={{color: '#1A1A1A'}}>
                 <Users className="h-5 w-5" style={{color: '#D4E157'}} />
                 Access Requests
@@ -945,7 +879,6 @@ export default function AdminPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={confirmApproval} variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white">
               <Button 
                 onClick={confirmApproval} 
                 style={{
@@ -1011,7 +944,6 @@ export default function AdminPage() {
               <Button 
                 onClick={confirmRejection}
                 disabled={!rejectionReason.trim()}
-                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white disabled:opacity-50"
                 style={{
                   backgroundColor: '#EF4444',
                   color: '#FFFFFF',
