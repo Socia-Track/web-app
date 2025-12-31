@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
   Select,
-    SelectContent,
-    SelectItem,
+  SelectContent,
+  SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -81,20 +81,20 @@ export default function AttributionsPage() {
   }, [session])
 
   const filteredAttributions = attributions.filter(attr => {
-    const matchesSearch = 
+    const matchesSearch =
       attr.socialPost?.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       attr.socialPost?.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       attr.transaction?.hash?.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesPlatform = platformFilter === "all" || 
+
+    const matchesPlatform = platformFilter === "all" ||
       attr.socialPost?.platform?.toLowerCase() === platformFilter.toLowerCase()
-    
-    const matchesConfidence = 
+
+    const matchesConfidence =
       confidenceFilter === "all" ||
       (confidenceFilter === "high" && (attr.confidenceScore || 0) >= 85) ||
       (confidenceFilter === "medium" && (attr.confidenceScore || 0) >= 70 && (attr.confidenceScore || 0) < 85) ||
       (confidenceFilter === "low" && (attr.confidenceScore || 0) < 70)
-    
+
     return matchesSearch && matchesPlatform && matchesConfidence
   })
 
@@ -113,7 +113,7 @@ export default function AttributionsPage() {
         attr.confidenceScore,
         attr.timeGap
       ])
-      
+
       const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n")
       const blob = new Blob([csvContent], { type: "text/csv" })
       const url = window.URL.createObjectURL(blob)
@@ -146,7 +146,7 @@ export default function AttributionsPage() {
 
   const handleRefresh = async () => {
     if (!session?.user?.uid) return
-    
+
     setLoading(true)
     try {
       const token = localStorage.getItem("bearer_token")
@@ -212,7 +212,7 @@ export default function AttributionsPage() {
           {/* Header */}
           <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">
                 Attribution Dashboard(COMMING SOON)
               </h1>
               <p className="text-sm md:text-base text-gray-400">
@@ -232,7 +232,7 @@ export default function AttributionsPage() {
 
           {/* Stats Summary */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-            <Card className="bg-gradient-to-br from-white/5 to-black/50 border-white/10">
+            <Card className="bg-card">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-gray-400">Total Attributions</CardTitle>
               </CardHeader>
@@ -242,7 +242,7 @@ export default function AttributionsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-white/5 to-black/50 border-white/10">
+            <Card className="bg-card">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-gray-400">Avg Confidence</CardTitle>
               </CardHeader>
@@ -257,7 +257,7 @@ export default function AttributionsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-white/5 to-black/50 border-white/10">
+            <Card className="bg-card">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-gray-400">Total Value</CardTitle>
               </CardHeader>
@@ -267,7 +267,7 @@ export default function AttributionsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-white/5 to-black/50 border-white/10">
+            <Card className="bg-card">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-gray-400">Active Platforms</CardTitle>
               </CardHeader>
@@ -279,7 +279,7 @@ export default function AttributionsPage() {
           </div>
 
           {/* Filters & Search */}
-          <Card className="bg-gradient-to-br from-white/5 to-black/50 border-white/10 mb-6">
+          <Card className="bg-card mb-6">
             <CardContent className="p-4 md:p-6">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4">
                 <div className="relative md:col-span-2">
@@ -333,7 +333,7 @@ export default function AttributionsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleExportCSV}
-                  className="bg-gradient-to-r from-white to-gray-300 text-black hover:from-gray-200 hover:to-gray-400"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Download size={16} className="mr-2" />
                   Export CSV
@@ -342,7 +342,7 @@ export default function AttributionsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleExportJSON}
-                  className="bg-gradient-to-r from-white to-gray-300 text-black hover:from-gray-200 hover:to-gray-400"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Download size={16} className="mr-2" />
                   Export JSON
@@ -352,7 +352,7 @@ export default function AttributionsPage() {
           </Card>
 
           {/* Attributions Table */}
-          <Card className="bg-gradient-to-br from-white/5 to-black/50 border-white/10">
+          <Card className="bg-card">
             <CardContent className="p-4 md:p-6">
               <div className="overflow-x-auto rounded-lg border border-white/10">
                 <Table>
@@ -368,8 +368,8 @@ export default function AttributionsPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredAttributions.map((attribution) => (
-                      <TableRow 
-                        key={attribution.id} 
+                      <TableRow
+                        key={attribution.id}
                         className="border-white/10 hover:bg-white/5 cursor-pointer transition-colors"
                       >
                         <TableCell className="px-4 py-4">
@@ -387,7 +387,7 @@ export default function AttributionsPage() {
                         </TableCell>
                         <TableCell className="px-4 py-4">
                           <div>
-                            <div 
+                            <div
                               className="flex items-center gap-1 mb-1 cursor-pointer hover:text-blue-400 transition-colors"
                               onClick={() => handleViewTransaction(attribution.transaction.hash)}
                             >

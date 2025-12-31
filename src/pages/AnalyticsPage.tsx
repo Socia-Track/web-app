@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useSession } from "@/lib/auth-client"
 import DashboardLayout from "@/components/DashboardLayout"
+import HeroHeader from "@/components/HeroHeader"
+import Section from "@/components/Section"
+import Highlight from "@/components/Highlight"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Download, TrendingUp, DollarSign, MessageSquare, Target, Clock, ArrowLeft, Megaphone, Calendar, Search, Filter, Link2, Copy, ExternalLink, TrendingDown, CalendarIcon, RefreshCw } from "lucide-react"
@@ -116,7 +119,7 @@ export default function AnalyticsPage() {
       color: "#3b82f6", // Blue for clicks
     },
     transactions: {
-      label: "Transactions", 
+      label: "Transactions",
       color: "#10b981", // Green for successful transactions
     },
     revenue: {
@@ -151,7 +154,7 @@ export default function AnalyticsPage() {
             </Badge>
           </div>
         </div>
-        
+
         {/* Platform Filter for Best Performance Times */}
         <div className="flex items-center gap-3 mt-4">
           <span className="text-sm text-muted-foreground font-medium">Filter:</span>
@@ -160,8 +163,8 @@ export default function AnalyticsPage() {
               variant={platformFilter === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setPlatformFilter("all")}
-              className={platformFilter === "all" 
-                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+              className={platformFilter === "all"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
             >
               All Platforms
@@ -170,8 +173,8 @@ export default function AnalyticsPage() {
               variant={platformFilter === "discord" ? "default" : "outline"}
               size="sm"
               onClick={() => setPlatformFilter("discord")}
-              className={platformFilter === "discord" 
-                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+              className={platformFilter === "discord"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
             >
               <MessageSquare size={14} className="mr-1" />
@@ -181,8 +184,8 @@ export default function AnalyticsPage() {
               variant={platformFilter === "twitter" ? "default" : "outline"}
               size="sm"
               onClick={() => setPlatformFilter("twitter")}
-              className={platformFilter === "twitter" 
-                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+              className={platformFilter === "twitter"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
             >
               <Target size={14} className="mr-1" />
@@ -190,7 +193,7 @@ export default function AnalyticsPage() {
             </Button>
           </div>
         </div>
-        
+
         {/* Individual Person Filter for Best Performance Times */}
         {platformFilter !== "all" && (() => {
           const individualLinksData = getIndividualLinkData()
@@ -238,50 +241,50 @@ export default function AnalyticsPage() {
                 bottom: 20,
               }}
             >
-            <CartesianGrid vertical={false} stroke="#374151" strokeOpacity={0.3} />
-            <XAxis
-              dataKey="hour"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tick={{ fill: '#9CA3AF', fontSize: 12 }}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="bg-popover border-border text-popover-foreground"
-                  labelFormatter={(value) => {
-                    return `${value} - Hourly Performance`
-                  }}
-                  formatter={(value, name) => {
-                    if (name === 'clicks') {
-                      return [value, 'Real Link Clicks']
-                    }
-                    if (name === 'transactions') {
-                      return [value, 'Actual NFT Purchases']
-                    }
-                    return [value, name]
-                  }}
-                />
-              }
-            />
-            <Line
-              dataKey="clicks"
-              type="monotone"
-              stroke="#3b82f6"
-              strokeWidth={3}
-              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-            />
-            <Line
-              dataKey="transactions"
-              type="monotone"
-              stroke="#10b981"
-              strokeWidth={3}
-              dot={{ fill: '#9ca3af', strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, stroke: '#9ca3af', strokeWidth: 2 }}
-            />
+              <CartesianGrid vertical={false} stroke="#374151" strokeOpacity={0.3} />
+              <XAxis
+                dataKey="hour"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                tickFormatter={(value) => value.slice(0, 3)}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    className="bg-popover border-border text-popover-foreground"
+                    labelFormatter={(value) => {
+                      return `${value} - Hourly Performance`
+                    }}
+                    formatter={(value, name) => {
+                      if (name === 'clicks') {
+                        return [value, 'Real Link Clicks']
+                      }
+                      if (name === 'transactions') {
+                        return [value, 'Actual NFT Purchases']
+                      }
+                      return [value, name]
+                    }}
+                  />
+                }
+              />
+              <Line
+                dataKey="clicks"
+                type="monotone"
+                stroke="#3b82f6"
+                strokeWidth={3}
+                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+              />
+              <Line
+                dataKey="transactions"
+                type="monotone"
+                stroke="#10b981"
+                strokeWidth={3}
+                dot={{ fill: '#9ca3af', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#9ca3af', strokeWidth: 2 }}
+              />
             </LineChart>
           </ChartContainer>
         </div>
@@ -342,7 +345,7 @@ export default function AnalyticsPage() {
           <CardDescription className="text-muted-foreground">
             Daily clicks and visitors for the last 30 days - Real-time campaign data
           </CardDescription>
-          
+
           {/* Platform Filter for Web Analytics */}
           <div className="flex items-center gap-3 mt-4">
             <span className="text-sm text-muted-foreground font-medium">Filter:</span>
@@ -351,8 +354,8 @@ export default function AnalyticsPage() {
                 variant={platformFilter === "all" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPlatformFilter("all")}
-                className={platformFilter === "all" 
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                className={platformFilter === "all"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
               >
                 All Platforms
@@ -361,8 +364,8 @@ export default function AnalyticsPage() {
                 variant={platformFilter === "discord" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPlatformFilter("discord")}
-                className={platformFilter === "discord" 
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                className={platformFilter === "discord"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
               >
                 <MessageSquare size={14} className="mr-1" />
@@ -372,8 +375,8 @@ export default function AnalyticsPage() {
                 variant={platformFilter === "twitter" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPlatformFilter("twitter")}
-                className={platformFilter === "twitter" 
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                className={platformFilter === "twitter"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
                   : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
               >
                 <Target size={14} className="mr-1" />
@@ -381,7 +384,7 @@ export default function AnalyticsPage() {
               </Button>
             </div>
           </div>
-          
+
           {/* Individual Person Filter for Web Analytics */}
           {platformFilter !== "all" && (() => {
             const individualLinksData = getIndividualLinkData()
@@ -430,52 +433,52 @@ export default function AnalyticsPage() {
                   right: 12,
                 }}
               >
-              <CartesianGrid vertical={false} stroke="#374151" strokeOpacity={0.3} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={20}
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                tickFormatter={(value) => {
-                  const date = new Date(value)
-                  return date.toLocaleDateString("en-US", {
-                    day: "numeric",
-                  })
-                }}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    className="bg-popover border-border text-popover-foreground"
-                    labelFormatter={(value) => {
-                      return new Date(value).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    }}
-                    formatter={(value, name) => {
-                      if (name === 'revenue') {
-                        // Show actual ETH values from blockchain transactions
-                        const ethValue = parseFloat(value as string) / 3400; // Convert USD back to ETH
-                        return [`${ethValue.toFixed(4)} ETH ($${parseFloat(value as string).toFixed(2)})`, 'Real Blockchain Revenue']
-                      }
-                      if (name === 'transactions') {
-                        return [value, 'Actual NFT Purchases']
-                      }
-                      if (name === 'clicks') {
-                        return [value, 'Real Link Clicks']
-                      }
-                      return [value, name]
-                    }}
-                  />
-                }
-              />
-              <Bar dataKey="clicks" fill="#3b82f6" radius={4} />
-              <Bar dataKey="transactions" fill="#10b981" radius={4} />
-              <Bar dataKey="revenue" fill="#f59e0b" radius={4} />
+                <CartesianGrid vertical={false} stroke="#374151" strokeOpacity={0.3} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={20}
+                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  tickFormatter={(value) => {
+                    const date = new Date(value)
+                    return date.toLocaleDateString("en-US", {
+                      day: "numeric",
+                    })
+                  }}
+                />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      className="bg-popover border-border text-popover-foreground"
+                      labelFormatter={(value) => {
+                        return new Date(value).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      }}
+                      formatter={(value, name) => {
+                        if (name === 'revenue') {
+                          // Show actual ETH values from blockchain transactions
+                          const ethValue = parseFloat(value as string) / 3400; // Convert USD back to ETH
+                          return [`${ethValue.toFixed(4)} ETH ($${parseFloat(value as string).toFixed(2)})`, 'Real Blockchain Revenue']
+                        }
+                        if (name === 'transactions') {
+                          return [value, 'Actual NFT Purchases']
+                        }
+                        if (name === 'clicks') {
+                          return [value, 'Real Link Clicks']
+                        }
+                        return [value, name]
+                      }}
+                    />
+                  }
+                />
+                <Bar dataKey="clicks" fill="#3b82f6" radius={4} />
+                <Bar dataKey="transactions" fill="#10b981" radius={4} />
+                <Bar dataKey="revenue" fill="#f59e0b" radius={4} />
               </BarChart>
             </ChartContainer>
           </div>
@@ -516,16 +519,16 @@ export default function AnalyticsPage() {
             headers: { 'Authorization': `Bearer ${token}` }
           })
         ])
-        
+
         const nftCampaigns = await campaignsRes.json()
         const tokenCampaigns = await tokensRes.json()
-        
+
         // Combine both arrays with type markers
         const allCampaigns = [
           ...(Array.isArray(nftCampaigns) ? nftCampaigns.map((c: any) => ({ ...c, campaignType: 'nft' })) : []),
           ...(Array.isArray(tokenCampaigns) ? tokenCampaigns.map((t: any) => ({ ...t, campaignType: 'token' })) : [])
         ]
-        
+
         console.log('Fetched campaigns:', allCampaigns)
         setCampaigns(allCampaigns)
       } catch (error) {
@@ -578,7 +581,7 @@ export default function AnalyticsPage() {
       } else {
         setClickAnalyticsLoading(true)
       }
-      
+
       try {
         const token = localStorage.getItem("bearer_token")
         const platformParam = platformFilter !== 'all' ? `?platform=${platformFilter}` : '';
@@ -591,7 +594,7 @@ export default function AnalyticsPage() {
           }
         )
         const data = await response.json()
-        
+
         console.log('🔍 Analytics API Response:', data);
         console.log('🔍 totalRevenue:', data.totalRevenue);
         console.log('🔍 totalEth:', data.totalEth);
@@ -599,13 +602,13 @@ export default function AnalyticsPage() {
         console.log('🔍 EXACT CHECK - data.totalEth value:', data.totalEth, 'type:', typeof data.totalEth);
         console.log('🔍 EXACT CHECK - parseFloat(totalEth):', parseFloat(data.totalEth || '0'));
         console.log('🔍 EXACT CHECK - toFixed result:', parseFloat(data.totalEth || '0').toFixed(4));
-        
+
         // Check if analytics have changed and log updates
         const prevActiveWallets = clickAnalytics?.activeWallets || 0
         const prevRevenue = clickAnalytics?.totalRevenue || 0
         const newActiveWallets = data.activeWallets || 0
         const newRevenue = data.totalRevenue || 0
-        
+
         if (prevActiveWallets !== newActiveWallets) {
           console.log(`🔔 Active Wallets UPDATED: ${prevActiveWallets} → ${newActiveWallets} (+${newActiveWallets - prevActiveWallets})`)
           toast.success(`Active Wallets increased by ${newActiveWallets - prevActiveWallets}!`)
@@ -616,7 +619,7 @@ export default function AnalyticsPage() {
             toast.success(`Revenue increased by $${(newRevenue - prevRevenue).toFixed(2)}!`)
           }
         }
-        
+
         setClickAnalytics(data)
         setLastUpdated(new Date())
         console.log('📊 Real-time analytics fetched:', {
@@ -639,7 +642,7 @@ export default function AnalyticsPage() {
     }
 
     fetchRealTimeAnalytics()
-    
+
     // Also fetch campaign links to get individual person names
     fetchCampaignLinks(selectedCampaign.id)
 
@@ -652,7 +655,7 @@ export default function AnalyticsPage() {
   // Reset and auto-select first person when platform filter changes
   useEffect(() => {
     setSelectedPersonLink(null)
-    
+
     // Auto-select first person when switching to a platform with individual links
     if (platformFilter !== "all") {
       setTimeout(() => {
@@ -677,21 +680,21 @@ export default function AnalyticsPage() {
     setLinksLoading(true)
     try {
       const token = localStorage.getItem("bearer_token")
-      
+
       // Try fetching from campaigns first, then tokens
       let response = await fetch(`/api/campaigns?id=${campaignId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      
+
       if (!response.ok) {
         response = await fetch(`/api/tokens?id=${campaignId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       }
-      
+
       const data = await response.json()
       setCampaignLinks(data.links || [])
-      
+
       console.log('✅ Campaign links fetched:', {
         campaignId,
         linksCount: data.links?.length || 0,
@@ -718,7 +721,7 @@ export default function AnalyticsPage() {
     }
 
     // Filter links by selected platform (handle platform names with suffixes like discord_1, discord_2)
-    const platformLinks = campaignLinks.filter(link => 
+    const platformLinks = campaignLinks.filter(link =>
       link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
     )
 
@@ -751,7 +754,7 @@ export default function AnalyticsPage() {
     // Convert platform links to individual link data with proper name matching
     const individualLinks = platformLinks.map((link, index) => {
       let personName = `Person ${index + 1}` // Default fallback
-      
+
       // Extract person name directly from platform name (e.g., discord_jusvin -> jusvin)
       const platformNameMatch = link.platform.match(/^[^_]+_(.+)$/)
       if (platformNameMatch) {
@@ -764,7 +767,7 @@ export default function AnalyticsPage() {
           if (plannedLinks?.personNames) {
             const platformKey = platformFilter.charAt(0).toUpperCase() + platformFilter.slice(1)
             const personNames = plannedLinks.personNames[platformKey]
-            
+
             if (personNames && personNames[index]) {
               personName = personNames[index]
               console.log(`✅ Fallback to plannedLinks name: ${personName}`)
@@ -774,7 +777,7 @@ export default function AnalyticsPage() {
           console.log('Could not extract from plannedLinks:', error)
         }
       }
-      
+
       // If no planned name found, try to extract from linkName
       if (personName.startsWith('Person ') && link.linkName) {
         if (link.linkName.includes(' - ')) {
@@ -819,33 +822,33 @@ export default function AnalyticsPage() {
     if (platformFilter === "all" || !selectedPersonLink) {
       return null
     }
-    
+
     const individualLinks = getIndividualLinkData()
     if (!individualLinks) return null
-    
+
     const selectedLink = individualLinks.find((link: any) => link.id === selectedPersonLink)
-    
+
     if (!selectedLink) {
       console.error('Selected link not found:', selectedPersonLink)
       return null
     }
-    
+
     console.log('Getting data for selected link:', {
       selectedPersonLink,
       selectedLink: selectedLink,
       linkId: selectedLink.id,
       personName: selectedLink.personName
     })
-    
+
     // Get analytics data for the selected link (real or derived)
     const analytics = linkAnalytics[selectedLink.id] || {}
-    
+
     // If no analytics data exists yet, trigger fetch
     if (Object.keys(analytics).length === 0 && selectedLink.id) {
       console.log('No analytics data found, fetching for:', selectedLink.id)
       fetchLinkAnalytics(selectedLink.id)
     }
-    
+
     const enrichedData = {
       ...selectedLink,
       analytics: analytics,
@@ -855,7 +858,7 @@ export default function AnalyticsPage() {
       recentTransactions: analytics.recentTransactions || [],
       chartData: analytics.chartData || { daily: [], hourly: [] }
     }
-    
+
     console.log('✅ Selected Person Data with Analytics:', {
       personName: enrichedData.personName,
       linkId: enrichedData.id,
@@ -869,7 +872,7 @@ export default function AnalyticsPage() {
   // Get real-time chart data from analytics
   const getChartData = () => {
     const selectedPersonData = getSelectedPersonData()
-    
+
     if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
       // Individual person selected - use their specific chart data
       console.log(`📊 Using individual chart data for ${selectedPersonData.personName}`, {
@@ -884,20 +887,20 @@ export default function AnalyticsPage() {
       }
     } else if (platformFilter !== "all") {
       // Platform selected (but no specific person) - generate chart data from platform links
-      const platformLinks = campaignLinks.filter(link => 
+      const platformLinks = campaignLinks.filter(link =>
         link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
       )
-      
+
       const totalPlatformClicks = platformLinks.reduce((sum, link) => sum + (link.clickCount || 0), 0)
       const totalPlatformConversions = platformLinks.reduce((sum, link) => sum + (link.conversionCount || 0), 0)
-      
+
       console.log(`📊 Generating chart data for platform ${platformFilter}:`, {
         totalClicks: totalPlatformClicks,
         totalConversions: totalPlatformConversions,
         linksCount: platformLinks.length,
         selectedPersonLink: selectedPersonLink
       })
-      
+
       // Generate chart data based on actual platform totals
       return {
         hourly: generateHourlyDataFromClicks(totalPlatformClicks),
@@ -906,7 +909,7 @@ export default function AnalyticsPage() {
     } else {
       // All platforms - use full campaign chart data or generate from total clicks
       const totalCampaignClicks = campaignLinks.reduce((sum, link) => sum + (link.clickCount || 0), 0)
-      
+
       if (clickAnalytics?.chartData?.hourly && clickAnalytics?.chartData?.daily) {
         console.log('📊 Using campaign analytics chart data for all platforms')
         return {
@@ -926,10 +929,10 @@ export default function AnalyticsPage() {
   // Smart ETH formatting function that adjusts decimal places based on value
   const formatEthValue = (value: string | number): string => {
     const ethValue = parseFloat(value.toString() || '0')
-    
+
     // If the value is 0, show as "0 ETH"
     if (ethValue === 0) return '0 ETH'
-    
+
     // For very small values (< 0.001), show up to 8 decimals but remove trailing zeros
     if (ethValue < 0.001) {
       return `${ethValue.toFixed(8).replace(/\.?0+$/, '')} ETH`
@@ -975,10 +978,10 @@ export default function AnalyticsPage() {
           'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (response.ok) {
         const realData = await response.json()
-        
+
         console.log(`✅ REAL blockchain data for ${link.linkName || 'Person'}:`, {
           linkId,
           realEthFromAPI: realData.totalEth,
@@ -1054,18 +1057,18 @@ export default function AnalyticsPage() {
   const generateDailyDataFromClicks = (totalClicks: number) => {
     const data = []
     const clicksDistribution = distributeClicksAcrossDays(totalClicks, 30)
-    
+
     // Get real transaction data for accurate revenue calculation
     const realTransactions = clickAnalytics?.recentTransactions || []
-    const totalEthRevenue = realTransactions.reduce((sum: number, tx: any) => 
+    const totalEthRevenue = realTransactions.reduce((sum: number, tx: any) =>
       sum + parseFloat(tx.amount || tx.nftValue || 0), 0
     )
     const totalTransactionCount = clickAnalytics?.totalTransactions || 0
-    
+
     // Calculate real conversion rate and ETH per transaction
     const realConversionRate = totalClicks > 0 ? Math.min((totalTransactionCount / totalClicks) * 100, 100) : 0
     const avgEthPerTransaction = totalTransactionCount > 0 ? totalEthRevenue / totalTransactionCount : 0.001
-    
+
     console.log('📊 Real Analytics Data for Chart:', {
       totalClicks,
       totalTransactionCount,
@@ -1073,18 +1076,18 @@ export default function AnalyticsPage() {
       realConversionRate: realConversionRate.toFixed(2) + '%',
       avgEthPerTransaction: avgEthPerTransaction.toFixed(4) + ' ETH'
     })
-    
+
     for (let i = 29; i >= 0; i--) {
       const date = new Date()
       date.setDate(date.getDate() - i)
       const dateStr = date.toISOString().split('T')[0]
       const dayClicks = clicksDistribution[29 - i] || 0
-      
+
       // Use real conversion rate and ETH values
       const dayTransactions = Math.floor(dayClicks * (realConversionRate / 100))
       const dayEthRevenue = dayTransactions * avgEthPerTransaction
       const dayUsdRevenue = dayEthRevenue * 3400 // ETH to USD conversion
-      
+
       data.push({
         date: dateStr,
         visitors: dayClicks,
@@ -1102,21 +1105,21 @@ export default function AnalyticsPage() {
   const generateHourlyDataFromClicks = (totalClicks: number) => {
     const data = []
     const clicksDistribution = distributeClicksAcrossHours(totalClicks, 24)
-    
+
     // Get real transaction metrics
     const totalTransactionCount = clickAnalytics?.totalTransactions || 0
     const realConversionRate = totalClicks > 0 ? (totalTransactionCount / totalClicks) : 0.05
     const realTransactions = clickAnalytics?.recentTransactions || []
-    const totalEthRevenue = realTransactions.reduce((sum: number, tx: any) => 
+    const totalEthRevenue = realTransactions.reduce((sum: number, tx: any) =>
       sum + parseFloat(tx.amount || tx.nftValue || 0), 0
     )
     const avgEthPerTransaction = totalTransactionCount > 0 ? totalEthRevenue / totalTransactionCount : 0.001
-    
+
     for (let hour = 0; hour < 24; hour++) {
       const hourClicks = clicksDistribution[hour] || 0
       const hourTransactions = Math.floor(hourClicks * realConversionRate)
       const hourEthRevenue = hourTransactions * avgEthPerTransaction
-      
+
       data.push({
         hour: hour < 10 ? `0${hour}:00` : `${hour}:00`,
         clicks: hourClicks,
@@ -1133,7 +1136,7 @@ export default function AnalyticsPage() {
   const distributeClicksAcrossDays = (totalClicks: number, days: number) => {
     const distribution = new Array(days).fill(0)
     let remainingClicks = totalClicks
-    
+
     // Distribute clicks with some randomness but ensure total adds up
     for (let i = 0; i < days && remainingClicks > 0; i++) {
       if (i === days - 1) {
@@ -1145,17 +1148,17 @@ export default function AnalyticsPage() {
         remainingClicks -= clicksThisDay
       }
     }
-    
+
     return distribution
   }
 
   const distributeClicksAcrossHours = (totalClicks: number, hours: number) => {
     const distribution = new Array(hours).fill(0)
     let remainingClicks = totalClicks
-    
+
     // Peak hours (9-17) get more clicks
     const peakHours = [9, 10, 11, 12, 13, 14, 15, 16, 17]
-    
+
     for (let i = 0; i < hours && remainingClicks > 0; i++) {
       if (i === hours - 1) {
         distribution[i] = remainingClicks
@@ -1168,7 +1171,7 @@ export default function AnalyticsPage() {
         remainingClicks -= clicksThisHour
       }
     }
-    
+
     return distribution
   }
 
@@ -1177,7 +1180,7 @@ export default function AnalyticsPage() {
   // Manual refresh function
   const handleManualRefresh = async () => {
     if (!selectedCampaign || isRefreshing) return
-    
+
     setIsRefreshing(true)
     try {
       const token = localStorage.getItem("bearer_token")
@@ -1204,7 +1207,7 @@ export default function AnalyticsPage() {
 
   const handleExportReport = async () => {
     if (!selectedCampaign) return
-    
+
     try {
       const token = localStorage.getItem("bearer_token")
       const response = await fetch(
@@ -1215,7 +1218,7 @@ export default function AnalyticsPage() {
           }
         }
       )
-      
+
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -1266,115 +1269,127 @@ export default function AnalyticsPage() {
   if (!selectedCampaign) {
     return (
       <DashboardLayout>
-        <div className="container mx-auto px-8 py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                Analytics & Insights
-              </h1>
-              <p className="text-muted-foreground">Select a campaign to view detailed analytics and performance insights</p>
+        {/* Hero Header */}
+        <HeroHeader
+          title={
+            <>
+              Analytics & <Highlight>Insights</Highlight>
+            </>
+          }
+          description="Select a campaign to view detailed analytics, performance metrics, and blockchain attribution data"
+          badge="Campaign Analytics"
+          icon={
+            <div className="p-4 rounded-2xl bg-accent/10">
+              <TrendingUp size={48} className="text-accent" />
             </div>
+          }
+        />
 
-            {/* Search */}
-            <div className="flex gap-4 mb-6">
+        {/* Search and Filter Section */}
+        <Section className="!py-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
                 <Input
-                  placeholder="Search campaigns..."
+                  placeholder="Search campaigns by name or description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-background border-border text-foreground"
+                  className="pl-12 h-12 text-base border-border bg-card"
                 />
               </div>
-              <Button variant="outline" className="border-white/10">
-                <Filter size={16} className="mr-2" />
+              <Button
+                variant="outline"
+                className="border-border hover:bg-muted h-12 px-6"
+              >
+                <Filter size={18} className="mr-2" />
                 Filter
               </Button>
             </div>
+          </div>
+        </Section>
 
-            {/* Campaign Cards */}
-            {filteredCampaigns.length === 0 ? (
-              <div className="text-center py-20">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                >
-                  <Megaphone className="mx-auto mb-4 text-gray-500" size={64} />
-                  <h2 className="text-2xl font-bold text-white mb-2">No campaigns yet</h2>
-                  <p className="text-gray-400 mb-6">Create your first campaign to start viewing analytics</p>
-                </motion.div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCampaigns.map((campaign, index) => (
-                  <motion.div
-                    key={campaign.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => {
-                      console.log('Selecting campaign:', campaign)
-                      setSelectedCampaign(campaign)
-                    }}
-                    className="rounded-xl border border-border p-6 hover:border-border/60 transition-all cursor-pointer bg-card"
-                    style={{
-                      background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-                    }}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center"
-                        style={{
-                          background: 'linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.8))'
-                        }}
-                      >
-                        <Megaphone className="text-white" size={24} />
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        campaign.status === 'active' 
-                          ? 'bg-green-400/10 text-green-400' 
-                          : campaign.status === 'paused'
-                          ? 'bg-yellow-400/10 text-yellow-400'
-                          : 'bg-gray-400/10 text-gray-400'
-                      }`}>
-                        {campaign.status}
-                      </div>
-                    </div>
-
-                    <h3 className="text-xl font-bold text-white mb-2">{campaign.name}</h3>
-                    <p className="text-sm text-gray-400 mb-4 line-clamp-2">
-                      {campaign.description || 'No description provided'}
-                    </p>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-gray-400">
-                        <Calendar size={14} />
-                        Created {new Date(campaign.createdAt).toLocaleDateString()}
-                      </div>
-                      {campaign.blockchain && (
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <TrendingUp size={14} />
-                          {campaign.blockchain}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">Click to view analytics</span>
-                        <span className="text-white font-semibold">→</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+        {/* Campaign Cards Section */}
+        <Section>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <h2 className="text-3xl font-bold text-foreground mb-3">Your Campaigns</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              Select a campaign to view detailed performance analytics
+            </p>
           </motion.div>
-        </div>
+
+          {filteredCampaigns.length === 0 ? (
+            <div className="text-center py-20">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
+                <Megaphone className="mx-auto mb-4 text-muted-foreground" size={64} />
+                <h2 className="text-2xl font-bold text-foreground mb-2">No campaigns yet</h2>
+                <p className="text-muted-foreground mb-6">Create your first campaign to start viewing analytics</p>
+              </motion.div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCampaigns.map((campaign, index) => (
+                <motion.div
+                  key={campaign.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  onClick={() => {
+                    console.log('Selecting campaign:', campaign)
+                    setSelectedCampaign(campaign)
+                  }}
+                  className="rounded-2xl border border-border p-6 hover:border-accent/50 hover:shadow-lg transition-all cursor-pointer bg-card"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                      <Megaphone className="text-accent" size={24} />
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-semibold ${campaign.status === 'active'
+                      ? 'bg-green-50/50 text-green-700'
+                      : campaign.status === 'paused'
+                        ? 'bg-yellow-50/50 text-yellow-700'
+                        : 'bg-gray-50/50 text-gray-700'
+                      }`}>
+                      {campaign.status}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-foreground mb-2">{campaign.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                    {campaign.description || 'No description provided'}
+                  </p>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar size={14} />
+                      Created {new Date(campaign.createdAt).toLocaleDateString()}
+                    </div>
+                    {campaign.blockchain && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <TrendingUp size={14} />
+                        {campaign.blockchain}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Click to view analytics</span>
+                      <span className="text-accent font-semibold">→</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </Section>
       </DashboardLayout>
     )
   }
@@ -1398,7 +1413,7 @@ export default function AnalyticsPage() {
               <ArrowLeft size={16} className="mr-2" />
               Back to Campaigns
             </Button>
-            
+
             {/* Platform Filter Buttons */}
             <div className="flex items-center gap-3 mb-6">
               <span className="text-sm text-gray-400 font-medium">Filter by Platform:</span>
@@ -1407,8 +1422,8 @@ export default function AnalyticsPage() {
                   variant={platformFilter === "all" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setPlatformFilter("all")}
-                  className={platformFilter === "all" 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                  className={platformFilter === "all"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
                     : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
                 >
                   All Platforms
@@ -1420,8 +1435,8 @@ export default function AnalyticsPage() {
                     console.log('Setting platform filter to discord')
                     setPlatformFilter("discord")
                   }}
-                  className={platformFilter === "discord" 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                  className={platformFilter === "discord"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
                     : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
                 >
                   <MessageSquare size={16} className="mr-1" />
@@ -1434,8 +1449,8 @@ export default function AnalyticsPage() {
                     console.log('Setting platform filter to twitter')
                     setPlatformFilter("twitter")
                   }}
-                  className={platformFilter === "twitter" 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                  className={platformFilter === "twitter"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
                     : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
                 >
                   <Target size={16} className="mr-1" />
@@ -1465,7 +1480,7 @@ export default function AnalyticsPage() {
                             checked={selectedPersonLink === link.id}
                             onChange={() => {
                               console.log('✅ Radio button selected:', {
-                                personName: link.personName, 
+                                personName: link.personName,
                                 linkId: link.id,
                                 platform: link.platform,
                                 isReal: !link.id.startsWith('placeholder-')
@@ -1509,8 +1524,8 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="border-white/10"
                   onClick={handleManualRefresh}
                   disabled={isRefreshing}
@@ -1518,20 +1533,20 @@ export default function AnalyticsPage() {
                   <RefreshCw size={16} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                   {isRefreshing ? 'Refreshing...' : 'Refresh'}
                 </Button>
-                
+
                 <Dialog open={linksDialogOpen} onOpenChange={setLinksDialogOpen}>
                   <DialogTrigger>
-                    <Button 
-                      variant="outline" 
-                      className="border-white/10"
+                    <Button
+                      variant="outline"
+                      className="border-border bg-card text-foreground hover:bg-muted"
                       onClick={() => fetchCampaignLinks(selectedCampaign.id)}
                     >
                       <Link2 size={20} className="mr-2" />
                       Links
                     </Button>
                   </DialogTrigger>
-                  <DialogContent 
-                    className="bg-gradient-to-br from-white/5 to-black/50 border-white/10 backdrop-blur-sm text-white p-12 overflow-hidden flex flex-col"
+                  <DialogContent
+                    className="bg-background border-border text-foreground p-6 sm:p-12 overflow-hidden flex flex-col"
                     style={{
                       width: '85vw',
                       height: '70vh',
@@ -1540,28 +1555,28 @@ export default function AnalyticsPage() {
                       aspectRatio: '16/10'
                     }}
                   >
-                    <DialogHeader className="border-b border-white/10 pb-6 mb-6 flex-shrink-0">
+                    <DialogHeader className="border-b border-border pb-6 mb-6 flex-shrink-0">
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 rounded-full bg-white/10 border border-white/20">
-                          <Link2 className="h-6 w-6 text-white" />
+                        <div className="p-3 rounded-full bg-accent/10 border border-accent/20">
+                          <Link2 className="h-6 w-6 text-accent" />
                         </div>
                         <div>
                           <DialogTitle>
-                            <span className="text-2xl font-bold text-white mb-1">Campaign Links</span>
+                            <span className="text-2xl font-bold text-foreground mb-1">Campaign Links</span>
                           </DialogTitle>
-                          <p className="text-lg text-gray-400">{selectedCampaign.name}</p>
+                          <p className="text-lg text-muted-foreground">{selectedCampaign.name}</p>
                         </div>
                       </div>
-                      <p className="text-gray-400 text-sm px-2">
+                      <p className="text-muted-foreground text-sm px-2">
                         Manage and track all links for this campaign. Click any URL to copy it to your clipboard.
                       </p>
                     </DialogHeader>
-                    
+
                     {linksLoading ? (
                       <div className="flex items-center justify-center py-12">
                         <div className="text-center">
                           <Spinner className="mx-auto mb-4" />
-                          <p className="text-gray-400">Loading campaign links...</p>
+                          <p className="text-muted-foreground">Loading campaign links...</p>
                         </div>
                       </div>
                     ) : campaignLinks.length === 0 ? (
@@ -1569,59 +1584,58 @@ export default function AnalyticsPage() {
                         <motion.div
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="rounded-xl border border-white/10 p-8 bg-gradient-to-br from-white/5 to-black/50 max-w-md mx-auto"
+                          className="rounded-xl border border-border p-8 bg-card max-w-md mx-auto shadow-sm"
                         >
-                          <Link2 className="mx-auto h-16 w-16 text-gray-500 mb-4" />
-                          <h3 className="text-xl font-bold text-white mb-3">No Tracking Links</h3>
-                          <p className="text-gray-400 text-base">No tracking links found for this campaign</p>
+                          <Link2 className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                          <h3 className="text-xl font-bold text-foreground mb-3">No Tracking Links</h3>
+                          <p className="text-muted-foreground text-base">No tracking links found for this campaign</p>
                         </motion.div>
                       </div>
                     ) : (
                       <div className="space-y-4 flex-1 overflow-y-auto pr-4"
                         style={{
                           scrollbarWidth: 'thin',
-                          scrollbarColor: 'rgba(255, 255, 255, 0.3) transparent'
+                          scrollbarColor: ''
                         }}
                       >
                         {campaignLinks.map((link, index) => (
-                          <motion.div 
+                          <motion.div
                             key={link.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="rounded-xl border border-white/10 p-6 hover:border-white/20 transition-all duration-300 bg-gradient-to-br from-white/5 to-black/50"
+                            className="rounded-xl border border-border p-6 hover:shadow-md transition-all duration-300 bg-card group"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-4 mb-4">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white text-base font-bold">
+                                    <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-base font-bold">
                                       {link.platform.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                      <h4 className="text-white font-semibold text-lg mb-1">
+                                      <h4 className="text-foreground font-semibold text-lg mb-1">
                                         {link.linkName || `${link.platform.charAt(0).toUpperCase() + link.platform.slice(1)} Link`}
                                       </h4>
-                                      <p className="text-sm text-gray-400 capitalize">{link.platform} • Created {new Date(link.createdAt).toLocaleDateString()}</p>
+                                      <p className="text-sm text-muted-foreground capitalize">{link.platform} • Created {new Date(link.createdAt).toLocaleDateString()}</p>
                                     </div>
                                   </div>
-                                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    link.status === 'active' 
-                                      ? 'bg-white/10 text-white border border-white/20' 
-                                      : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-                                  }`}>
+                                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${link.status === 'active'
+                                    ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                                    : 'bg-muted text-muted-foreground border border-border'
+                                    }`}>
                                     {link.status}
                                   </div>
                                 </div>
-                                
+
                                 <div className="space-y-3">
-                                  <div className="rounded-lg bg-black/30 border border-white/10 p-4">
+                                  <div className="rounded-lg bg-muted/50 border border-border p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <span className="text-sm font-medium text-gray-300">Tracking URL:</span>
+                                      <span className="text-sm font-medium text-muted-foreground">Tracking URL:</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <div className="flex-1 min-w-0">
-                                        <code className="text-sm bg-black/50 px-3 py-2 rounded-md text-white font-mono border border-white/10 block w-full break-all">
+                                        <code className="text-sm bg-background px-3 py-2 rounded-md text-foreground font-mono border border-border block w-full break-all">
                                           {link.longUrl || link.shortUrl}
                                         </code>
                                       </div>
@@ -1630,7 +1644,7 @@ export default function AnalyticsPage() {
                                           size="sm"
                                           variant="ghost"
                                           onClick={() => copyToClipboard(link.longUrl || link.shortUrl, 'Tracking URL')}
-                                          className="h-8 w-8 p-0 hover:bg-white/10"
+                                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                           title="Copy tracking URL"
                                         >
                                           <Copy size={14} />
@@ -1639,7 +1653,7 @@ export default function AnalyticsPage() {
                                           size="sm"
                                           variant="ghost"
                                           onClick={() => window.open(link.longUrl || link.shortUrl, '_blank')}
-                                          className="h-8 w-8 p-0 hover:bg-white/10"
+                                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                           title="Open in new tab"
                                         >
                                           <ExternalLink size={14} />
@@ -1647,14 +1661,14 @@ export default function AnalyticsPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  
-                                  <div className="rounded-lg bg-black/30 border border-white/10 p-4">
+
+                                  <div className="rounded-lg bg-muted/50 border border-border p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <span className="text-sm font-medium text-gray-300">Destination URL:</span>
+                                      <span className="text-sm font-medium text-muted-foreground">Destination URL:</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <div className="flex-1 min-w-0">
-                                        <code className="text-sm bg-black/50 px-3 py-2 rounded-md text-gray-400 font-mono border border-white/10 block w-full break-all">
+                                        <code className="text-sm bg-background px-3 py-2 rounded-md text-foreground font-mono border border-border block w-full break-all">
                                           {link.originalUrl}
                                         </code>
                                       </div>
@@ -1663,7 +1677,7 @@ export default function AnalyticsPage() {
                                           size="sm"
                                           variant="ghost"
                                           onClick={() => copyToClipboard(link.originalUrl, 'Destination URL')}
-                                          className="h-8 w-8 p-0 hover:bg-white/10"
+                                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                           title="Copy destination URL"
                                         >
                                           <Copy size={14} />
@@ -1681,8 +1695,8 @@ export default function AnalyticsPage() {
                     )}
                   </DialogContent>
                 </Dialog>
-                
-                <Button variant="outline" className="border-white/10">
+
+                <Button variant="outline" className="border-border">
                   <Download size={20} className="mr-2" />
                   Export Report
                 </Button>
@@ -1691,28 +1705,20 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Campaign Info Banner */}
-          <div className="rounded-xl border border-white/10 p-6 mb-8"
-            style={{
-              background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-            }}
-          >
+          <div className="rounded-2xl border border-border bg-card p-6 mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {selectedCampaign.campaignType === 'token' && selectedCampaign.tokenLogo ? (
                   <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20">
-                    <img 
-                      src={selectedCampaign.tokenLogo} 
+                    <img
+                      src={selectedCampaign.tokenLogo}
                       alt={selectedCampaign.tokenSymbol || 'Token'}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 ) : (
-                  <div className="w-12 h-12 rounded-lg flex items-center justify-center"
-                    style={{
-                      background: 'linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.8))'
-                    }}
-                  >
-                    <Megaphone className="text-white" size={24} />
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <Megaphone className="text-accent" size={24} />
                   </div>
                 )}
                 <div>
@@ -1745,13 +1751,12 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  selectedCampaign.status === 'active' 
-                    ? 'bg-green-400/10 text-green-400' 
-                    : selectedCampaign.status === 'paused'
+                <div className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedCampaign.status === 'active'
+                  ? 'bg-green-400/10 text-green-400'
+                  : selectedCampaign.status === 'paused'
                     ? 'bg-yellow-400/10 text-yellow-400'
                     : 'bg-gray-400/10 text-gray-400'
-                }`}>
+                  }`}>
                   {selectedCampaign.status}
                 </div>
                 <div className="text-sm text-gray-400">
@@ -1780,16 +1785,16 @@ export default function AnalyticsPage() {
 
     // Get selected person data for filtering
     const selectedPersonData = getSelectedPersonData()
-    
+
     // Real analytics calculation using actual NFT transactions from blockchain
     let totalClicks, totalTransactions, activeWallets
-    
+
     if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
       // Individual person selected - show their specific data
       totalClicks = selectedPersonData.totalClicks || selectedPersonData.clickCount || 0
       totalTransactions = selectedPersonData.conversionCount || 0
       activeWallets = Math.min(totalClicks, 5) // Reasonable estimate for individual
-      
+
       console.log(`👤 Individual person data for ${selectedPersonData.personName}:`, {
         clicks: totalClicks,
         transactions: totalTransactions,
@@ -1798,14 +1803,14 @@ export default function AnalyticsPage() {
       })
     } else if (platformFilter !== "all") {
       // Platform filter selected - sum all links for that platform
-      const platformLinks = campaignLinks.filter(link => 
+      const platformLinks = campaignLinks.filter(link =>
         link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
       )
-      
+
       totalClicks = platformLinks.reduce((sum, link) => sum + (link.clickCount || 0), 0)
       totalTransactions = platformLinks.reduce((sum, link) => sum + (link.conversionCount || 0), 0)
       activeWallets = Math.min(totalClicks, 10)
-      
+
       console.log(`📱 Platform ${platformFilter} totals (no specific person):`, {
         clicks: totalClicks,
         transactions: totalTransactions,
@@ -1824,17 +1829,17 @@ export default function AnalyticsPage() {
       totalClicks = campaignLinks.reduce((sum, link) => sum + (link.clickCount || 0), 0)
       totalTransactions = clickAnalytics?.totalTransactions ?? 0
       activeWallets = clickAnalytics?.activeWallets || 0
-      
+
       console.log(`🌐 All platforms analytics:`, {
         backendTotalTransactions: clickAnalytics?.totalTransactions,
         activeWallets: activeWallets,
         ethFromBackend: clickAnalytics?.totalRevenue
       })
     }
-    
+
     // Calculate platform data from campaign links directly
     const platformCounts: { [key: string]: { clicks: number, conversions: number } } = {}
-    
+
     // Group links by platform and sum their values (handle platform names with suffixes)
     campaignLinks.forEach(link => {
       // Extract base platform name (remove _1, _2, etc.)
@@ -1845,7 +1850,7 @@ export default function AnalyticsPage() {
       platformCounts[basePlatform].clicks += link.clickCount || 0
       platformCounts[basePlatform].conversions += link.conversionCount || 0
     })
-    
+
     // Create platform data array
     let allPlatformData = Object.entries(platformCounts).map(([platform, data]) => ({
       platform: platform.charAt(0).toUpperCase() + platform.slice(1),
@@ -1878,14 +1883,14 @@ export default function AnalyticsPage() {
     }
 
     // Filter platform data based on selected platform filter
-    const platformData = platformFilter === "all" 
-      ? allPlatformData 
+    const platformData = platformFilter === "all"
+      ? allPlatformData
       : allPlatformData.filter(p => p.platform.toLowerCase() === platformFilter.toLowerCase())
 
     // Get recent transactions for display - always show all transactions for the campaign
     let recentTransactions = clickAnalytics?.recentTransactions || []
     console.log('📋 Recent Transactions from backend:', recentTransactions)
-    
+
     // Create top performers from recent transactions
     const topInfluencers = recentTransactions.slice(0, 4).map((tx: any, index: number) => ({
       influencer: `${tx.walletAddress?.slice(0, 6)}...${tx.walletAddress?.slice(-4)}` || 'Unknown',
@@ -1903,138 +1908,135 @@ export default function AnalyticsPage() {
 
     return (
       <>
-          {/* KPI Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {[
-              { 
-                icon: <TrendingUp size={24} />, 
-                label: "Total Clicks", 
-                value: totalClicks.toString(), 
-                change: clickAnalytics?.clickToTransactionRate || "0%",
-                subtitle: "Conversion Rate"
-              },
-              { 
-                icon: <DollarSign size={24} />, 
-                label: "ETH Transactions", 
-                value: (() => {
-                  if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
-                    // ✅ Individual person selected - use their specific ETH from real transactions
-                    const personEth = selectedPersonData.totalRevenue || 0;
-                    console.log('🎯 PERSON-SPECIFIC ETH (Real Blockchain):', {
-                      personName: selectedPersonData.personName,
-                      linkId: selectedPersonLink,
-                      rawEthValue: personEth,
-                      formattedEth: formatEthValue(personEth)
+        {/* KPI Cards */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {[
+            {
+              icon: <TrendingUp size={24} />,
+              label: "Total Clicks",
+              value: totalClicks.toString(),
+              change: clickAnalytics?.clickToTransactionRate || "0%",
+              subtitle: "Conversion Rate"
+            },
+            {
+              icon: <DollarSign size={24} />,
+              label: "ETH Transactions",
+              value: (() => {
+                if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
+                  // ✅ Individual person selected - use their specific ETH from real transactions
+                  const personEth = selectedPersonData.totalRevenue || 0;
+                  console.log('🎯 PERSON-SPECIFIC ETH (Real Blockchain):', {
+                    personName: selectedPersonData.personName,
+                    linkId: selectedPersonLink,
+                    rawEthValue: personEth,
+                    formattedEth: formatEthValue(personEth)
+                  });
+                  return formatEthValue(personEth);
+                } else if (platformFilter !== "all") {
+                  // ✅ Platform filter selected - use backend filtered ETH data
+                  if (clickAnalytics?.platformFilter === platformFilter) {
+                    const platformEth = clickAnalytics?.totalEth || '0';
+                    console.log('🎯 PLATFORM-FILTERED ETH (Backend):', {
+                      platform: platformFilter,
+                      rawEthValue: platformEth,
+                      formattedEth: formatEthValue(platformEth)
                     });
-                    return formatEthValue(personEth);
-                  } else if (platformFilter !== "all") {
-                    // ✅ Platform filter selected - use backend filtered ETH data
-                    if (clickAnalytics?.platformFilter === platformFilter) {
-                      const platformEth = clickAnalytics?.totalEth || '0';
-                      console.log('🎯 PLATFORM-FILTERED ETH (Backend):', {
-                        platform: platformFilter,
-                        rawEthValue: platformEth,
-                        formattedEth: formatEthValue(platformEth)
-                      });
-                      return formatEthValue(platformEth);
-                    } else {
-                      // Fallback to manual calculation
-                      const platformLinks = campaignLinks.filter(link => 
-                        link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
-                      );
-                      const platformEth = platformLinks.reduce((sum, link) => sum + (link.totalRevenue || 0), 0);
-                      console.log('🎯 PLATFORM-MANUAL ETH:', {
-                        platform: platformFilter,
-                        platformLinks: platformLinks.length,
-                        rawEthValue: platformEth,
-                        formattedEth: formatEthValue(platformEth)
-                      });
-                      return formatEthValue(platformEth);
-                    }
+                    return formatEthValue(platformEth);
                   } else {
-                    // ✅ All platforms - use campaign total ETH from raw totalRevenue (not pre-formatted totalEth)
-                    const campaignEth = clickAnalytics?.totalRevenue || 0; // Use totalRevenue instead of totalEth
-                    console.log('🎯 CAMPAIGN TOTAL ETH:', {
-                      rawTotalRevenue: clickAnalytics?.totalRevenue,
-                      preFormattedTotalEth: clickAnalytics?.totalEth,
-                      usingRawValue: campaignEth,
-                      smartFormatted: formatEthValue(campaignEth)
+                    // Fallback to manual calculation
+                    const platformLinks = campaignLinks.filter(link =>
+                      link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
+                    );
+                    const platformEth = platformLinks.reduce((sum, link) => sum + (link.totalRevenue || 0), 0);
+                    console.log('🎯 PLATFORM-MANUAL ETH:', {
+                      platform: platformFilter,
+                      platformLinks: platformLinks.length,
+                      rawEthValue: platformEth,
+                      formattedEth: formatEthValue(platformEth)
                     });
-                    return formatEthValue(campaignEth);
+                    return formatEthValue(platformEth);
                   }
-                })(),
-                change: `${clickAnalytics?.totalTransactions ?? 0} detected`,
-                subtitle: "Real ETH from Blockchain"
-              },
-              { 
-                icon: <MessageSquare size={24} />, 
-                label: "Active Wallets", 
-                value: activeWallets.toString(), 
-                change: `${totalTransactions} transactions`,
-                subtitle: "Unique Wallets with Transactions"
-              },
-            ].map((kpi, index) => (
+                } else {
+                  // ✅ All platforms - use campaign total ETH from raw totalRevenue (not pre-formatted totalEth)
+                  const campaignEth = clickAnalytics?.totalRevenue || 0; // Use totalRevenue instead of totalEth
+                  console.log('🎯 CAMPAIGN TOTAL ETH:', {
+                    rawTotalRevenue: clickAnalytics?.totalRevenue,
+                    preFormattedTotalEth: clickAnalytics?.totalEth,
+                    usingRawValue: campaignEth,
+                    smartFormatted: formatEthValue(campaignEth)
+                  });
+                  return formatEthValue(campaignEth);
+                }
+              })(),
+              change: `${clickAnalytics?.totalTransactions ?? 0} detected`,
+              subtitle: "Real ETH from Blockchain"
+            },
+            {
+              icon: <MessageSquare size={24} />,
+              label: "Active Wallets",
+              value: activeWallets.toString(),
+              change: `${totalTransactions} transactions`,
+              subtitle: "Unique Wallets with Transactions"
+            },
+          ].map((kpi, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="rounded-xl border border-white/10 p-6"
-              style={{
-                background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-              }}
+              className="rounded-2xl border border-border bg-card p-6"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="p-2 rounded-lg bg-white/10">
-                  <div className="text-white">{kpi.icon}</div>
+                <div className="p-2 rounded-xl bg-accent/10">
+                  <div className="text-accent">{kpi.icon}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-green-400 text-sm font-medium">{kpi.change}</div>
-                  <div className="text-gray-500 text-xs">{kpi.subtitle}</div>
+                  <div className="text-green-700 text-sm font-medium">{kpi.change}</div>
+                  <div className="text-muted-foreground text-xs">{kpi.subtitle}</div>
                 </div>
               </div>
-              <p className="text-gray-400 text-sm mb-1">{kpi.label}</p>
-              <p className="text-3xl font-bold text-white">{kpi.value}</p>
+              <p className="text-muted-foreground text-sm mb-1">{kpi.label}</p>
+              <p className="text-3xl font-bold text-foreground">{kpi.value}</p>
             </motion.div>
           ))}
         </div>
 
-          {/* Platform Performance */}
-          <div className="rounded-xl border border-border p-6 mb-8 bg-card"
-          >
-            {platformFilter === "all" && (
-              <>
-                <h3 className="text-xl font-bold text-card-foreground mb-6">Clicks by Platform</h3>
-                <div className="space-y-6">
-                  {platformData.map((platform, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-lg font-medium text-card-foreground">{platform.platform}</span>
-                        <span className="text-sm text-muted-foreground">{platform.clicks} clicks</span>
-                      </div>
-                      <div className="h-3 bg-muted rounded-full overflow-hidden mb-2">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${totalClicks > 0 ? (platform.clicks / totalClicks) * 100 : 0}%` }}
-                          transition={{ duration: 1, delay: 0.5 }}
-                          className="h-full bg-primary"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{platform.influencers} influencers</span>
-                        <span className="text-card-foreground font-semibold">{platform.value}</span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+        {/* Platform Performance */}
+        <div className="rounded-2xl border border-border p-6 mb-8 bg-card"
+        >
+          {platformFilter === "all" && (
+            <>
+              <h3 className="text-xl font-bold text-card-foreground mb-6">Clicks by Platform</h3>
+              <div className="space-y-6">
+                {platformData.map((platform, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-lg font-medium text-card-foreground">{platform.platform}</span>
+                      <span className="text-sm text-muted-foreground">{platform.clicks} clicks</span>
+                    </div>
+                    <div className="h-3 bg-muted rounded-full overflow-hidden mb-2">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${totalClicks > 0 ? (platform.clicks / totalClicks) * 100 : 0}%` }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                        className="h-full bg-primary"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{platform.influencers} influencers</span>
+                      <span className="text-card-foreground font-semibold">{platform.value}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Charts Row */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -2042,40 +2044,32 @@ export default function AnalyticsPage() {
           <Calendar27 chartData={getChartData()} />
 
           {/* Multi Line Chart */}
-          <div className="rounded-xl border border-white/10"
-            style={{
-              background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-            }}
-          >
+          <div className="rounded-2xl border border-border bg-card">
             <DottedMultiLineChart />
           </div>
         </div>
 
         {/* Recent Transactions */}
-        <div className="rounded-xl border border-white/10 p-6"
-          style={{
-            background: 'linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.9))'
-          }}
-        >
+        <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-white">Recent Transactions</h3>
-              <p className="text-sm text-gray-400 mt-1">
+              <h3 className="text-xl font-bold text-foreground">Recent Transactions</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 Live NFT purchases detected from monitored wallet addresses • Auto-refreshes every 5 minutes
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
                 <span>Monitoring {activeWallets} wallets</span>
               </div>
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-muted-foreground">
                 Next check: {new Date(Date.now() + (5 * 60 * 1000) - ((Date.now() % (5 * 60 * 1000)))).toLocaleTimeString()}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="border-white/10 hover:bg-white/10 text-white"
+                className="border-border hover:bg-muted"
                 onClick={handleExportReport}
                 disabled={recentTransactions.length === 0}
               >
@@ -2084,20 +2078,20 @@ export default function AnalyticsPage() {
               </Button>
             </div>
           </div>
-          
+
           {recentTransactions.length === 0 ? (
             <div className="text-center py-8">
-              <div className="rounded-lg border border-white/10 p-8 bg-gradient-to-br from-white/5 to-black/50 max-w-md mx-auto">
-                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
-                  <RefreshCw className="w-8 h-8 text-blue-400 animate-spin" />
+              <div className="rounded-xl border border-border bg-muted p-8 max-w-md mx-auto">
+                <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-4">
+                  <RefreshCw className="w-8 h-8 text-accent animate-spin" />
                 </div>
-                <div className="text-white font-semibold mb-2">Monitoring Wallet Transactions</div>
-                <div className="text-sm text-gray-400 mb-4">
+                <div className="text-foreground font-semibold mb-2">Monitoring Wallet Transactions</div>
+                <div className="text-sm text-muted-foreground mb-4">
                   The system checks every 5 minutes for NFT transactions from wallet addresses that clicked your campaign links.
                 </div>
-                <div className="text-xs text-gray-500">
-                  • {activeWallets} unique wallets being monitored<br/>
-                  • Next check: {new Date(Date.now() + (5 * 60 * 1000) - ((Date.now() % (5 * 60 * 1000)))).toLocaleTimeString()}<br/>
+                <div className="text-xs text-muted-foreground">
+                  • {activeWallets} unique wallets being monitored<br />
+                  • Next check: {new Date(Date.now() + (5 * 60 * 1000) - ((Date.now() % (5 * 60 * 1000)))).toLocaleTimeString()}<br />
                   • Transactions will appear automatically when detected
                 </div>
               </div>
@@ -2106,14 +2100,14 @@ export default function AnalyticsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left p-3 text-gray-400 font-medium">Transaction</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Wallet Address</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">NFT Details</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Value</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Status</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Time</th>
-                    <th className="text-left p-3 text-gray-400 font-medium">Actions</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left p-3 text-muted-foreground font-medium">Transaction</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Wallet Address</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">NFT Details</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Value</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Status</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Time</th>
+                    <th className="text-left p-3 text-muted-foreground font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2123,21 +2117,21 @@ export default function AnalyticsPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      className="border-b border-border/50 hover:bg-muted transition-colors"
                     >
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="font-mono text-xs text-blue-400">
+                          <div className="font-mono text-xs text-accent">
                             {transaction.transactionHash || 'N/A'}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-muted-foreground mt-1">
                             Block #{transaction.blockNumber || 'Pending'}
                           </div>
                         </div>
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="font-mono text-sm text-white">
+                          <div className="font-mono text-sm text-foreground">
                             {transaction.walletAddress || 'N/A'}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
@@ -2147,7 +2141,7 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="text-white font-medium">
+                          <div className="text-foreground font-medium">
                             {transaction.tokenId ? `Token #${transaction.tokenId}` : 'Collection Purchase'}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
@@ -2157,7 +2151,7 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="text-white">
+                          <div className="text-foreground">
                             {(() => {
                               // Log transaction data for debugging
                               console.log('💰 Transaction ETH data:', {
@@ -2167,13 +2161,13 @@ export default function AnalyticsPage() {
                                 amountType: typeof transaction.amount,
                                 nftValueType: typeof transaction.nftValue
                               });
-                              
+
                               // Try multiple possible field names for ETH amount
                               const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
                               return formatEthValue(ethAmount);
                             })()}
                           </div>
-                          <div className="text-green-400 font-semibold">
+                          <div className="text-green-700 font-semibold">
                             {(() => {
                               const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
                               const parsedEth = parseFloat(ethAmount.toString());
@@ -2212,7 +2206,7 @@ export default function AnalyticsPage() {
                                 hash: transaction.transactionHash,
                                 hasHash: !!transaction.transactionHash
                               });
-                              
+
                               const txHash = transaction.transactionHash || transaction.hash;
                               if (txHash) {
                                 const etherscanUrl = `https://etherscan.io/tx/${txHash}`;

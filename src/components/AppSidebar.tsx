@@ -91,7 +91,7 @@ export const DesktopSidebar = ({
   return (
     <motion.div
       className={cn(
-        "fixed left-0 top-0 h-screen px-4 py-4 hidden md:flex md:flex-col bg-sidebar border-r border-sidebar-border w-87.5 shrink-0 z-40",
+        "fixed left-0 top-0 h-screen px-4 py-4 hidden md:flex md:flex-col bg-background w-87.5 shrink-0 z-40",
         className
       )}
       animate={{
@@ -168,22 +168,22 @@ export const SidebarLink = ({
   const { open, animate } = useSidebar();
   const location = useLocation();
   const isActive = location.pathname === link.href;
-  
+
   return (
     <Link
       to={link.href}
       className={cn(
         "relative flex items-center justify-start gap-2 group/sidebar py-2 px-2 rounded-md transition-all duration-300 overflow-hidden",
-        isActive 
-          ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-lg" 
-          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-lg",
+        isActive
+          ? "bg-accent text-accent-foreground shadow-md font-bold"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm",
         className
       )}
       {...props}
     >
       {/* Shining hover effect */}
       <div className="absolute inset-0 -translate-x-full group-hover/sidebar:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/20 to-transparent skew-x-12" />
-      
+
       {link.icon}
       <motion.span
         animate={{
@@ -234,43 +234,30 @@ function SidebarContent() {
     <SidebarBody>
       <div className="flex flex-col h-full">
         <div className="mb-4">
-          <motion.div
-            animate={{
-              display: open ? "flex" : "none",
-              opacity: open ? 1 : 0,
-            }}
-            className="flex items-center gap-3 px-2 py-2"
-          >
-            <img 
-              src="/logo-48.png" 
-              alt="SociaTrack Logo" 
+          <div className="flex items-center gap-3 px-2 py-2 overflow-hidden">
+            <img
+              src="/logo-48.png"
+              alt="SociaTrack Logo"
               className="w-8 h-8 shrink-0"
             />
-            <span className="text-lg font-bold text-white">
+            <motion.span
+              animate={{
+                display: open ? "inline-block" : "none",
+                opacity: open ? 1 : 0,
+              }}
+              className="text-lg font-bold text-foreground whitespace-nowrap"
+            >
               SociaTrack
-            </span>
-          </motion.div>
-          <motion.div
-            animate={{
-              display: open ? "none" : "flex",
-              opacity: open ? 0 : 1,
-            }}
-            className="flex items-center justify-center px-2 py-2"
-          >
-            <img 
-              src="/logo-32.png" 
-              alt="SociaTrack Logo" 
-              className="w-6 h-6"
-            />
-          </motion.div>
+            </motion.span>
+          </div>
         </div>
-        
+
         <div className="flex flex-col gap-2 flex-1 overflow-y-auto">
           {menuItems.map((link) => (
             <SidebarLink key={link.href} link={link} />
           ))}
         </div>
-        
+
         <div className="flex flex-col gap-2 mt-auto pt-4 border-t border-sidebar-border">
           {bottomMenuItems.map((link) => (
             <SidebarLink key={link.href} link={link} />
@@ -283,7 +270,7 @@ function SidebarContent() {
           >
             {/* Shining hover effect */}
             <div className="absolute inset-0 -translate-x-full group-hover/sidebar:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-red-500/20 to-transparent skew-x-12" />
-            
+
             <LogOut size={24} className="relative z-10" />
             <motion.span
               animate={{

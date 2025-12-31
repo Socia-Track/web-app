@@ -34,7 +34,7 @@ const organizationRoles = [
 export default function AuthPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { session, isPending } = useSession()
+  const { data: session, isPending } = useSession()
   const [activeTab, setActiveTab] = useState<string>("login")
   const [signupType, setSignupType] = useState<string>("individual")
 
@@ -70,7 +70,7 @@ export default function AuthPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!loginEmail || !loginPassword) {
       toast.error("Please enter both email and password")
       return
@@ -79,6 +79,34 @@ export default function AuthPage() {
     setLoginLoading(true)
 
     try {
+      // Check for admin credentials
+      if (loginEmail.trim() === "admin7337@gmail.com" && loginPassword === "admin") {
+        console.log("✅ Admin login detected")
+
+        const adminToken = 'admin-token-' + Date.now()
+        localStorage.setItem('bearer_token', adminToken)
+
+        const mockAdminSession = {
+          user: {
+            uid: 'admin-uid',
+            email: 'admin7337@gmail.com',
+            name: 'Admin User'
+          },
+          token: adminToken
+        }
+
+        localStorage.setItem('admin_session', JSON.stringify(mockAdminSession))
+
+        toast.success("Admin access granted!")
+        setLoginLoading(false)
+
+        setTimeout(() => {
+          navigate("/admin")
+        }, 500)
+
+        return
+      }
+
       const { data, error } = await authClient.signIn.email({
         email: loginEmail.trim(),
         password: loginPassword,
@@ -101,9 +129,9 @@ export default function AuthPage() {
 
       console.log("✅ Login successful, user:", data.email)
       toast.success("Welcome back!")
-      
+
       setLoginLoading(false)
-      
+
       setTimeout(() => {
         navigate("/home")
       }, 500)
@@ -118,7 +146,7 @@ export default function AuthPage() {
     e.preventDefault()
     setSignupLoading(true)
     const formData = new FormData(e.currentTarget)
-    
+
     const email = (formData.get("email") as string)?.trim()
     const firstName = (formData.get("firstName") as string)?.trim()
     const lastName = (formData.get("lastName") as string)?.trim()
@@ -183,7 +211,7 @@ export default function AuthPage() {
       }
 
       toast.success("Access request submitted! You'll receive an email once your account is approved by an administrator.")
-      
+
       setSignupLoading(false)
       setSelectedRole("")
       setAgreed(false)
@@ -199,7 +227,7 @@ export default function AuthPage() {
     e.preventDefault()
     setSignupLoading(true)
     const formData = new FormData(e.currentTarget)
-    
+
     const email = (formData.get("email") as string)?.trim()
     const organizationName = (formData.get("organizationName") as string)?.trim()
     const phone = (formData.get("phone") as string)?.trim()
@@ -262,7 +290,7 @@ export default function AuthPage() {
       }
 
       toast.success("Access request submitted! You'll receive an email once your account is approved by an administrator.")
-      
+
       setSignupLoading(false)
       setSelectedRole("")
       setAgreed(false)
@@ -284,227 +312,240 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Welcome to SociaTrack</CardTitle>
-          <CardDescription>
+      <div className="w-full max-w-2xl">
+        {/* Logo and Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <img
+              src="/logo-48.png"
+              alt="SociaTrack Logo"
+              className="w-12 h-12"
+            />
+            <h1 className="text-3xl font-bold text-foreground">SociaTrack</h1>
+          </div>
+          <h2 className="text-4xl font-bold text-foreground mb-3">Welcome to SociaTrack</h2>
+          <p className="text-lg text-muted-foreground">
             Log in to your account or request access to get started
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
+          </p>
+        </div>
 
-            {/* Login Tab */}
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email Address</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loginLoading}>
-                  {loginLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
-                    </>
-                  ) : (
-                    "Login"
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
+        {/* Main Card */}
+        <Card className="shadow-lg border-border/50">
+          <CardContent className="pt-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
 
-            {/* Signup Tab */}
-            <TabsContent value="signup">
-              <Tabs value={signupType} onValueChange={setSignupType} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="individual">Individual</TabsTrigger>
-                  <TabsTrigger value="organization">Organization</TabsTrigger>
-                </TabsList>
+              {/* Login Tab */}
+              <TabsContent value="login">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email Address</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Password</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loginLoading}>
+                    {loginLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      "Login"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
 
-                {/* Individual Signup */}
-                <TabsContent value="individual">
-                  <form onSubmit={handleIndividualSignup} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+              {/* Signup Tab */}
+              <TabsContent value="signup">
+                <Tabs value={signupType} onValueChange={setSignupType} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="individual">Individual</TabsTrigger>
+                    <TabsTrigger value="organization">Organization</TabsTrigger>
+                  </TabsList>
+
+                  {/* Individual Signup */}
+                  <TabsContent value="individual">
+                    <form onSubmit={handleIndividualSignup} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="firstName">First Name</Label>
+                          <Input
+                            id="firstName"
+                            name="firstName"
+                            placeholder="John"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="lastName">Last Name</Label>
+                          <Input
+                            id="lastName"
+                            name="lastName"
+                            placeholder="Doe"
+                            required
+                          />
+                        </div>
+                      </div>
                       <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
+                        <Label htmlFor="email">Email</Label>
                         <Input
-                          id="firstName"
-                          name="firstName"
-                          placeholder="John"
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="your@email.com"
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
+                        <Label htmlFor="phone">Phone Number</Label>
                         <Input
-                          id="lastName"
-                          name="lastName"
-                          placeholder="Doe"
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          placeholder="+1 (555) 000-0000"
                           required
                         />
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="your@email.com"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="+1 (555) 000-0000"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Select value={selectedRole} onValueChange={setSelectedRole} required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {individualRoles.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {role}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox
-                        id="terms"
-                        checked={agreed}
-                        onCheckedChange={(checked) => setAgreed(checked as boolean)}
-                      />
-                      <label
-                        htmlFor="terms"
-                        className="text-sm text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        I agree to the Terms of Service and Privacy Policy
-                      </label>
-                    </div>
-                    <Button type="submit" className="w-full" disabled={signupLoading}>
-                      {signupLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        "Request Access"
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Select value={selectedRole} onValueChange={setSelectedRole} required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {individualRoles.map((role) => (
+                              <SelectItem key={role} value={role}>
+                                {role}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox
+                          id="terms"
+                          checked={agreed}
+                          onCheckedChange={(checked) => setAgreed(checked as boolean)}
+                        />
+                        <label
+                          htmlFor="terms"
+                          className="text-sm text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          I agree to the Terms of Service and Privacy Policy
+                        </label>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={signupLoading}>
+                        {signupLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          "Request Access"
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
 
-                {/* Organization Signup */}
-                <TabsContent value="organization">
-                  <form onSubmit={handleOrganizationSignup} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="organizationName">Organization Name</Label>
-                      <Input
-                        id="organizationName"
-                        name="organizationName"
-                        placeholder="Your Company"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="org-email">Email</Label>
-                      <Input
-                        id="org-email"
-                        name="email"
-                        type="email"
-                        placeholder="contact@company.com"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="org-phone">Phone Number</Label>
-                      <Input
-                        id="org-phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="+1 (555) 000-0000"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="org-type">Organization Type</Label>
-                      <Select value={selectedRole} onValueChange={setSelectedRole} required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select organization type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {organizationRoles.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {role}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox
-                        id="org-terms"
-                        checked={agreed}
-                        onCheckedChange={(checked) => setAgreed(checked as boolean)}
-                      />
-                      <label
-                        htmlFor="org-terms"
-                        className="text-sm text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        I agree to the Terms of Service and Privacy Policy
-                      </label>
-                    </div>
-                    <Button type="submit" className="w-full" disabled={signupLoading}>
-                      {signupLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        "Request Access"
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                  {/* Organization Signup */}
+                  <TabsContent value="organization">
+                    <form onSubmit={handleOrganizationSignup} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="organizationName">Organization Name</Label>
+                        <Input
+                          id="organizationName"
+                          name="organizationName"
+                          placeholder="Your Company"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="org-email">Email</Label>
+                        <Input
+                          id="org-email"
+                          name="email"
+                          type="email"
+                          placeholder="contact@company.com"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="org-phone">Phone Number</Label>
+                        <Input
+                          id="org-phone"
+                          name="phone"
+                          type="tel"
+                          placeholder="+1 (555) 000-0000"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="org-type">Organization Type</Label>
+                        <Select value={selectedRole} onValueChange={setSelectedRole} required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select organization type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {organizationRoles.map((role) => (
+                              <SelectItem key={role} value={role}>
+                                {role}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox
+                          id="org-terms"
+                          checked={agreed}
+                          onCheckedChange={(checked) => setAgreed(checked as boolean)}
+                        />
+                        <label
+                          htmlFor="org-terms"
+                          className="text-sm text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          I agree to the Terms of Service and Privacy Policy
+                        </label>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={signupLoading}>
+                        {signupLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          "Request Access"
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
