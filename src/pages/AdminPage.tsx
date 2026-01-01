@@ -32,6 +32,7 @@ import { toast } from "sonner"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { getApiUrl, API_ENDPOINTS } from "@/lib/api-utils"
 
 interface AccessRequest {
   id: string
@@ -123,7 +124,7 @@ export default function AdminPage() {
 
     try {
       // Fetch from actual API
-      const response = await fetch('/api/access-requests', {
+      const response = await fetch(getApiUrl(API_ENDPOINTS.ACCESS_REQUESTS), {
         method: 'GET',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
@@ -185,7 +186,7 @@ export default function AdminPage() {
     try {
       const token = localStorage.getItem("bearer_token")
       
-      const response = await fetch(`/api/access-requests/${selectedRequest.id}/approve`, {
+      const response = await fetch(getApiUrl(API_ENDPOINTS.ACCESS_REQUEST_APPROVE(selectedRequest.id)), {
         method: 'POST',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
@@ -224,7 +225,7 @@ export default function AdminPage() {
     try {
       const token = localStorage.getItem("bearer_token")
       
-      const response = await fetch(`/api/access-requests/${selectedRequest.id}/reject`, {
+      const response = await fetch(getApiUrl(API_ENDPOINTS.ACCESS_REQUEST_REJECT(selectedRequest.id)), {
         method: 'POST',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
@@ -278,7 +279,7 @@ export default function AdminPage() {
         return
       }
       
-      const response = await fetch(`/api/users/${selectedUser.id}/limits`, {
+      const response = await fetch(getApiUrl(API_ENDPOINTS.USER_LIMITS(selectedUser.id)), {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -386,7 +387,7 @@ export default function AdminPage() {
     setLoadingUsers(true)
     setActiveView('users')
     try {
-      const response = await fetch('/api/users/all', {
+      const response = await fetch(getApiUrl(API_ENDPOINTS.USERS_ALL), {
         method: 'GET',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
