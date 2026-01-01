@@ -19,4 +19,6 @@ export const API_ENDPOINTS = {
   USER_LIMITS: (userId: string) => `/api/users/${userId}/limits`,
   ACCESS_REQUEST_APPROVE: (id: string) => `/api/access-requests/${id}/approve`,
   ACCESS_REQUEST_REJECT: (id: string) => `/api/access-requests/${id}/reject`,
+  ADMIN_PING: '/api/admin/ping',
+  HEALTH: '/api/health',
 } as const;

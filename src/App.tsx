@@ -1,7 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import { Web3Providers } from "@/components/Web3Providers";
 import { isAdminSubdomain } from "@/lib/subdomain-utils";
 
 // Pages
@@ -25,11 +24,18 @@ import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminPage from "@/pages/AdminPage";
 import UserDetailsPage from "@/pages/UserDetailsPage";
 
+// Conditionally define Web3Providers only for non-admin domains
+const Web3Providers = !isAdminSubdomain() 
+  ? React.lazy(() => import("@/components/Web3Providers").then(module => ({ 
+      default: module.Web3Providers 
+    })))
+  : null;
+
 export default function App() {
   const LANDING_URL = import.meta.env.VITE_LANDING_URL || 'https://sociatrack.com';
   const isAdminDomain = isAdminSubdomain();
   
-  // If on admin subdomain, only show admin routes (without Web3 providers)
+  // If on admin subdomain, only show admin routes (without any Web3 providers)
   if (isAdminDomain) {
     return (
       <>
@@ -45,9 +51,23 @@ export default function App() {
     );
   }
   
-  // Regular app routes for main domain
+  // Regular app routes for main domain - only load Web3Providers if not null
+  if (!Web3Providers) {
+    // Fallback for edge cases
+    return (
+      <>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster />
+      </>
+    );
+  }
+
   return (
-    <Web3Providers>
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <Web3Providers>
       <Routes>
         {/* Redirect root to dashboard or landing based on auth */}
         <Route path="/" element={<HomePage />} />
@@ -75,6 +95,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster />
-    </Web3Providers>
+      </Web3Providers>
+    </React.Suspense>
   );
 }

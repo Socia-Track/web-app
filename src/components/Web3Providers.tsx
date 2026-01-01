@@ -13,6 +13,7 @@ import {
   sepolia,
 } from 'wagmi/chains'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
+import { isAdminSubdomain } from '@/lib/subdomain-utils'
 
 // Use environment variable or a placeholder - RainbowKit will work with basic functionality
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '2f05a7ca2bb7abb24e2d7b700e80f90e'
@@ -39,6 +40,12 @@ interface Web3ProvidersProps {
 }
 
 export function Web3Providers({ children }: Web3ProvidersProps) {
+  // Prevent initialization on admin subdomain
+  if (isAdminSubdomain()) {
+    console.log('Skipping Web3 initialization on admin domain');
+    return <>{children}</>;
+  }
+
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
