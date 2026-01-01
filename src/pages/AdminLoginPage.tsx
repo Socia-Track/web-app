@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Loader2, Shield } from "lucide-react"
+import { getApiUrl, API_ENDPOINTS } from "@/lib/api-utils"
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
@@ -26,8 +27,13 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      // Make API call to login endpoint
-      const response = await fetch('/api/auth/login', {
+      console.log('🔐 Attempting admin login...');
+      console.log('📧 Email:', email.trim());
+      
+      const loginUrl = getApiUrl(API_ENDPOINTS.LOGIN);
+      console.log('🌐 API URL:', loginUrl);
+      
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -38,9 +44,21 @@ export default function AdminLoginPage() {
         })
       })
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', [...response.headers.entries()]);
+
       if (!response.ok) {
-        const errorData = await response.json()
-        toast.error(errorData.error || "Invalid credentials")
+        console.error('❌ Response not OK:', response.status, response.statusText);
+        try {
+          const errorData = await response.json()
+          console.error('❌ Error data:', errorData);
+          toast.error(errorData.error || "Invalid credentials")
+        } catch (parseError) {
+          console.error('❌ Could not parse error response as JSON:', parseError);
+          const textResponse = await response.text();
+          console.error('❌ Raw response:', textResponse);
+          toast.error("Server error - check console for details")
+        }
         setLoading(false)
         return
       }
