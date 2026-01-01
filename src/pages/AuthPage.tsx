@@ -80,7 +80,7 @@ export default function AuthPage() {
 
     try {
       // Check for admin credentials
-      if (loginEmail.trim() === "admin7337@gmail.com" && loginPassword === "admin") {
+      if (loginEmail.trim() === "contact@sociatrack.admin" && loginPassword === "admin@747") {
         console.log("✅ Admin login detected")
 
         const adminToken = 'admin-token-' + Date.now()
@@ -89,7 +89,7 @@ export default function AuthPage() {
         const mockAdminSession = {
           user: {
             uid: 'admin-uid',
-            email: 'admin7337@gmail.com',
+            email: 'contact@sociatrack.admin',
             name: 'Admin User'
           },
           token: adminToken

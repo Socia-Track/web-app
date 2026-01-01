@@ -35,7 +35,7 @@ export default function LoginModal({ open, onOpenChange, onSwitchToSignup }: Log
 
     try {
       // Check for admin credentials
-      if (email.trim() === "admin7337@gmail.com" && password === "admin") {
+      if (email.trim() === "contact@sociatrack.admin" && password === "admin@747") {
         // Admin login - bypass auth system and redirect to admin page
         console.log("✅ Admin login detected")
         
@@ -47,7 +47,7 @@ export default function LoginModal({ open, onOpenChange, onSwitchToSignup }: Log
         const mockAdminSession = {
           user: {
             uid: 'admin-uid',
-            email: 'admin7337@gmail.com',
+            email: 'contact@sociatrack.admin',
             name: 'Admin User'
           },
           token: adminToken

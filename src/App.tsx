@@ -29,10 +29,10 @@ export default function App() {
   const LANDING_URL = import.meta.env.VITE_LANDING_URL || 'https://sociatrack.com';
   const isAdminDomain = isAdminSubdomain();
   
-  // If on admin subdomain, only show admin routes
+  // If on admin subdomain, only show admin routes (without Web3 providers)
   if (isAdminDomain) {
     return (
-      <Web3Providers>
+      <>
         <Routes>
           <Route path="/" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminPage />} />
@@ -41,7 +41,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toaster />
-      </Web3Providers>
+      </>
     );
   }
   

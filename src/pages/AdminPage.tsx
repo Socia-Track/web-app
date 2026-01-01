@@ -65,8 +65,7 @@ export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [showLimitsDialog, setShowLimitsDialog] = useState(false)
-  const [maxCampaigns, setMaxCampaigns] = useState(3)
-  const [maxTokens, setMaxTokens] = useState(3)
+  const [maxItems, setMaxItems] = useState(3)
 
   // Check admin access
   useEffect(() => {
@@ -77,7 +76,7 @@ export default function AdminPage() {
       if (adminSession) {
         try {
           const mockSession = JSON.parse(adminSession)
-          if (mockSession.user?.email === 'admin7337@gmail.com') {
+          if (mockSession.user?.email === 'contact@sociatrack.admin') {
             console.log("✅ Admin session verified")
             return true // Allow access
           }
@@ -106,7 +105,7 @@ export default function AdminPage() {
   const fetchAccessRequests = async () => {
     // Check if we have admin access (either through regular session or admin bypass)
     const adminSession = localStorage.getItem('admin_session')
-    const hasAdminAccess = (session?.user?.uid) || (adminSession && JSON.parse(adminSession).user?.email === 'admin7337@gmail.com')
+    const hasAdminAccess = (session?.user?.uid) || (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
     
     if (!hasAdminAccess) return
     
@@ -151,8 +150,8 @@ export default function AdminPage() {
   useEffect(() => {
     // Check both regular session and admin bypass session
     const adminSession = localStorage.getItem('admin_session')
-    const hasAdminAccess = (session?.user && session.user.email === 'admin7337@gmail.com') || 
-                          (adminSession && JSON.parse(adminSession).user?.email === 'admin7337@gmail.com')
+    const hasAdminAccess = (session?.user && session.user.email === 'contact@sociatrack.admin') || 
+                          (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
     
     if (hasAdminAccess) {
       fetchAccessRequests()
@@ -262,8 +261,7 @@ export default function AdminPage() {
 
   const handleEditLimits = (user: any) => {
     setSelectedUser(user)
-    setMaxCampaigns(user.maxCampaigns || 3)
-    setMaxTokens(user.maxTokens || 3)
+    setMaxItems(user.maxItems || 3)
     setShowLimitsDialog(true)
   }
 
@@ -272,32 +270,42 @@ export default function AdminPage() {
 
     try {
       const token = localStorage.getItem("bearer_token")
+      console.log('🔑 Token for limits update:', token ? 'Present' : 'Missing')
+      console.log('🌐 API URL:', `/api/users/${selectedUser.id}/limits`)
+      
+      if (!token) {
+        toast.error('You are not logged in. Please refresh the page and log in again.')
+        return
+      }
       
       const response = await fetch(`/api/users/${selectedUser.id}/limits`, {
         method: 'PUT',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          maxCampaigns: parseInt(maxCampaigns.toString()),
-          maxTokens: parseInt(maxTokens.toString())
+          maxItems: parseInt(maxItems.toString())
         })
       })
       
+      console.log('📡 Response status:', response.status)
+      console.log('📡 Response headers:', [...response.headers.entries()])
+      
       if (!response.ok) {
         const errorData = await response.json()
+        console.error('❌ Error response:', errorData)
         throw new Error(errorData.error || 'Failed to update limits')
       }
 
       // Update local state
       setAllUsers(prev => prev.map(user => 
         user.id === selectedUser.id 
-          ? { ...user, maxCampaigns, maxTokens }
+          ? { ...user, maxItems }
           : user
       ))
       
-      toast.success(`Updated limits for ${selectedUser.firstName} ${selectedUser.lastName}`)
+      toast.success(`Updated limit to ${maxItems} items for ${selectedUser.firstName} ${selectedUser.lastName}`)
       setShowLimitsDialog(false)
       setSelectedUser(null)
     } catch (error) {
@@ -341,8 +349,8 @@ export default function AdminPage() {
 
   // Check admin access for rendering
   const adminSession = localStorage.getItem('admin_session')
-  const hasAdminAccess = (session?.user && session.user.email === 'admin7337@gmail.com') || 
-                        (adminSession && JSON.parse(adminSession).user?.email === 'admin7337@gmail.com')
+  const hasAdminAccess = (session?.user && session.user.email === 'contact@sociatrack.admin') || 
+                        (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
   
   if (!hasAdminAccess) return null
 
@@ -846,8 +854,8 @@ export default function AdminPage() {
                           </td>
                           <td className="p-4">
                             <div className="text-sm" style={{color: '#6B7280'}}>
-                              <div>Campaigns: {user.maxCampaigns || 3}</div>
-                              <div>Tokens: {user.maxTokens || 3}</div>
+                              <div>Max Items: {user.maxItems || 3}</div>
+                              <div className="text-xs" style={{color: '#9CA3AF'}}>Campaigns + Tokens</div>
                             </div>
                           </td>
                           <td className="p-4 text-sm" style={{color: '#6B7280'}}>
@@ -1063,41 +1071,29 @@ export default function AdminPage() {
               {selectedUser?.email}
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label style={{color: '#374151'}}>Max Campaigns</Label>
+                <Label style={{color: '#374151'}}>Max Items (Campaigns + Tokens)</Label>
                 <Input
                   type="number"
                   min="0"
                   max="100"
-                  value={maxCampaigns}
-                  onChange={(e) => setMaxCampaigns(parseInt(e.target.value) || 0)}
+                  value={maxItems}
+                  onChange={(e) => setMaxItems(parseInt(e.target.value) || 0)}
                   className="bg-white border"
                   style={{
                     borderColor: '#D1D5DB',
                     color: '#1A1A1A'
                   }}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label style={{color: '#374151'}}>Max Tokens</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={maxTokens}
-                  onChange={(e) => setMaxTokens(parseInt(e.target.value) || 0)}
-                  className="bg-white border"
-                  style={{
-                    borderColor: '#D1D5DB',
-                    color: '#1A1A1A'
-                  }}
-                />
+                <div className="text-xs" style={{color: '#6B7280'}}>
+                  Total number of campaigns and tokens the user can create combined
+                </div>
               </div>
             </div>
             
             <div className="text-xs" style={{color: '#6B7280'}}>
-              Set to 0 for unlimited access
+              Set to 0 for unlimited access. User can create any combination of campaigns and tokens within this limit.
             </div>
             
             <div className="flex justify-end gap-2">
