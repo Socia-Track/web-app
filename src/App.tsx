@@ -24,12 +24,16 @@ import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminPage from "@/pages/AdminPage";
 import UserDetailsPage from "@/pages/UserDetailsPage";
 
-// Conditionally define Web3Providers only for non-admin domains
-const Web3Providers = !isAdminSubdomain() 
-  ? React.lazy(() => import("@/components/Web3Providers").then(module => ({ 
+// Conditionally define Web3Providers - completely skip import on admin domains
+let Web3Providers: React.LazyExoticComponent<React.ComponentType<{ children: React.ReactNode }>> | null = null;
+
+if (typeof window !== 'undefined' && !isAdminSubdomain()) {
+  Web3Providers = React.lazy(() => 
+    import("@/components/Web3Providers").then(module => ({ 
       default: module.Web3Providers 
-    })))
-  : null;
+    }))
+  );
+}
 
 export default function App() {
   const LANDING_URL = import.meta.env.VITE_LANDING_URL || 'https://sociatrack.com';
