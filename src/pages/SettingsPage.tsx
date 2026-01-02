@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 import DashboardLayout from "@/components/DashboardLayout"
 import HeroHeader from "@/components/HeroHeader"
 import Section from "@/components/Section"
@@ -11,16 +12,26 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { useSession } from "@/lib/auth-client"
+import { useSession, authClient } from "@/lib/auth-client"
 import { toast } from "sonner"
-import { User, Bell, Shield, LogOut, Save, Settings as SettingsIcon, ChevronRight } from "lucide-react"
+import { User, Bell, Shield, LogOut, Save, Settings as SettingsIcon, ChevronRight, Eye, EyeOff } from "lucide-react"
 
 export default function SettingsPage() {
   const { data: session, isPending } = useSession()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("profile")
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [twoFactorAuth, setTwoFactorAuth] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwords, setPasswords] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
   const [userProfile, setUserProfile] = useState({
     firstName: '',
     lastName: '',
@@ -124,10 +135,100 @@ export default function SettingsPage() {
 
       if (response.ok) {
         const stats = await response.json()
-        setUserStats(stats)
+        // Merge with default values to ensure all fields are present
+        setUserStats({
+          totalCampaigns: stats.totalCampaigns || 0,
+          totalTokens: stats.totalTokens || 0,
+          totalTransactions: stats.totalTransactions || 0,
+          totalRevenue: stats.totalRevenue || 0,
+          memberSince: stats.memberSince || null,
+          maxCampaigns: stats.maxCampaigns || 3,
+          maxTokens: stats.maxTokens || 3,
+          remainingCampaigns: stats.remainingCampaigns ?? (stats.maxCampaigns || 3) - (stats.totalCampaigns || 0),
+          remainingTokens: stats.remainingTokens ?? (stats.maxTokens || 3) - (stats.totalTokens || 0)
+        })
       }
     } catch (error) {
       console.error('Error fetching user stats:', error)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      // Clear token from localStorage
+      localStorage.removeItem('bearer_token')
+      localStorage.removeItem('admin_session')
+      
+      // Sign out from auth client
+      if (session?.user) {
+        await authClient.signOut()
+      }
+      
+      toast.success("Logged out successfully")
+      
+      // Redirect to home page
+      navigate("/")
+    } catch (error) {
+      console.error("Logout error:", error)
+      toast.error("Error during logout")
+    }
+  }
+
+  const handleChangePassword = async () => {
+    // Validation
+    if (!passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword) {
+      toast.error('Please fill in all password fields')
+      return
+    }
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      toast.error('New passwords do not match')
+      return
+    }
+
+    if (passwords.newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters long')
+      return
+    }
+
+    if (passwords.newPassword === passwords.currentPassword) {
+      toast.error('New password must be different from current password')
+      return
+    }
+
+    setPasswordLoading(true)
+    try {
+      const token = localStorage.getItem('bearer_token')
+      const response = await fetch('/api/users/change-password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwords.currentPassword,
+          newPassword: passwords.newPassword
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Password updated successfully!')
+        // Clear password fields
+        setPasswords({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+      } else {
+        toast.error(data.error || 'Failed to update password')
+      }
+    } catch (error) {
+      console.error('Error changing password:', error)
+      toast.error('Failed to update password')
+    } finally {
+      setPasswordLoading(false)
     }
   }
 
@@ -192,6 +293,7 @@ export default function SettingsPage() {
                 {/* Logout Button */}
                 <Separator className="my-4" />
                 <button
+                  onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200"
                 >
                   <LogOut size={20} />
@@ -242,7 +344,7 @@ export default function SettingsPage() {
                       {/* Usage Limits Section */}
                       <div className="mt-8">
                         <h3 className="text-lg font-semibold text-foreground mb-4">Usage Limits</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="max-w-lg">
                           <div className="rounded-xl bg-card border border-border p-6">
                             <div className="flex items-center justify-between mb-3">
                               <h4 className="font-medium text-foreground">Campaign Usage</h4>
@@ -267,35 +369,6 @@ export default function SettingsPage() {
                             <div className="text-sm text-muted-foreground">
                               {userStats.remainingCampaigns > 0 
                                 ? `${userStats.remainingCampaigns} remaining` 
-                                : 'Limit reached'
-                              }
-                            </div>
-                          </div>
-
-                          <div className="rounded-xl bg-card border border-border p-6">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-medium text-foreground">Token Usage</h4>
-                              <div className="text-sm text-muted-foreground">
-                                {userStats.totalTokens} / {userStats.maxTokens}
-                              </div>
-                            </div>
-                            <div className="w-full bg-muted rounded-full h-2 mb-2">
-                              <div 
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  userStats.totalTokens >= userStats.maxTokens 
-                                    ? 'bg-destructive' 
-                                    : userStats.totalTokens / userStats.maxTokens > 0.8 
-                                    ? 'bg-yellow-500' 
-                                    : 'bg-primary'
-                                }`}
-                                style={{ 
-                                  width: `${Math.min(100, (userStats.totalTokens / userStats.maxTokens) * 100)}%` 
-                                }}
-                              />
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {userStats.remainingTokens > 0 
-                                ? `${userStats.remainingTokens} remaining` 
                                 : 'Limit reached'
                               }
                             </div>
@@ -376,18 +449,6 @@ export default function SettingsPage() {
                             />
                           </div>
                         </div>
-
-                        <div className="flex items-center gap-3 pt-4">
-                          <Button
-                            onClick={handleUpdateProfile}
-                            disabled={loading}
-                            className="h-11"
-                          >
-                            <Save size={16} className="mr-2" />
-                            {loading ? 'Saving...' : 'Save Changes'}
-                          </Button>
-                          <Button variant="ghost" className="h-11">Cancel</Button>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -447,22 +508,44 @@ export default function SettingsPage() {
                       <div className="space-y-6">
                         <div className="space-y-2">
                           <Label htmlFor="currentPassword" className="text-sm font-medium text-foreground">Current Password</Label>
-                          <Input
-                            id="currentPassword"
-                            type="password"
-                            placeholder="Enter current password"
-                            className="h-11"
-                          />
+                          <div className="relative">
+                            <Input
+                              id="currentPassword"
+                              type={showCurrentPassword ? "text" : "password"}
+                              placeholder="Enter current password"
+                              value={passwords.currentPassword}
+                              onChange={(e) => setPasswords(prev => ({ ...prev, currentPassword: e.target.value }))}
+                              className="h-11 pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                          </div>
                         </div>
 
                         <div className="space-y-2">
                           <Label htmlFor="newPassword" className="text-sm font-medium text-foreground">New Password</Label>
-                          <Input
-                            id="newPassword"
-                            type="password"
-                            placeholder="Enter new password"
-                            className="h-11"
-                          />
+                          <div className="relative">
+                            <Input
+                              id="newPassword"
+                              type={showNewPassword ? "text" : "password"}
+                              placeholder="Enter new password (min 8 characters)"
+                              value={passwords.newPassword}
+                              onChange={(e) => setPasswords(prev => ({ ...prev, newPassword: e.target.value }))}
+                              className="h-11 pr-10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                          </div>
                         </div>
 
                         <div className="space-y-2">
@@ -471,12 +554,20 @@ export default function SettingsPage() {
                             id="confirmPassword"
                             type="password"
                             placeholder="Confirm new password"
+                            value={passwords.confirmPassword}
+                            onChange={(e) => setPasswords(prev => ({ ...prev, confirmPassword: e.target.value }))}
                             className="h-11"
                           />
                         </div>
 
                         <div className="pt-2">
-                          <Button className="h-11">Update Password</Button>
+                          <Button 
+                            onClick={handleChangePassword}
+                            disabled={passwordLoading}
+                            className="h-11"
+                          >
+                            {passwordLoading ? 'Updating...' : 'Update Password'}
+                          </Button>
                         </div>
                       </div>
                     </div>

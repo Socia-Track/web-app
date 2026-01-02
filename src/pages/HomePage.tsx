@@ -2,80 +2,76 @@
 
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion, useMotionValue, useTransform, animate } from "framer-motion"
-import DashboardLayout from "@/components/DashboardLayout"
-import {
-  Target,
-  TrendingUp,
-  ArrowRight,
-  Calendar,
-  Activity,
-  DollarSign,
-  Plus,
-  BarChart3,
-  Zap,
-  Award,
-  TrendingDown,
-  Globe,
-  Network,
-  Layers
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { useSession } from "@/lib/auth-client"
-import { usePlan } from "@/hooks/usePlan"
+import DashboardLayout from "@/components/DashboardLayout"
+import HeroHeader from "@/components/HeroHeader"
+import Section from "@/components/Section"
+import MetricCard from "@/components/MetricCard"
+import FeatureCard from "@/components/FeatureCard"
+import EmptyState from "@/components/EmptyState"
+import Highlight from "@/components/Highlight"
+import { motion } from "framer-motion"
+import {
+  Activity,
+  TrendingUp,
+  DollarSign,
+  Target,
+  Zap,
+  BarChart3,
+  MessageSquare,
+  Link2,
+  Megaphone,
+  RefreshCw,
+  AlertCircle,
+  Plus,
+  ArrowRight,
+  Image,
+  Coins
+} from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
-// Animated counter component
-function AnimatedCounter({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {
-  const count = useMotionValue(0)
-  const rounded = useTransform(count, Math.round)
-  const [displayValue, setDisplayValue] = useState(0)
-
-  useEffect(() => {
-    const animation = animate(count, value, { duration: 1.5 })
-    const unsubscribe = rounded.on("change", (latest) => setDisplayValue(latest))
-    return () => {
-      animation.stop()
-      unsubscribe()
-    }
-  }, [value, count, rounded])
-
-  return <span>{prefix}{displayValue.toLocaleString()}{suffix}</span>
+interface Campaign {
+  id: string
+  name: string
+  description?: string
+  blockchain?: string
+  status: string
+  campaignType?: string
 }
 
-
-
-// Mini chart visualization
-function MiniChart({ data }: { data: number[] }) {
-  const max = Math.max(...data, 1)
-  const normalized = data.map(v => (v / max) * 100)
-
-  return (
-    <div className="flex items-end gap-1 h-12">
-      {normalized.map((height, i) => (
-        <motion.div
-          key={i}
-          initial={{ height: 0 }}
-          animate={{ height: `${height}%` }}
-          transition={{ delay: i * 0.1, duration: 0.5 }}
-          className="flex-1 bg-primary/20 rounded-t"
-        />
-      ))}
-    </div>
-  )
+interface KPIs {
+  totalAttributions: number
+  avgScore: number
+  valueUsd: number
+  postsCaptured: number
+  lastUpdated: Date
 }
 
 export default function HomePage() {
   const navigate = useNavigate()
   const { data: session, isPending } = useSession()
-  const { planName, limits, usage, loading: planLoading } = usePlan()
-  const [stats, setStats] = useState({
-    campaigns: 0,
-    attributions: 0,
-    totalValue: 0,
-    recentActivity: [] as any[]
-  })
   const [loading, setLoading] = useState(true)
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [showTypeDialog, setShowTypeDialog] = useState(false)
+  const [kpis, setKpis] = useState<KPIs>({
+    totalAttributions: 0,
+    avgScore: 0,
+    valueUsd: 0,
+    postsCaptured: 0,
+    lastUpdated: new Date()
+  })
+  const [attributionsTrend, setAttributionsTrend] = useState<{ value: string; direction: "up" | "down" }>({ value: "+0%", direction: "up" })
+  const [valueTrend, setValueTrend] = useState<{ value: string; direction: "up" | "down" }>({ value: "+0%", direction: "up" })
 
   // Get time of day greeting
   const getGreeting = () => {
@@ -86,584 +82,471 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    // Wait a bit before checking auth to allow session to propagate
-    const timer = setTimeout(() => {
-      setHasCheckedAuth(true)
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    if (!hasCheckedAuth) return
-
     if (!isPending && !session?.user) {
-      console.log("❌ HomePage: No session found, redirecting to landing page")
+      console.log("❌ No session found, redirecting to home")
       navigate("/")
     } else if (session?.user) {
-      console.log("✅ HomePage: User logged in:", session.user.email)
+      console.log("✅ User logged in:", session.user.email)
     }
-  }, [session, isPending, navigate, hasCheckedAuth])
+  }, [session, isPending, navigate])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!session?.user) return
+  const fetchData = async () => {
+    if (!session?.user?.uid) return
 
-      const token = localStorage.getItem("bearer_token")
-      try {
-        // Fetch both NFT campaigns and token campaigns
-        const [campaignsRes, tokensRes] = await Promise.all([
-          fetch('/api/campaigns?limit=100', {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          fetch('/api/tokens?limit=100', {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        ])
+    setLoading(true)
+    setError(null)
 
-        const nftCampaigns = await campaignsRes.json()
-        const tokenCampaigns = await tokensRes.json()
+    const token = localStorage.getItem("bearer_token")
 
-        // Combine both arrays with type markers
-        const campaigns = [
-          ...(Array.isArray(nftCampaigns) ? nftCampaigns.map((c: any) => ({ ...c, campaignType: 'nft' })) : []),
-          ...(Array.isArray(tokenCampaigns) ? tokenCampaigns.map((t: any) => ({ ...t, campaignType: 'token' })) : [])
-        ]
+    if (!token) {
+      setError("Authentication token not found. Please log in again.")
+      setLoading(false)
+      return
+    }
 
-        // Fetch real transaction data from each campaign's analytics
-        const allRecentActivity = []
-        let totalTransactions = 0
-        let totalValueTracked = 0
+    try {
+      // Fetch campaigns and tokens
+      const [campaignsRes, tokensRes] = await Promise.all([
+        fetch(`/api/campaigns?limit=100&userId=${session.user.uid}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`/api/tokens?limit=100&userId=${session.user.uid}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ])
 
-        if (Array.isArray(campaigns) && campaigns.length > 0) {
-          console.log('🏠 HomePage: Fetching analytics for', campaigns.length, 'campaigns')
+      if (!campaignsRes.ok || !tokensRes.ok) {
+        throw new Error("Failed to fetch dashboard data")
+      }
 
-          // Get analytics data for each campaign
-          for (const campaign of campaigns.slice(0, 5)) { // Limit to 5 campaigns for performance
-            try {
-              const analyticsRes = await fetch(`/api/analytics/campaign/${campaign.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-              })
-              const analytics = await analyticsRes.json()
+      const nftCampaigns = await campaignsRes.json()
+      const tokenCampaigns = await tokensRes.json()
 
-              console.log(`📊 Analytics for campaign ${campaign.name}:`, {
-                totalTransactions: analytics.totalTransactions,
-                totalEth: analytics.totalEth,
-                recentTransactions: analytics.recentTransactions?.length || 0
-              })
+      // Combine both NFT and token campaigns
+      const allCampaigns = [
+        ...(Array.isArray(nftCampaigns) ? nftCampaigns.map((c: any) => ({ ...c, campaignType: 'nft' })) : []),
+        ...(Array.isArray(tokenCampaigns) ? tokenCampaigns.map((t: any) => ({ ...t, campaignType: 'token' })) : [])
+      ]
 
-              // Add recent transactions as activities
-              if (analytics.recentTransactions && analytics.recentTransactions.length > 0) {
-                const campaignActivities = analytics.recentTransactions.slice(0, 2).map((tx: any) => ({
-                  id: `tx-${tx.id}`,
-                  type: 'nft_purchase',
-                  title: 'NFT Purchase Detected',
-                  description: `${tx.walletAddress?.slice(0, 8)}...${tx.walletAddress?.slice(-4)} purchased ${tx.tokenId ? `Token #${tx.tokenId}` : 'NFT'}`,
-                  valueUsd: (parseFloat(tx.amount || tx.nftValue || 0) * 3400).toFixed(2), // ETH to USD
-                  campaignName: campaign.name,
-                  attributedAt: tx.createdAt,
-                  createdAt: tx.createdAt,
-                  confidenceScore: 85 // High confidence for blockchain transactions
-                }))
-                allRecentActivity.push(...campaignActivities)
-              }
+      setCampaigns(allCampaigns)
 
-              // Add campaign creation as activity if no transactions
-              if (!analytics.recentTransactions || analytics.recentTransactions.length === 0) {
-                allRecentActivity.push({
-                  id: `campaign-${campaign.id}`,
-                  type: 'campaign_created',
-                  title: 'Campaign Created',
-                  description: `${campaign.name} campaign started tracking`,
-                  valueUsd: '0',
-                  campaignName: campaign.name,
-                  attributedAt: campaign.createdAt,
-                  createdAt: campaign.createdAt,
-                  confidenceScore: 100
-                })
-              }
+      // Fetch real transaction data from each campaign's analytics
+      let totalTransactions = 0
+      let totalValueTracked = 0
 
-              totalTransactions += analytics.totalTransactions || 0
-              totalValueTracked += (parseFloat(analytics.totalEth || '0') * 3400) // ETH to USD
-            } catch (analyticsError) {
-              console.error(`Error fetching analytics for campaign ${campaign.name}:`, analyticsError)
+      if (Array.isArray(allCampaigns) && allCampaigns.length > 0) {
+        console.log('📊 DashboardPage: Fetching analytics for', allCampaigns.length, 'campaigns')
 
-              // Fallback: add campaign creation activity
-              allRecentActivity.push({
-                id: `campaign-fallback-${campaign.id}`,
-                type: 'campaign_created',
-                title: 'Campaign Active',
-                description: `${campaign.name} is ready for tracking`,
-                valueUsd: '0',
-                campaignName: campaign.name,
-                attributedAt: campaign.createdAt,
-                createdAt: campaign.createdAt,
-                confidenceScore: 100
-              })
-            }
+        // Get analytics data for each campaign
+        for (const campaign of allCampaigns) {
+          try {
+            const analyticsRes = await fetch(`/api/analytics/campaign/${campaign.id}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const analytics = await analyticsRes.json()
+
+            totalTransactions += analytics.totalTransactions || 0
+            totalValueTracked += (parseFloat(analytics.totalEth || '0') * 3400) // ETH to USD
+          } catch (analyticsError) {
+            console.error(`Error fetching analytics for campaign ${campaign.name}:`, analyticsError)
           }
         }
-
-        // Sort activities by date (newest first) and limit to 3
-        const sortedRecentActivity = allRecentActivity
-          .sort((a, b) => new Date(b.attributedAt).getTime() - new Date(a.attributedAt).getTime())
-          .slice(0, 3)
-
-        console.log('✅ HomePage: Final stats:', {
-          campaigns: Array.isArray(campaigns) ? campaigns.length : 0,
-          totalTransactions,
-          totalValueTracked: totalValueTracked.toFixed(2),
-          recentActivities: sortedRecentActivity.length,
-          activities: sortedRecentActivity.map(a => ({ type: a.type, title: a.title }))
-        })
-
-        setStats({
-          campaigns: Array.isArray(campaigns) ? campaigns.length : 0,
-          attributions: totalTransactions,
-          totalValue: totalValueTracked,
-          recentActivity: sortedRecentActivity
-        })
-      } catch (error) {
-        console.error('Error fetching homepage data:', error)
-      } finally {
-        setLoading(false)
       }
-    }
 
+      console.log('✅ DashboardPage: Final metrics:', {
+        campaigns: allCampaigns.length,
+        totalTransactions,
+        totalValueTracked: totalValueTracked.toFixed(2)
+      })
+
+      // Calculate trends based on previous week's data
+      const lastWeekKey = `kpis_${session.user.uid}_lastweek`
+      const lastWeekData = localStorage.getItem(lastWeekKey)
+      
+      if (lastWeekData) {
+        try {
+          const previousKpis = JSON.parse(lastWeekData)
+          const weekAgo = new Date(previousKpis.timestamp)
+          const daysSince = (Date.now() - weekAgo.getTime()) / (1000 * 60 * 60 * 24)
+          
+          // Only use data if it's between 6-8 days old (approximately a week)
+          if (daysSince >= 6 && daysSince <= 8) {
+            // Calculate attribution trend
+            const attrChange = previousKpis.totalAttributions > 0 
+              ? ((totalTransactions - previousKpis.totalAttributions) / previousKpis.totalAttributions) * 100
+              : 0
+            setAttributionsTrend({
+              value: `${attrChange >= 0 ? '+' : ''}${attrChange.toFixed(1)}%`,
+              direction: attrChange >= 0 ? "up" : "down"
+            })
+            
+            // Calculate value trend
+            const valueChange = previousKpis.valueUsd > 0
+              ? ((totalValueTracked - previousKpis.valueUsd) / previousKpis.valueUsd) * 100
+              : 0
+            setValueTrend({
+              value: `${valueChange >= 0 ? '+' : ''}${valueChange.toFixed(1)}%`,
+              direction: valueChange >= 0 ? "up" : "down"
+            })
+          }
+        } catch (e) {
+          console.error('Error parsing previous week data:', e)
+        }
+      }
+      
+      // Store current data for next week's comparison (only if a week has passed)
+      const currentDataKey = `kpis_${session.user.uid}_current`
+      const currentStoredData = localStorage.getItem(currentDataKey)
+      
+      if (currentStoredData) {
+        try {
+          const storedData = JSON.parse(currentStoredData)
+          const daysSinceStore = (Date.now() - new Date(storedData.timestamp).getTime()) / (1000 * 60 * 60 * 24)
+          
+          // Move current to lastweek if 7+ days have passed
+          if (daysSinceStore >= 7) {
+            localStorage.setItem(lastWeekKey, currentStoredData)
+            localStorage.setItem(currentDataKey, JSON.stringify({
+              totalAttributions: totalTransactions,
+              valueUsd: totalValueTracked,
+              timestamp: Date.now()
+            }))
+          }
+        } catch (e) {
+          console.error('Error updating stored data:', e)
+        }
+      } else {
+        // First time - store current data
+        localStorage.setItem(currentDataKey, JSON.stringify({
+          totalAttributions: totalTransactions,
+          valueUsd: totalValueTracked,
+          timestamp: Date.now()
+        }))
+      }
+
+      setKpis({
+        totalAttributions: totalTransactions,
+        avgScore: 0,
+        valueUsd: totalValueTracked,
+        postsCaptured: 0,
+        lastUpdated: new Date()
+      })
+
+      setLoading(false)
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err)
+      setError(err instanceof Error ? err.message : "An unknown error occurred")
+      setLoading(false)
+      toast.error("Failed to load dashboard data")
+    }
+  }
+
+  useEffect(() => {
     if (session?.user) {
       fetchData()
     }
   }, [session])
 
-  const handleNavigation = (path: string) => {
-    navigate(path)
+  const handleRefresh = () => {
+    fetchData()
+    toast.success("Dashboard refreshed!")
   }
 
-  if (isPending || loading || !hasCheckedAuth) {
+  if (isPending || loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full"
+        <Spinner className="mx-auto" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex h-screen items-center justify-center">
+          <EmptyState
+            icon={<AlertCircle size={64} />}
+            title="Error Loading Dashboard"
+            description={error}
+            action={{
+              label: "Try Again",
+              onClick: handleRefresh
+            }}
           />
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   if (!session?.user) return null
 
+  const activeCampaigns = campaigns.filter(c => c.status === 'active').length
+  const totalCampaigns = campaigns.length
   const userName = session.user.displayName || session.user.email?.split('@')[0] || 'User'
   const firstName = userName.split(' ')[0]
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-8 py-8 max-w-7xl">
-        {/* Welcome Header with 3D Effect */}
+      {/* Hero Header with Greeting */}
+      <HeroHeader
+        title={
+          <>
+            {getGreeting()}, {firstName} 👋
+          </>
+        }
+        description="Track your social media impact and blockchain attributions in one place. Monitor campaigns with real-time analytics."
+        badge="Live Updates"
+        icon={
+          <div className="p-4 rounded-2xl bg-accent/10">
+            <BarChart3 size={48} className="text-accent" />
+          </div>
+        }
+        actions={
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={loading}
+              className="border-border hover:bg-muted"
+            >
+              <RefreshCw size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </Button>
+            <Button
+              onClick={() => setShowTypeDialog(true)}
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              <Plus size={16} className="mr-2" />
+              New Campaign
+            </Button>
+          </div>
+        }
+      />
+
+      {/* Key Metrics Section */}
+      <Section>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10 relative"
+          transition={{ delay: 0.2 }}
         >
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-4xl font-bold text-foreground">
-              {getGreeting()}, {firstName}
-            </h1>
-          </div>
-          <p className="text-lg text-muted-foreground">
-            Track your social media impact and blockchain attributions in one place.
+          <h2 className="text-3xl font-bold text-foreground mb-3">Key Metrics</h2>
+          <p className="text-lg text-muted-foreground mb-8">
+            Real-time performance indicators across all your campaigns
           </p>
-
-          {/* Animated Stats Summary with Network Icon */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-4 flex items-center gap-4 text-sm"
-          >
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="relative"
-              >
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <motion.div
-                  animate={{ scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute inset-0 bg-green-500 rounded-full"
-                />
-              </motion.div>
-              <span>All systems operational</span>
-            </div>
-            <div className="text-muted-foreground/50">•</div>
-            <motion.div
-              className="text-muted-foreground flex items-center gap-1"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              <Network size={14} className="text-primary" />
-              <span>Last updated: {new Date().toLocaleTimeString()}</span>
-            </motion.div>
-          </motion.div>
         </motion.div>
 
-        {/* Quick Stats Cards with 3D Tilt and Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            whileHover={{
-              y: -8,
-              rotateX: 5,
-              transition: { duration: 0.2 }
-            }}
-            style={{ transformStyle: "preserve-3d" }}
-            className="group relative rounded-lg border bg-card p-6 cursor-pointer hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden"
-            onClick={() => handleNavigation('/campaigns')}
-          >
-            {/* Removed gradient border effect */}
-
-            <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <motion.div
-                  whileHover={{ rotate: 360, scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
-                  className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors relative"
-                >
-                  <Target className="text-primary" size={22} />
-                  <motion.div
-                    className="absolute inset-0 rounded-lg bg-primary/20"
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </motion.div>
-                <ArrowRight className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" size={18} />
-              </div>
-              <motion.div
-                className="text-3xl font-bold text-foreground mb-1"
-              >
-                <AnimatedCounter value={stats.campaigns} />
-              </motion.div>
-              <div className="text-sm text-muted-foreground mb-3">Active Campaigns</div>
-              {limits && usage && (
-                <div className="text-xs text-muted-foreground/70 mb-2">
-                  {usage.campaigns_count || 0} / {limits.maxCampaigns === -1 ? '∞' : limits.maxCampaigns} used
-                </div>
-              )}
-              <MiniChart data={[4, 7, 5, 9, 6, 8, stats.campaigns]} />
-            </div>
-          </motion.div>
-
-
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            whileHover={{
-              y: -8,
-              rotateX: 5,
-              transition: { duration: 0.2 }
-            }}
-            style={{ transformStyle: "preserve-3d" }}
-            className="group relative rounded-lg border bg-card p-6 cursor-pointer hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden"
-            onClick={() => handleNavigation('/attributions')}
-          >
-            {/* Removed gradient border effect */}
-
-            <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <motion.div
-                  whileHover={{ rotate: 360, scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
-                  className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors relative"
-                >
-                  <Activity className="text-primary" size={22} />
-                  <motion.div
-                    className="absolute inset-0 rounded-lg bg-primary/20"
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
-                  />
-                </motion.div>
-                <ArrowRight className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" size={18} />
-              </div>
-              <motion.div
-                className="text-3xl font-bold text-foreground mb-1"
-              >
-                <AnimatedCounter value={stats.attributions} />
-              </motion.div>
-              <div className="text-sm text-muted-foreground mb-3">Total Attributions</div>
-              <div className="text-xs text-primary/70 flex items-center gap-1 mb-2">
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <Zap size={12} />
-                </motion.div>
-                Live tracking
-              </div>
-              <MiniChart data={[2, 4, 6, 5, 8, 7, stats.attributions]} />
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            whileHover={{
-              y: -8,
-              rotateX: 5,
-              transition: { duration: 0.2 }
-            }}
-            style={{ transformStyle: "preserve-3d" }}
-            className="group relative rounded-lg border bg-card p-6 cursor-pointer hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden"
-            onClick={() => handleNavigation('/analytics')}
-          >
-            {/* Removed gradient border effect */}
-
-            <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <motion.div
-                  whileHover={{ rotate: 360, scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
-                  className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors relative"
-                >
-                  <DollarSign className="text-primary" size={22} />
-                  <motion.div
-                    className="absolute inset-0 rounded-lg bg-primary/20"
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: 0.9 }}
-                  />
-                </motion.div>
-                <ArrowRight className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" size={18} />
-              </div>
-              <motion.div
-                className="text-3xl font-bold text-foreground mb-1"
-              >
-                $<AnimatedCounter value={stats.totalValue} />
-              </motion.div>
-              <div className="text-sm text-muted-foreground mb-3">Total Value Tracked</div>
-              <div className="text-xs text-muted-foreground/70 flex items-center gap-1 mb-2">
-                <TrendingUp size={12} />
-                USD equivalent
-              </div>
-              <MiniChart data={[1000, 2000, 1500, 3000, 2500, 3500, stats.totalValue]} />
-            </div>
-          </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <MetricCard
+            label="Active Campaigns"
+            value={activeCampaigns}
+            icon={<Target size={24} />}
+            trend={{ value: `${totalCampaigns} total`, direction: "up" }}
+            subtitle="campaigns running"
+            delay={0.1}
+          />
+          <MetricCard
+            label="Total Attributions"
+            value={kpis.totalAttributions}
+            icon={<Activity size={24} />}
+            trend={attributionsTrend}
+            subtitle="vs last week"
+            delay={0.2}
+          />
+          <MetricCard
+            label="Total Value Tracked"
+            value={`$${kpis.valueUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+            icon={<DollarSign size={24} />}
+            trend={valueTrend}
+            subtitle="in transactions"
+            delay={0.3}
+          />
         </div>
+      </Section>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="lg:col-span-1 rounded-lg border bg-card p-6 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
-
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-6">
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center"
-                >
-                  <Zap className="text-primary" size={18} />
-                </motion.div>
-                <h2 className="text-xl font-semibold text-foreground">Quick Actions</h2>
-              </div>
-
-              <div className="space-y-3">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button
-                    onClick={() => handleNavigation('/campaigns/new')}
-                    className="w-full justify-start text-left h-auto py-4 px-4 group"
-                  >
-                    <Plus className="mr-3 flex-shrink-0 group-hover:rotate-90 transition-transform duration-300" size={20} />
-                    <div>
-                      <div className="font-medium">Create Campaign</div>
-                      <div className="text-xs opacity-80">Launch new tracking campaign</div>
-                    </div>
-                  </Button>
-                </motion.div>
-
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button
-                    onClick={() => handleNavigation('/analytics')}
-                    className="w-full justify-start text-left h-auto py-4 px-4"
-                    variant="outline"
-                  >
-                    <BarChart3 className="mr-3 flex-shrink-0" size={20} />
-                    <div>
-                      <div className="font-medium">View Analytics</div>
-                      <div className="text-xs opacity-70">Explore detailed insights</div>
-                    </div>
-                  </Button>
-                </motion.div>
-              </div>
+      {/* Campaign Overview Section */}
+      <Section background="muted">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-foreground mb-3">Campaign Overview</h2>
+              <p className="text-lg text-muted-foreground">
+                {totalCampaigns} total campaigns • {activeCampaigns} active
+              </p>
             </div>
-          </motion.div>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/campaigns')}
+              className="border-border hover:bg-background"
+            >
+              View All
+              <ArrowRight size={16} className="ml-2" />
+            </Button>
+          </div>
+        </motion.div>
 
-          {/* Recent Activity */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="lg:col-span-2 rounded-lg border bg-card p-6 relative overflow-hidden"
-          >
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-primary/5 rounded-full blur-2xl" />
-
-            <div className="relative">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
-                    <Activity className="text-primary" size={18} />
-                  </div>
-                  <h2 className="text-xl font-semibold text-foreground">Recent Activity</h2>
-                </div>
-                {stats.recentActivity.length > 0 && (
-                  <motion.div
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full"
-                  >
-                    Live
-                  </motion.div>
-                )}
-              </div>
-
-              {stats.recentActivity.length > 0 ? (
-                <div className="space-y-3">
-                  {stats.recentActivity.map((activity, index) => (
-                    <motion.div
-                      key={activity.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.7 + index * 0.1 }}
-                      whileHover={{ x: 4 }}
-                      className="flex items-start gap-4 p-4 rounded-md border bg-muted/30 hover:bg-muted/50 hover:border-primary/20 transition-all cursor-pointer"
-                      onClick={() => handleNavigation('/attributions')}
-                    >
-                      <motion.div
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
-                        className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0"
-                      >
-                        <Activity className="text-primary" size={18} />
-                      </motion.div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-foreground font-medium mb-1">
-                          Attribution Detected
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Confidence: {activity.confidenceScore?.toFixed(0) || 0}% •
-                          Value: ${parseFloat(activity.valueUsd || 0).toLocaleString()}
-                        </div>
-                        <div className="text-xs text-muted-foreground/70 mt-1 flex items-center gap-1">
-                          <Calendar size={12} />
-                          {new Date(activity.attributedAt || activity.createdAt).toLocaleString()}
-                        </div>
-                      </div>
-                      <motion.div
-                        animate={{ opacity: [1, 0.5, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="text-xs text-primary bg-primary/10 px-2 py-1 rounded"
-                      >
-                        New
-                      </motion.div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4"
-                  >
-                    <Activity className="text-muted-foreground" size={32} />
-                  </motion.div>
-                  <p className="text-foreground font-medium mb-2">No activity yet</p>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    Create your first campaign to start tracking attributions
-                  </p>
-                  <Button
-                    onClick={() => handleNavigation('/campaigns/new')}
-                    size="sm"
-                  >
-                    <Plus className="mr-2" size={16} />
-                    Create Campaign
-                  </Button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Plan Status with Gradient - Commented Out */}
-        {/*
-            {!planLoading && planName && (
+        {campaigns.length === 0 ? (
+          <EmptyState
+            icon={<Megaphone size={64} />}
+            title="No campaigns yet"
+            description="Create your first campaign to start tracking attributions and measuring your Web3 marketing ROI"
+            action={{
+              label: "Create Campaign",
+              onClick: () => navigate('/campaigns/new')
+            }}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {campaigns.slice(0, 6).map((campaign, index) => (
               <motion.div
+                key={campaign.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-                className="mt-6 rounded-lg border bg-card p-6 relative overflow-hidden group"
+                transition={{ delay: 0.1 * index }}
+                onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                className="group relative rounded-2xl bg-card p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-border/50 cursor-pointer"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <motion.div
-                      whileHover={{ rotate: 360, scale: 1.1 }}
-                      transition={{ duration: 0.5 }}
-                      className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"
-                    >
-                      <Award className="text-primary" size={20} />
-                    </motion.div>
-                    <div>
-                      <h3 className="text-base font-semibold text-foreground mb-1 flex items-center gap-2">
-                        {planName} Plan
-                        {planName === "Pro" && (
-                          <motion.span
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded"
-                          >
-                            Active
-                          </motion.span>
-                        )}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {limits && (
-                          <>
-                            {limits.maxCampaigns === -1 ? 'Unlimited' : limits.maxCampaigns} campaigns • 
-                            {limits.attributionWindow} day attribution window
-                          </>
-                        )}
-                      </p>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 rounded-xl bg-accent/10">
+                      <Megaphone size={24} className="text-accent" />
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-semibold ${campaign.status === 'active'
+                      ? 'bg-green-50/50 text-green-700'
+                      : 'bg-gray-100 text-gray-600'
+                      }`}>
+                      {campaign.status}
                     </div>
                   </div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      onClick={() => handleNavigation('/pricing')}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Upgrade Plan
-                      <ArrowRight className="ml-2" size={14} />
-                    </Button>
-                  </motion.div>
+
+                  <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-accent transition-colors">
+                    {campaign.name}
+                  </h3>
+
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                    {campaign.description || 'No description provided'}
+                  </p>
+
+                  {campaign.blockchain && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-accent" />
+                      <span className="capitalize">{campaign.blockchain}</span>
+                    </div>
+                  )}
                 </div>
               </motion.div>
-            )}
-            */}
-      </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Quick Actions Section */}
+      <Section>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <h2 className="text-3xl font-bold text-foreground mb-3">Quick Actions</h2>
+          <p className="text-lg text-muted-foreground mb-8">
+            Jump into the most common tasks and workflows
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FeatureCard
+            icon={<BarChart3 size={32} />}
+            title="View Analytics"
+            description="Deep dive into campaign performance with detailed analytics and insights"
+            action={
+              <Button
+                variant="outline"
+                onClick={() => navigate('/analytics')}
+                className="w-full border-border hover:bg-muted"
+              >
+                Open Analytics
+                <ArrowRight size={16} className="ml-2" />
+              </Button>
+            }
+            delay={0.1}
+          />
+
+          <FeatureCard
+            icon={<Target size={32} />}
+            title="View Campaigns"
+            description="Manage and monitor all your active and past campaigns"
+            action={
+              <Button
+                variant="outline"
+                onClick={() => navigate('/campaigns')}
+                className="w-full border-border hover:bg-muted"
+              >
+                View Campaigns
+                <ArrowRight size={16} className="ml-2" />
+              </Button>
+            }
+            delay={0.3}
+          />
+        </div>
+      </Section>
+
+      {/* Campaign Type Selection Dialog */}
+      <Dialog open={showTypeDialog} onOpenChange={setShowTypeDialog}>
+        <DialogContent className="sm:max-w-md bg-card border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground text-2xl">Choose Campaign Type</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-base">
+              Select the type of campaign you want to create
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            {/* NFT Campaign */}
+            <button
+              onClick={() => {
+                setShowTypeDialog(false)
+                navigate('/campaigns/new-nft')
+              }}
+              className="group p-6 rounded-xl border border-border bg-card hover:bg-muted transition-all"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="p-3 rounded-full bg-purple-50 group-hover:bg-purple-100 transition-colors">
+                  <Image className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-foreground font-semibold mb-1">NFT Campaign</h3>
+                  <p className="text-muted-foreground text-sm">Track NFT collection or single NFT purchases</p>
+                </div>
+              </div>
+            </button>
+
+            {/* Token Campaign */}
+            <button
+              onClick={() => {
+                setShowTypeDialog(false)
+                navigate('/campaigns/new-token')
+              }}
+              className="group p-6 rounded-xl border border-border bg-card hover:bg-muted transition-all"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="p-3 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
+                  <Coins className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-foreground font-semibold mb-1">Token Campaign</h3>
+                  <p className="text-muted-foreground text-sm">Track ERC20 token purchases on DEX</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </DashboardLayout>
   )
 }

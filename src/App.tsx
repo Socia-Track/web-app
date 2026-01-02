@@ -6,7 +6,6 @@ import { isAdminSubdomain } from "@/lib/subdomain-utils";
 // Pages
 import AuthPage from "@/pages/AuthPage";
 import HomePage from "@/pages/HomePage";
-import DashboardPage from "@/pages/DashboardPage";
 import CampaignsPage from "@/pages/CampaignsPage";
 import NewCampaignPage from "@/pages/NewCampaignPage";
 import TokenCampaignPage from "@/pages/TokenCampaignPage";
@@ -73,10 +72,10 @@ export default function App() {
     <React.Suspense fallback={<div>Loading...</div>}>
       <Web3Providers>
       <Routes>
-        {/* Redirect root to dashboard or landing based on auth */}
+        {/* Root route - Home Page */}
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<HomePage />} />
         <Route path="/campaigns" element={<CampaignsPage />} />
         <Route path="/campaigns/new" element={<NewCampaignPage />} />
         <Route path="/campaigns/new-nft" element={<NewCampaignPage />} />
@@ -85,7 +84,6 @@ export default function App() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/attributions" element={<AttributionsPage />} />
         <Route path="/billing" element={<BillingPage />} />
-        <Route path="/home" element={<HomePage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/social" element={<SocialPage />} />

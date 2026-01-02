@@ -199,8 +199,7 @@ export const SidebarLink = ({
 };
 
 const menuItems: Links[] = [
-  { label: "Home", icon: <Home size={24} />, href: "/home" },
-  { label: "Dashboard", icon: <LayoutDashboard size={24} />, href: "/dashboard" },
+  { label: "Home Page", icon: <Home size={24} />, href: "/" },
   { label: "Campaigns", icon: <Target size={24} />, href: "/campaigns" },
   // { label: "Social", icon: <MessageSquare size={24} />, href: "/social" }, // Commented out - Social page removed
   { label: "Analytics", icon: <BarChart3 size={24} />, href: "/analytics" },
