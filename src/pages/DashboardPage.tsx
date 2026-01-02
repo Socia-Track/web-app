@@ -24,11 +24,20 @@ import {
   RefreshCw,
   AlertCircle,
   Plus,
-  ArrowRight
+  ArrowRight,
+  Image,
+  Coins
 } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface Campaign {
   id: string
@@ -53,6 +62,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [showTypeDialog, setShowTypeDialog] = useState(false)
   const [kpis, setKpis] = useState<KPIs>({
     totalAttributions: 0,
     avgScore: 0,
@@ -216,7 +226,7 @@ export default function DashboardPage() {
               {loading ? 'Refreshing...' : 'Refresh'}
             </Button>
             <Button
-              onClick={() => navigate('/campaigns/new')}
+              onClick={() => setShowTypeDialog(true)}
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               <Plus size={16} className="mr-2" />
@@ -423,6 +433,57 @@ export default function DashboardPage() {
           />
         </div>
       </Section>
+
+      {/* Campaign Type Selection Dialog */}
+      <Dialog open={showTypeDialog} onOpenChange={setShowTypeDialog}>
+        <DialogContent className="sm:max-w-md bg-card border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground text-2xl">Choose Campaign Type</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-base">
+              Select the type of campaign you want to create
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            {/* NFT Campaign */}
+            <button
+              onClick={() => {
+                setShowTypeDialog(false)
+                navigate('/campaigns/new-nft')
+              }}
+              className="group p-6 rounded-xl border border-border bg-card hover:bg-muted transition-all"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="p-3 rounded-full bg-purple-50 group-hover:bg-purple-100 transition-colors">
+                  <Image className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-foreground font-semibold mb-1">NFT Campaign</h3>
+                  <p className="text-muted-foreground text-sm">Track NFT collection or single NFT purchases</p>
+                </div>
+              </div>
+            </button>
+
+            {/* Token Campaign */}
+            <button
+              onClick={() => {
+                setShowTypeDialog(false)
+                navigate('/campaigns/new-token')
+              }}
+              className="group p-6 rounded-xl border border-border bg-card hover:bg-muted transition-all"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="p-3 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
+                  <Coins className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-foreground font-semibold mb-1">Token Campaign</h3>
+                  <p className="text-muted-foreground text-sm">Track ERC20 token purchases on DEX</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </DashboardLayout>
   )

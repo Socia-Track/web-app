@@ -110,6 +110,8 @@ export default function AnalyticsPage() {
   const [selectedPersonLink, setSelectedPersonLink] = useState<string | null>(null)
   const [linkAnalytics, setLinkAnalytics] = useState<Record<string, any>>({})
   const [linkAnalyticsLoading, setLinkAnalyticsLoading] = useState(false)
+  const [transactionPage, setTransactionPage] = useState(0)
+  const transactionsPerPage = 5
 
   // Get real-time chart data from analytics - defined later after getSelectedPersonData
 
@@ -2097,21 +2099,23 @@ export default function AnalyticsPage() {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left p-3 text-muted-foreground font-medium">Transaction</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Wallet Address</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">NFT Details</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Value</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Status</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Time</th>
-                    <th className="text-left p-3 text-muted-foreground font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTransactions.map((transaction: any, index: number) => (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left p-3 text-muted-foreground font-medium">Transaction</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium">Wallet Address</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium">NFT Details</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium">Value</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium">Status</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentTransactions
+                      .slice(transactionPage * transactionsPerPage, (transactionPage + 1) * transactionsPerPage)
+                      .map((transaction: any, index: number) => (
                     <motion.tr
                       key={transaction.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -2192,45 +2196,56 @@ export default function AnalyticsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="p-3">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-3 text-xs border-white/10 hover:bg-white/10 text-white hover:text-white hover:border-white/20 cursor-pointer"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              console.log('🔗 Button clicked! Transaction data:', {
-                                id: transaction.id,
-                                hash: transaction.transactionHash,
-                                hasHash: !!transaction.transactionHash
-                              });
-
-                              const txHash = transaction.transactionHash || transaction.hash;
-                              if (txHash) {
-                                const etherscanUrl = `https://etherscan.io/tx/${txHash}`;
-                                console.log('🌐 Opening URL:', etherscanUrl);
-                                window.open(etherscanUrl, '_blank', 'noopener,noreferrer');
-                                toast.success('Opening transaction on Etherscan');
-                              } else {
-                                console.error('❌ No transaction hash found:', transaction);
-                                toast.error('Transaction hash not available');
-                              }
-                            }}
-                            disabled={!transaction.transactionHash && !transaction.hash}
-                            title={transaction.transactionHash || transaction.hash ? 'View transaction on Etherscan' : 'Transaction hash not available'}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            View
-                          </Button>
-                        </div>
-                      </td>
                     </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {recentTransactions.length > 0 && (
+              <div className="relative z-10 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border pt-4 px-2 pointer-events-auto">
+                <div className="text-sm text-foreground font-medium">
+                  Showing {Math.min(transactionPage * transactionsPerPage + 1, recentTransactions.length)} to{' '}
+                  {Math.min((transactionPage + 1) * transactionsPerPage, recentTransactions.length)} of{' '}
+                  {recentTransactions.length} transaction{recentTransactions.length !== 1 ? 's' : ''}
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTransactionPage(prev => Math.max(0, prev - 1));
+                    }}
+                    disabled={transactionPage === 0}
+                    className="border-border hover:bg-muted text-foreground disabled:opacity-50 cursor-pointer"
+                  >
+                    Previous
+                  </Button>
+                  <div className="text-sm text-foreground font-medium px-2">
+                    Page {transactionPage + 1} of {Math.max(1, Math.ceil(recentTransactions.length / transactionsPerPage))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTransactionPage(prev => 
+                        Math.min(Math.ceil(recentTransactions.length / transactionsPerPage) - 1, prev + 1)
+                      );
+                    }}
+                    disabled={transactionPage >= Math.ceil(recentTransactions.length / transactionsPerPage) - 1}
+                    className="border-border hover:bg-muted text-foreground disabled:opacity-50 cursor-pointer"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
           )}
         </div>
       </>
