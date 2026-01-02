@@ -9,7 +9,7 @@ import Section from "@/components/Section"
 import MetricCard from "@/components/MetricCard"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { ArrowLeft, Edit, Trash2, Play, Pause, TrendingUp, Users, DollarSign, Activity, Calendar, Settings, Target, Zap, Megaphone, MessageSquare } from "lucide-react"
+import { ArrowLeft, Edit, Trash2, Play, Pause, TrendingUp, Users, DollarSign, Activity, Calendar, Settings, Target, Zap, Megaphone, MessageSquare, Link2, Copy } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 
@@ -19,6 +19,7 @@ export default function CampaignDetailPage() {
   const { data: session, isPending } = useSession()
   const [campaign, setCampaign] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [links, setLinks] = useState<any[]>([])
   const [stats, setStats] = useState({
     attributions: 0,
     transactions: 0,
@@ -59,6 +60,11 @@ export default function CampaignDetailPage() {
 
         if (campaignRes.ok) {
           setCampaign({ ...campaignData, campaignType })
+          
+          // Extract links from campaign data (they're already included)
+          if (campaignData.links && Array.isArray(campaignData.links)) {
+            setLinks(campaignData.links)
+          }
 
           // Fetch campaign stats based on type
           if (campaignType === 'token') {
@@ -397,6 +403,107 @@ export default function CampaignDetailPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Generated Links */}
+                {links.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border flex items-center gap-2">
+                      <Link2 size={20} /> Tracking Links
+                    </h3>
+                    <div className="space-y-4">
+                      {links.map((link: any, index: number) => (
+                        <motion.div
+                          key={link.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="rounded-xl border border-border p-6 hover:shadow-md transition-all duration-300 bg-card group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-4 mb-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-base font-bold">
+                                    {link.platform.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <h4 className="text-foreground font-semibold text-lg mb-1">
+                                      {link.linkName || `${link.platform.charAt(0).toUpperCase() + link.platform.slice(1)} Link`}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground capitalize">{link.platform} • Created {new Date(link.createdAt).toLocaleDateString()}</p>
+                                  </div>
+                                </div>
+                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${link.status === 'active'
+                                  ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                                  : 'bg-muted text-muted-foreground border border-border'
+                                  }`}>
+                                  {link.status}
+                                </div>
+                              </div>
+
+                              <div className="space-y-3">
+                                <div className="rounded-lg bg-muted/50 border border-border p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium text-muted-foreground">Tracking URL:</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <code className="text-sm bg-background px-3 py-2 rounded-md text-foreground font-mono border border-border block w-full break-all">
+                                        {link.longUrl || link.shortUrl}
+                                      </code>
+                                    </div>
+                                    <div className="flex gap-1 flex-shrink-0">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(link.longUrl || link.shortUrl);
+                                          toast.success('Tracking URL copied to clipboard!');
+                                        }}
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                        title="Copy tracking URL"
+                                      >
+                                        <Copy size={14} />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="rounded-lg bg-muted/50 border border-border p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium text-muted-foreground">Destination URL:</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <code className="text-sm bg-background px-3 py-2 rounded-md text-foreground font-mono border border-border block w-full break-all">
+                                        {link.originalUrl}
+                                      </code>
+                                    </div>
+                                    <div className="flex-shrink-0">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(link.originalUrl);
+                                          toast.success('Destination URL copied to clipboard!');
+                                        }}
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                        title="Copy destination URL"
+                                      >
+                                        <Copy size={14} />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           ) : (
@@ -439,6 +546,107 @@ export default function CampaignDetailPage() {
                   <Calendar size={14} />
                   Created {new Date(campaign.createdAt).toLocaleDateString()} at {new Date(campaign.createdAt).toLocaleTimeString()}
                 </div>
+
+                {/* Generated Links for NFT Campaigns */}
+                {links.length > 0 && (
+                  <div className="pt-4 border-t border-border">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border flex items-center gap-2">
+                      <Link2 size={20} /> Tracking Links
+                    </h3>
+                    <div className="space-y-4">
+                      {links.map((link: any, index: number) => (
+                        <motion.div
+                          key={link.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="rounded-xl border border-border p-6 hover:shadow-md transition-all duration-300 bg-card group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-4 mb-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-base font-bold">
+                                    {link.platform.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <h4 className="text-foreground font-semibold text-lg mb-1">
+                                      {link.linkName || `${link.platform.charAt(0).toUpperCase() + link.platform.slice(1)} Link`}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground capitalize">{link.platform} • Created {new Date(link.createdAt).toLocaleDateString()}</p>
+                                  </div>
+                                </div>
+                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${link.status === 'active'
+                                  ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                                  : 'bg-muted text-muted-foreground border border-border'
+                                  }`}>
+                                  {link.status}
+                                </div>
+                              </div>
+
+                              <div className="space-y-3">
+                                <div className="rounded-lg bg-muted/50 border border-border p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium text-muted-foreground">Tracking URL:</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <code className="text-sm bg-background px-3 py-2 rounded-md text-foreground font-mono border border-border block w-full break-all">
+                                        {link.longUrl || link.shortUrl}
+                                      </code>
+                                    </div>
+                                    <div className="flex gap-1 flex-shrink-0">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(link.longUrl || link.shortUrl);
+                                          toast.success('Tracking URL copied to clipboard!');
+                                        }}
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                        title="Copy tracking URL"
+                                      >
+                                        <Copy size={14} />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="rounded-lg bg-muted/50 border border-border p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium text-muted-foreground">Destination URL:</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <code className="text-sm bg-background px-3 py-2 rounded-md text-foreground font-mono border border-border block w-full break-all">
+                                        {link.originalUrl}
+                                      </code>
+                                    </div>
+                                    <div className="flex-shrink-0">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(link.originalUrl);
+                                          toast.success('Destination URL copied to clipboard!');
+                                        }}
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                        title="Copy destination URL"
+                                      >
+                                        <Copy size={14} />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           )

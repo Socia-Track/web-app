@@ -364,7 +364,7 @@ export default function TokenCampaignPage() {
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   required
-                  className="mt-2 bg-black/50 border-white/10 text-white"
+                  className="mt-2 bg-white border-border text-black"
                 />
               </div>
 
@@ -375,7 +375,7 @@ export default function TokenCampaignPage() {
                   placeholder="Describe your campaign objectives and target audience"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="mt-2 bg-black/50 border-white/10 text-white min-h-24"
+                  className="mt-2 bg-white border-border text-black min-h-24"
                 />
               </div>
 
@@ -386,7 +386,7 @@ export default function TokenCampaignPage() {
                   placeholder="e.g., Drive token purchases, increase holders"
                   value={formData.objectives}
                   onChange={(e) => setFormData(prev => ({ ...prev, objectives: e.target.value }))}
-                  className="mt-2 bg-black/50 border-white/10 text-white min-h-20"
+                  className="mt-2 bg-white border-border text-black min-h-20"
                 />
               </div>
             </div>
@@ -447,7 +447,7 @@ export default function TokenCampaignPage() {
                           placeholder="Enter number"
                           value={linkCounts['Discord'] || ''}
                           onChange={(e) => handleLinkCountChange('Discord', e.target.value)}
-                          className="mt-2"
+                          className="mt-2 bg-white border-border text-black"
                         />
                       </div>
 
@@ -462,7 +462,7 @@ export default function TokenCampaignPage() {
                                 placeholder={`Person ${index + 1} name`}
                                 value={personNames['Discord']?.[index] || ''}
                                 onChange={(e) => handlePersonNameChange('Discord', index, e.target.value)}
-                                className=""
+                                className="bg-white border-border text-black"
                               />
                             </div>
                           ))}
@@ -485,7 +485,7 @@ export default function TokenCampaignPage() {
                           placeholder="Enter number"
                           value={linkCounts['Twitter'] || ''}
                           onChange={(e) => handleLinkCountChange('Twitter', e.target.value)}
-                          className="mt-2"
+                          className="mt-2 bg-white border-border text-black"
                         />
                       </div>
 
@@ -500,7 +500,7 @@ export default function TokenCampaignPage() {
                                 placeholder={`Person ${index + 1} name`}
                                 value={personNames['Twitter']?.[index] || ''}
                                 onChange={(e) => handlePersonNameChange('Twitter', index, e.target.value)}
-                                className="bg-black/50 border-white/10 text-white"
+                                className="bg-white border-border text-black"
                               />
                             </div>
                           ))}
@@ -527,7 +527,7 @@ export default function TokenCampaignPage() {
                     placeholder="e.g., 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
                     value={formData.tokenContractAddress}
                     onChange={(e) => setFormData(prev => ({ ...prev, tokenContractAddress: e.target.value }))}
-                    className="bg-background border-input"
+                    className="bg-white border-border text-black"
                   />
                   <Button
                     type="button"
@@ -619,7 +619,7 @@ export default function TokenCampaignPage() {
                     placeholder="Enter your original link to track"
                     value={formData.originalLink}
                     onChange={(e) => setFormData(prev => ({ ...prev, originalLink: e.target.value }))}
-                    className="mt-2"
+                    className="mt-2 bg-white border-border text-black"
                   />
                   <Button
                     type="button"
