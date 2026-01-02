@@ -9,6 +9,7 @@ import Section from "@/components/Section"
 import Highlight from "@/components/Highlight"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useNetworks } from "@/hooks/useNetworks"
 import { Download, TrendingUp, DollarSign, MessageSquare, Target, Clock, ArrowLeft, Megaphone, Calendar, Search, Filter, Link2, Copy, ExternalLink, TrendingDown, CalendarIcon, RefreshCw } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -93,6 +94,7 @@ interface CampaignLink {
 
 export default function AnalyticsPage() {
   const { data: session, isPending } = useSession()
+  const { networks } = useNetworks()
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [loading, setLoading] = useState(true)
@@ -464,8 +466,9 @@ export default function AnalyticsPage() {
                       formatter={(value, name) => {
                         if (name === 'revenue') {
                           // Show actual ETH values from blockchain transactions
+                          const currency = getCampaignCurrency();
                           const ethValue = parseFloat(value as string) / 3400; // Convert USD back to ETH
-                          return [`${ethValue.toFixed(4)} ETH ($${parseFloat(value as string).toFixed(2)})`, 'Real Blockchain Revenue']
+                          return [`${ethValue.toFixed(4)} ${currency} ($${parseFloat(value as string).toFixed(2)})`, `Real Blockchain Revenue`]
                         }
                         if (name === 'transactions') {
                           return [value, 'Actual NFT Purchases']
@@ -929,28 +932,36 @@ export default function AnalyticsPage() {
   }
 
   // Smart ETH formatting function that adjusts decimal places based on value
-  const formatEthValue = (value: string | number): string => {
+  const formatEthValue = (value: string | number, currency: string = 'ETH'): string => {
     const ethValue = parseFloat(value.toString() || '0')
 
-    // If the value is 0, show as "0 ETH"
-    if (ethValue === 0) return '0 ETH'
+    // If the value is 0, show as "0 {CURRENCY}"
+    if (ethValue === 0) return `0 ${currency}`
 
     // For very small values (< 0.001), show up to 8 decimals but remove trailing zeros
     if (ethValue < 0.001) {
-      return `${ethValue.toFixed(8).replace(/\.?0+$/, '')} ETH`
+      return `${ethValue.toFixed(8).replace(/\.?0+$/, '')} ${currency}`
     }
     // For small values (0.001 - 0.1), show up to 6 decimals but remove trailing zeros  
     else if (ethValue < 0.1) {
-      return `${ethValue.toFixed(6).replace(/\.?0+$/, '')} ETH`
+      return `${ethValue.toFixed(6).replace(/\.?0+$/, '')} ${currency}`
     }
     // For medium values (0.1 - 10), show up to 4 decimals but remove trailing zeros
     else if (ethValue < 10) {
-      return `${ethValue.toFixed(4).replace(/\.?0+$/, '')} ETH`
+      return `${ethValue.toFixed(4).replace(/\.?0+$/, '')} ${currency}`
     }
     // For large values (>= 10), show up to 2 decimals but remove trailing zeros
     else {
-      return `${ethValue.toFixed(2).replace(/\.?0+$/, '')} ETH`
+      return `${ethValue.toFixed(2).replace(/\.?0+$/, '')} ${currency}`
     }
+  }
+
+  // Helper function to get currency for the selected campaign's blockchain
+  const getCampaignCurrency = (): string => {
+    if (!selectedCampaign?.blockchain) return 'ETH'
+    
+    const network = networks.find(n => n.key === selectedCampaign.blockchain)
+    return network?.currency || 'ETH'
   }
 
   // Function to copy link to clipboard
@@ -1076,7 +1087,7 @@ export default function AnalyticsPage() {
       totalTransactionCount,
       totalEthRevenue,
       realConversionRate: realConversionRate.toFixed(2) + '%',
-      avgEthPerTransaction: avgEthPerTransaction.toFixed(4) + ' ETH'
+      avgEthPerTransaction: avgEthPerTransaction.toFixed(4) + ' ' + getCampaignCurrency()
     })
 
     for (let i = 29; i >= 0; i--) {
@@ -1922,8 +1933,9 @@ export default function AnalyticsPage() {
             },
             {
               icon: <DollarSign size={24} />,
-              label: "ETH Transactions",
+              label: `${getCampaignCurrency()} Transactions`,
               value: (() => {
+                const currency = getCampaignCurrency();
                 if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
                   // ✅ Individual person selected - use their specific ETH from real transactions
                   const personEth = selectedPersonData.totalRevenue || 0;
@@ -1931,9 +1943,9 @@ export default function AnalyticsPage() {
                     personName: selectedPersonData.personName,
                     linkId: selectedPersonLink,
                     rawEthValue: personEth,
-                    formattedEth: formatEthValue(personEth)
+                    formattedEth: formatEthValue(personEth, currency)
                   });
-                  return formatEthValue(personEth);
+                  return formatEthValue(personEth, currency);
                 } else if (platformFilter !== "all") {
                   // ✅ Platform filter selected - use backend filtered ETH data
                   if (clickAnalytics?.platformFilter === platformFilter) {
@@ -1941,9 +1953,9 @@ export default function AnalyticsPage() {
                     console.log('🎯 PLATFORM-FILTERED ETH (Backend):', {
                       platform: platformFilter,
                       rawEthValue: platformEth,
-                      formattedEth: formatEthValue(platformEth)
+                      formattedEth: formatEthValue(platformEth, currency)
                     });
-                    return formatEthValue(platformEth);
+                    return formatEthValue(platformEth, currency);
                   } else {
                     // Fallback to manual calculation
                     const platformLinks = campaignLinks.filter(link =>
@@ -1954,9 +1966,9 @@ export default function AnalyticsPage() {
                       platform: platformFilter,
                       platformLinks: platformLinks.length,
                       rawEthValue: platformEth,
-                      formattedEth: formatEthValue(platformEth)
+                      formattedEth: formatEthValue(platformEth, currency)
                     });
-                    return formatEthValue(platformEth);
+                    return formatEthValue(platformEth, currency);
                   }
                 } else {
                   // ✅ All platforms - use campaign total ETH from raw totalRevenue (not pre-formatted totalEth)
@@ -1965,13 +1977,13 @@ export default function AnalyticsPage() {
                     rawTotalRevenue: clickAnalytics?.totalRevenue,
                     preFormattedTotalEth: clickAnalytics?.totalEth,
                     usingRawValue: campaignEth,
-                    smartFormatted: formatEthValue(campaignEth)
+                    smartFormatted: formatEthValue(campaignEth, currency)
                   });
-                  return formatEthValue(campaignEth);
+                  return formatEthValue(campaignEth, currency);
                 }
               })(),
               change: `${clickAnalytics?.totalTransactions ?? 0} detected`,
-              subtitle: "Real ETH from Blockchain"
+              subtitle: `Real ${getCampaignCurrency()} from Blockchain`
             },
             {
               icon: <MessageSquare size={24} />,
@@ -2168,7 +2180,7 @@ export default function AnalyticsPage() {
 
                               // Try multiple possible field names for ETH amount
                               const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
-                              return formatEthValue(ethAmount);
+                              return formatEthValue(ethAmount, getCampaignCurrency());
                             })()}
                           </div>
                           <div className="text-green-700 font-semibold">
