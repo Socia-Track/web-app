@@ -71,6 +71,14 @@ export default function DashboardPage() {
     lastUpdated: new Date()
   })
 
+  // Get time of day greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return "Good morning"
+    if (hour < 18) return "Good afternoon"
+    return "Good evening"
+  }
+
   useEffect(() => {
     if (!isPending && !session?.user) {
       console.log("❌ No session found, redirecting to home")
@@ -95,29 +103,22 @@ export default function DashboardPage() {
     }
 
     try {
-      const [campaignsRes, tokensRes, attributionsRes, postsRes] = await Promise.all([
+      // Fetch campaigns and tokens
+      const [campaignsRes, tokensRes] = await Promise.all([
         fetch(`/api/campaigns?limit=100&userId=${session.user.uid}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch(`/api/tokens?limit=100&userId=${session.user.uid}`, {
           headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('/api/attributions?limit=1000', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('/api/social-posts?limit=1000', {
-          headers: { Authorization: `Bearer ${token}` }
         })
       ])
 
-      if (!campaignsRes.ok || !tokensRes.ok || !attributionsRes.ok || !postsRes.ok) {
+      if (!campaignsRes.ok || !tokensRes.ok) {
         throw new Error("Failed to fetch dashboard data")
       }
 
       const nftCampaigns = await campaignsRes.json()
       const tokenCampaigns = await tokensRes.json()
-      const attributions = await attributionsRes.json()
-      const posts = await postsRes.json()
 
       // Combine both NFT and token campaigns
       const allCampaigns = [
@@ -127,23 +128,40 @@ export default function DashboardPage() {
 
       setCampaigns(allCampaigns)
 
-      const avgScore = Array.isArray(attributions) && attributions.length > 0
-        ? attributions.reduce((sum: number, a: any) => sum + (a.confidenceScore || 0), 0) / attributions.length
-        : 0
+      // Fetch real transaction data from each campaign's analytics
+      let totalTransactions = 0
+      let totalValueTracked = 0
 
-      const totalValue = Array.isArray(attributions)
-        ? attributions.reduce((sum: number, a: any) => {
-          const valueStr = a.transaction?.value || a.valueUsd || "0"
-          const value = parseFloat(valueStr.toString().split(" ")[0])
-          return sum + (isNaN(value) ? 0 : value)
-        }, 0)
-        : 0
+      if (Array.isArray(allCampaigns) && allCampaigns.length > 0) {
+        console.log('📊 DashboardPage: Fetching analytics for', allCampaigns.length, 'campaigns')
+
+        // Get analytics data for each campaign
+        for (const campaign of allCampaigns) {
+          try {
+            const analyticsRes = await fetch(`/api/analytics/campaign/${campaign.id}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const analytics = await analyticsRes.json()
+
+            totalTransactions += analytics.totalTransactions || 0
+            totalValueTracked += (parseFloat(analytics.totalEth || '0') * 3400) // ETH to USD
+          } catch (analyticsError) {
+            console.error(`Error fetching analytics for campaign ${campaign.name}:`, analyticsError)
+          }
+        }
+      }
+
+      console.log('✅ DashboardPage: Final metrics:', {
+        campaigns: allCampaigns.length,
+        totalTransactions,
+        totalValueTracked: totalValueTracked.toFixed(2)
+      })
 
       setKpis({
-        totalAttributions: Array.isArray(attributions) ? attributions.length : 0,
-        avgScore: Math.round(avgScore),
-        valueUsd: totalValue,
-        postsCaptured: Array.isArray(posts) ? posts.length : 0,
+        totalAttributions: totalTransactions,
+        avgScore: 0,
+        valueUsd: totalValueTracked,
+        postsCaptured: 0,
         lastUpdated: new Date()
       })
 
@@ -197,18 +215,20 @@ export default function DashboardPage() {
 
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length
   const totalCampaigns = campaigns.length
+  const userName = session.user.displayName || session.user.email?.split('@')[0] || 'User'
+  const firstName = userName.split(' ')[0]
 
   return (
     <DashboardLayout>
-      {/* Hero Header */}
+      {/* Hero Header with Greeting */}
       <HeroHeader
         title={
           <>
-            Your <Highlight>Campaign Performance</Highlight>
+            {getGreeting()}, {firstName} 👋
           </>
         }
-        description="Track, analyze, and optimize your Web3 marketing campaigns with real-time blockchain attribution analytics"
-        badge="Live Dashboard"
+        description="Track your social media impact and blockchain attributions in one place. Monitor campaigns with real-time analytics."
+        badge="Live Updates"
         icon={
           <div className="p-4 rounded-2xl bg-accent/10">
             <BarChart3 size={48} className="text-accent" />
@@ -249,21 +269,21 @@ export default function DashboardPage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <MetricCard
-            label="Total Attributions"
-            value={kpis.totalAttributions}
+            label="Active Campaigns"
+            value={activeCampaigns}
             icon={<Target size={24} />}
-            trend={{ value: "+12.5%", direction: "up" }}
-            subtitle="vs last week"
+            trend={{ value: `${totalCampaigns} total`, direction: "up" }}
+            subtitle="campaigns running"
             delay={0.1}
           />
           <MetricCard
-            label="Avg Confidence Score"
-            value={`${kpis.avgScore}%`}
-            icon={<TrendingUp size={24} />}
-            trend={{ value: "+5.2%", direction: "up" }}
-            subtitle="attribution accuracy"
+            label="Total Attributions"
+            value={kpis.totalAttributions}
+            icon={<Activity size={24} />}
+            trend={{ value: "+12.5%", direction: "up" }}
+            subtitle="vs last week"
             delay={0.2}
           />
           <MetricCard
@@ -273,14 +293,6 @@ export default function DashboardPage() {
             trend={{ value: "+23.1%", direction: "up" }}
             subtitle="in transactions"
             delay={0.3}
-          />
-          <MetricCard
-            label="Social Posts Captured"
-            value={kpis.postsCaptured}
-            icon={<MessageSquare size={24} />}
-            trend={{ value: "+8.7%", direction: "up" }}
-            subtitle="across platforms"
-            delay={0.4}
           />
         </div>
       </Section>
