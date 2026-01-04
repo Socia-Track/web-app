@@ -2200,11 +2200,11 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <div className="text-white text-sm">
-                            {new Date(transaction.createdAt).toLocaleDateString()}
+                          <div className="text-black text-sm">
+                            {new Date(transaction.timestamp || transaction.createdAt).toLocaleDateString()}
                           </div>
                           <div className="text-gray-400 text-xs">
-                            {new Date(transaction.createdAt).toLocaleTimeString()}
+                            {new Date(transaction.timestamp || transaction.createdAt).toLocaleTimeString()}
                           </div>
                         </div>
                       </td>

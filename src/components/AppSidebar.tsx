@@ -225,7 +225,7 @@ function SidebarContent() {
       localStorage.removeItem("bearer_token");
       refetch();
       toast.success("Signed out successfully");
-      navigate("/");
+      navigate("/auth");
     }
   };
 

@@ -63,6 +63,8 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [showTypeDialog, setShowTypeDialog] = useState(false)
+  const [showLimitDialog, setShowLimitDialog] = useState(false)
+  const [userLimits, setUserLimits] = useState<{ currentItems: number; maxItems: number } | null>(null)
   const [kpis, setKpis] = useState<KPIs>({
     totalAttributions: 0,
     avgScore: 0,
@@ -88,6 +90,12 @@ export default function DashboardPage() {
     }
   }, [session, isPending, navigate])
 
+  // Debug effect to watch limit dialog state
+  useEffect(() => {
+    console.log('🔔 DashboardPage: showLimitDialog changed to:', showLimitDialog)
+    console.log('🔔 DashboardPage: userLimits:', userLimits)
+  }, [showLimitDialog, userLimits])
+
   const fetchData = async () => {
     if (!session?.user?.uid) return
 
@@ -103,12 +111,15 @@ export default function DashboardPage() {
     }
 
     try {
-      // Fetch campaigns and tokens
-      const [campaignsRes, tokensRes] = await Promise.all([
+      // Fetch campaigns, tokens, and user limits
+      const [campaignsRes, tokensRes, limitsRes] = await Promise.all([
         fetch(`/api/campaigns?limit=100&userId=${session.user.uid}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch(`/api/tokens?limit=100&userId=${session.user.uid}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`/api/users/${session.user.uid}/limits`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ])
@@ -119,6 +130,14 @@ export default function DashboardPage() {
 
       const nftCampaigns = await campaignsRes.json()
       const tokenCampaigns = await tokensRes.json()
+      const limitsData = limitsRes.ok ? await limitsRes.json() : null
+
+      console.log('🔍 DashboardPage: Raw API responses:', {
+        nftCampaigns,
+        tokenCampaigns,
+        limitsData,
+        limitsResStatus: limitsRes.status
+      })
 
       // Combine both NFT and token campaigns
       const allCampaigns = [
@@ -127,6 +146,36 @@ export default function DashboardPage() {
       ]
 
       setCampaigns(allCampaigns)
+      console.log('🔍 DashboardPage: Total campaigns set:', allCampaigns.length)
+
+      // Check if user has reached their limit and show dialog
+      if (limitsData) {
+        console.log('📊 DashboardPage: User Limits Data:', limitsData)
+        const currentItems = limitsData.usage?.totalItems || 0
+        const maxItems = limitsData.limits?.maxItems || 0
+        
+        console.log('📊 DashboardPage: Extracted values - currentItems:', currentItems, 'maxItems:', maxItems)
+        
+        setUserLimits({ 
+          currentItems: currentItems, 
+          maxItems: maxItems 
+        })
+        
+        console.log('🔍 DashboardPage: Checking limit:', currentItems, '>=', maxItems, '?', currentItems >= maxItems)
+        console.log('🔍 DashboardPage: maxItems > 0?', maxItems > 0)
+        console.log('🔍 DashboardPage: Final condition:', (currentItems >= maxItems && maxItems > 0))
+        
+        if (currentItems >= maxItems && maxItems > 0) {
+          console.log('⚠️ DashboardPage: Limit reached! Showing dialog')
+          console.log('⚠️ DashboardPage: About to call setShowLimitDialog(true)')
+          setShowLimitDialog(true)
+          console.log('⚠️ DashboardPage: setShowLimitDialog(true) called')
+        } else {
+          console.log('✅ DashboardPage: Limit not reached, no dialog')
+        }
+      } else {
+        console.log('❌ DashboardPage: No limits data received from API')
+      }
 
       // Fetch real transaction data from each campaign's analytics
       let totalTransactions = 0
@@ -445,6 +494,46 @@ export default function DashboardPage() {
           />
         </div>
       </Section>
+
+      {/* Campaign Limit Reached Dialog */}
+      <Dialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <DialogContent className="sm:max-w-md bg-card border">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 rounded-full bg-orange-50">
+                <AlertCircle className="w-6 h-6 text-orange-600" />
+              </div>
+              <DialogTitle className="text-foreground text-2xl">Campaign Limit Reached</DialogTitle>
+            </div>
+            <DialogDescription className="text-muted-foreground text-base">
+              {userLimits && (
+                <span>
+                  You've reached your campaign limit ({userLimits.currentItems}/{userLimits.maxItems}). 
+                  Upgrade your plan to create more campaigns and unlock advanced features.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button
+              onClick={() => {
+                setShowLimitDialog(false)
+                navigate('/pricing')
+              }}
+              className="bg-accent text-accent-foreground hover:bg-accent/90 w-full"
+            >
+              Upgrade Plan
+            </Button>
+            <Button
+              onClick={() => setShowLimitDialog(false)}
+              variant="outline"
+              className="w-full"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Campaign Type Selection Dialog */}
       <Dialog open={showTypeDialog} onOpenChange={setShowTypeDialog}>

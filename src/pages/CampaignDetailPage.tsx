@@ -388,7 +388,7 @@ export default function CampaignDetailPage() {
                   <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border flex items-center gap-2">
                     <Settings size={20} /> Campaign Configuration
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Status</div>
                       <div className="text-foreground font-semibold capitalize">{campaign.status || 'N/A'}</div>
@@ -396,10 +396,6 @@ export default function CampaignDetailPage() {
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Time Window</div>
                       <div className="text-foreground font-semibold">{campaign.timeWindow ? `${campaign.timeWindow} hours` : 'N/A'}</div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Min Confidence</div>
-                      <div className="text-foreground font-semibold">{campaign.minConfidenceThreshold || 70}%</div>
                     </div>
                   </div>
                 </div>

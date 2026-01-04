@@ -18,60 +18,41 @@ const plans = [
     period: "forever",
     description: "Perfect for trying out SociaTrack",
     features: [
-      { text: "Up to 2 campaigns", included: true },
-      { text: "100 tracked wallets", included: true },
-      { text: "7-day attribution window", included: true },
-      { text: "Basic analytics dashboard", included: true },
-      { text: "Community support", included: true },
-      { text: "Advanced AI attribution", included: false },
-      { text: "Real-time monitoring", included: false },
-      { text: "Custom integrations", included: false },
-      { text: "API access", included: false },
-      { text: "Priority support", included: false }
+      { text: "Up to 3 campaigns", included: true },
+      { text: "2 links per campaign", included: true },
+      { text: "Basic analytics", included: true },
+      { text: "Support", included: true }
     ],
     cta: "Get Started",
     popular: false
   },
   {
     name: "Pro",
-    price: "$49",
+    price: "$299",
     period: "per month",
     description: "For serious Web3 marketers",
     features: [
-      { text: "Unlimited campaigns", included: true },
-      { text: "1,000 tracked wallets", included: true },
-      { text: "30-day attribution window", included: true },
-      { text: "Advanced analytics dashboard", included: true },
-      { text: "Advanced AI attribution", included: true },
-      { text: "Real-time monitoring", included: true },
-      { text: "Discord & Twitter/X integration", included: true },
-      { text: "Export reports (CSV/PDF)", included: true },
-      { text: "Email support", included: true },
-      { text: "API access", included: false }
+      { text: "25 campaigns", included: true },
+      { text: "4 links per campaign", included: true },
+      { text: "Download report", included: true },
+      { text: "Multi-chain support", included: true }
     ],
     cta: "Start Free Trial",
     popular: true
   },
   {
     name: "Enterprise",
-    price: "Custom",
-    period: "contact us",
+    price: "$499",
+    period: "per month",
     description: "For large teams and agencies",
     features: [
-      { text: "Unlimited everything", included: true },
-      { text: "Unlimited tracked wallets", included: true },
-      { text: "90-day attribution window", included: true },
-      { text: "Custom analytics dashboard", included: true },
-      { text: "Advanced AI attribution", included: true },
-      { text: "Real-time monitoring", included: true },
-      { text: "All integrations included", included: true },
-      { text: "Custom integrations", included: true },
-      { text: "Full API access", included: true },
-      { text: "Dedicated account manager", included: true },
-      { text: "24/7 priority support", included: true },
-      { text: "Custom training & onboarding", included: true }
+      { text: "50 campaigns", included: true },
+      { text: "6 links per campaign", included: true },
+      { text: "Download report", included: true },
+      { text: "Multi-chain support", included: true },
+      { text: "Early access to our V2", included: true }
     ],
-    cta: "Contact Sales",
+    cta: "Get Started",
     popular: false
   }
 ]
@@ -82,108 +63,43 @@ export default function PricingPage() {
   const [signupOpen, setSignupOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handlePlanSelect = async (planName: string) => {
-    if (planName === "Enterprise") {
-      // Create email subject and body
-      const subject = encodeURIComponent("Enterprise Plan Inquiry")
-      const body = encodeURIComponent(
-        `Hi SociaTrack Team,\n\nI'm interested in learning more about the Enterprise plan.\n\nBest regards`
-      )
+  const handlePlanSelect = (planName: string) => {
+    console.log('🔵 Button clicked! Plan:', planName)
+    
+    // Create email subject and body based on plan
+    const subject = encodeURIComponent(`${planName} Plan Inquiry`)
+    const body = encodeURIComponent(
+      `Hi SociaTrack Team,\n\nI'm interested in the ${planName} plan.\n\nBest regards`
+    )
 
-      // Try to open in new tab first (iframe compatibility)
-      const mailtoLink = `mailto:sales@sociatrack.io?subject=${subject}&body=${body}`
-      const isInIframe = window.self !== window.top
-
-      if (isInIframe) {
-        window.parent.postMessage(
-          { type: "OPEN_EXTERNAL_URL", data: { url: mailtoLink } },
-          "*"
-        )
-      } else {
-        window.location.href = mailtoLink
-      }
-
-      toast.success("Opening email client...")
-    } else {
-      // For Free and Pro plans
-      if (!isPending && session?.user) {
-        // User is logged in, activate the plan
-        setLoading(true)
-
-        try {
-          const token = localStorage.getItem("bearer_token")
-
-          // Create subscription
-          const subResponse = await fetch("/api/subscriptions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              userId: session.user.uid,
-              planName,
-              status: planName === "Pro" ? "trial" : "active",
-              trialEndsAt: planName === "Pro"
-                ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-                : null
-            })
-          })
-
-          if (!subResponse.ok) {
-            throw new Error("Failed to create subscription")
+    // Open email client with pre-filled To, Subject, and Body
+    const mailtoLink = `mailto:contact@sociatrack.com?subject=${subject}&body=${body}`
+    console.log('🔵 Mailto link:', mailtoLink)
+    
+    // Try opening email client
+    const link = document.createElement('a')
+    link.href = mailtoLink
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    console.log('🔵 Link clicked!')
+    
+    // Detect if email client didn't open (fallback after 1 second)
+    setTimeout(() => {
+      // If we're still here, email client didn't open
+      toast.info('No email client detected', {
+        description: 'Click to copy our email address or contact us directly',
+        action: {
+          label: 'Copy Email',
+          onClick: () => {
+            navigator.clipboard.writeText('contact@sociatrack.com')
+            toast.success('Copied! Email us at contact@sociatrack.com')
           }
-
-          // Create plan usage record
-          const planLimits = {
-            Free: {
-              campaignsCount: 0,
-              attributionWindowDays: 7,
-              hasAdvancedAi: false,
-              hasRealtimeMonitoring: false,
-              hasApiAccess: false
-            },
-            Pro: {
-              campaignsCount: 0,
-              attributionWindowDays: 30,
-              hasAdvancedAi: true,
-              hasRealtimeMonitoring: true,
-              hasApiAccess: false
-            }
-          }
-
-          const limits = planLimits[planName as "Free" | "Pro"]
-
-          const usageResponse = await fetch("/api/plan-usage", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              userId: session.user.uid,
-              planName,
-              ...limits
-            })
-          })
-
-          if (!usageResponse.ok) {
-            throw new Error("Failed to create plan usage")
-          }
-
-          toast.success(`${planName} plan activated successfully!${planName === "Pro" ? " Your 14-day trial has started." : ""}`)
-          navigate("/dashboard")
-        } catch (error) {
-          console.error("Plan activation error:", error)
-          toast.error("Failed to activate plan. Please try again.")
-        } finally {
-          setLoading(false)
-        }
-      } else {
-        // User not logged in, show signup modal
-        setSignupOpen(true)
-      }
-    }
+        },
+        duration: 8000,
+      })
+    }, 1000)
   }
 
   return (
@@ -309,10 +225,6 @@ export default function PricingPage() {
                 {
                   question: "What happens if I exceed my wallet limit?",
                   answer: "We'll notify you when you reach 80% of your limit. You can either upgrade your plan or remove inactive wallets to stay within your limit."
-                },
-                {
-                  question: "Do you offer refunds?",
-                  answer: "Yes, we offer a 30-day money-back guarantee for all paid plans. No questions asked."
                 }
               ].map((faq, idx) => (
                 <div

@@ -56,7 +56,7 @@ export default function Header() {
         localStorage.removeItem("bearer_token")
         await refetch()
         toast.success("Signed out successfully")
-        typeof navigate === "function" ? (navigate as any)("/") : (window.location.href = "/")
+        typeof navigate === "function" ? (navigate as any)("/auth") : (window.location.href = "/auth")
       }
     } catch (error) {
       console.error("Sign out error:", error)
@@ -91,34 +91,6 @@ export default function Header() {
                   SociaTrack
                 </span>
               </NavLink>
-
-              {/* Desktop Navigation Links - moved to left side */}
-              <div className="hidden md:flex items-center gap-6">
-                <a 
-                  href="#features" 
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={(e) => {
-                    if (window.location.pathname !== '/') {
-                      e.preventDefault()
-                      window.location.href = '/#features'
-                    }
-                  }}
-                >
-                  Features
-                </a>
-                <a 
-                  href="#how-it-works" 
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={(e) => {
-                    if (window.location.pathname !== '/') {
-                      e.preventDefault()
-                      window.location.href = '/#how-it-works'
-                    }
-                  }}
-                >
-                  How It Works
-                </a>
-              </div>
             </div>
 
             {/* Desktop User Actions - pushed to far right */}
@@ -190,40 +162,6 @@ export default function Header() {
           {/* Mobile Menu */}
           {mobileMenuOpen && (
             <div className="md:hidden mt-4 pb-4 space-y-4">
-              <a
-                href="#features"
-                className="block text-muted-foreground hover:text-foreground transition-colors"
-                onClick={(e) => {
-                  setMobileMenuOpen(false)
-                  if (window.location.pathname !== '/') {
-                    e.preventDefault()
-                    window.location.href = '/#features'
-                  }
-                }}
-              >
-                Features
-              </a>
-              <a
-                href="#how-it-works"
-                className="block text-muted-foreground hover:text-foreground transition-colors"
-                onClick={(e) => {
-                  setMobileMenuOpen(false)
-                  if (window.location.pathname !== '/') {
-                    e.preventDefault()
-                    window.location.href = '/#how-it-works'
-                  }
-                }}
-              >
-                How It Works
-              </a>
-              {/* <NavLink
-                to="/pricing"
-                className="block text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Pricing
-              </NavLink> */}
-              
               {!isPending && session?.user ? (
                 <>
                   <div className="pl-3">

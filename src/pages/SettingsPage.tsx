@@ -153,7 +153,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     try {
       // Clear token from localStorage
       localStorage.removeItem('bearer_token')
@@ -164,13 +164,13 @@ export default function SettingsPage() {
         await authClient.signOut()
       }
       
-      toast.success("Logged out successfully")
+      toast.success("Signed out successfully")
       
-      // Redirect to home page
-      navigate("/")
+      // Redirect to auth page
+      navigate("/auth")
     } catch (error) {
-      console.error("Logout error:", error)
-      toast.error("Error during logout")
+      console.error("Sign out error:", error)
+      toast.error("Error during sign out")
     }
   }
 
@@ -290,14 +290,14 @@ export default function SettingsPage() {
                   )
                 })}
 
-                {/* Logout Button */}
+                {/* Sign Out Button */}
                 <Separator className="my-4" />
                 <button
-                  onClick={handleLogout}
+                  onClick={handleSignOut}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200"
                 >
                   <LogOut size={20} />
-                  <span className="font-medium">Log Out</span>
+                  <span className="font-medium">Sign Out</span>
                 </button>
               </nav>
             </aside>
@@ -343,7 +343,17 @@ export default function SettingsPage() {
 
                       {/* Usage Limits Section */}
                       <div className="mt-8">
-                        <h3 className="text-lg font-semibold text-foreground mb-4">Usage Limits</h3>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-foreground">Usage Limits</h3>
+                          <Button 
+                            variant="outline"
+                            onClick={() => navigate('/pricing')}
+                            className="gap-2"
+                          >
+                            Upgrade Plan
+                            <ChevronRight size={16} />
+                          </Button>
+                        </div>
                         <div className="max-w-lg">
                           <div className="rounded-xl bg-card border border-border p-6">
                             <div className="flex items-center justify-between mb-3">

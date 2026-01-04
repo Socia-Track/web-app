@@ -15,8 +15,8 @@ function Spinner({ className = '', size = 'md' }: SpinnerProps) {
 
   return (
     <div className={cn("relative aspect-square", sizeClasses[size], className)}>
-      <span className="absolute rounded-[50px] animate-loaderAnim shadow-[inset_0_0_0_3px] shadow-gray-800 dark:shadow-gray-100" />
-      <span className="absolute rounded-[50px] animate-loaderAnim animation-delay shadow-[inset_0_0_0_3px] shadow-gray-800 dark:shadow-gray-100" />
+      <span className="absolute rounded-[50px] animate-loaderAnim shadow-[inset_0_0_0_3px] shadow-black" />
+      <span className="absolute rounded-[50px] animate-loaderAnim animation-delay shadow-[inset_0_0_0_3px] shadow-black" />
     </div>
   )
 }

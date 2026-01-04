@@ -138,14 +138,6 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col items-center gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-              <span className="text-base sm:text-lg font-semibold text-muted-foreground">BACKED BY:</span>
-              <img 
-                src="/google-cloud-startups.png.jpg" 
-                alt="Google Cloud for Startups" 
-                className="h-56 sm:h-60 md:h-64 w-auto max-w-[280px] sm:max-w-none"
-              />
-            </div>
             <div className="text-center text-sm text-muted-foreground">
               © {new Date().getFullYear()} SociaTrack. All rights reserved.
             </div>
