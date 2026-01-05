@@ -49,7 +49,7 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   return (
     <div className={className}>
       {label && (
-        <Label htmlFor="blockchain-select" className="text-gray-300">
+        <Label htmlFor="blockchain-select" className="text-foreground">
           {label} {required && '*'}
         </Label>
       )}
@@ -60,7 +60,7 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({
       >
         <SelectTrigger 
           id="blockchain-select"
-          className="mt-2 bg-black/50 border-white/10 text-white"
+          className="mt-2"
         >
           <SelectValue 
             placeholder={
@@ -79,9 +79,9 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex flex-col">
-                  <span className="font-medium">{network.name}</span>
+                  <span className="font-medium text-foreground">{network.name}</span>
                   {(showCurrency || showChainId) && (
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {showCurrency && network.currency}
                       {showCurrency && showChainId && ' • '}
                       {showChainId && `Chain ID: ${network.chainId}`}
@@ -99,7 +99,7 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({
         </p>
       )}
       {value && (
-        <div className="mt-2 text-xs text-gray-400">
+        <div className="mt-2 text-xs text-muted-foreground">
           {getSelectedNetwork() && (
             <div className="flex items-center gap-2">
               <span>Selected: {getSelectedNetwork()?.name}</span>

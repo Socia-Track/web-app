@@ -23,7 +23,7 @@ const plans = [
       { text: "Basic analytics", included: true },
       { text: "Support", included: true }
     ],
-    cta: "Get Started",
+    cta: "Start Free Trial",
     popular: false
   },
   {
@@ -37,7 +37,7 @@ const plans = [
       { text: "Download report", included: true },
       { text: "Multi-chain support", included: true }
     ],
-    cta: "Start Free Trial",
+    cta: "Get Started",
     popular: true
   },
   {

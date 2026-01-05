@@ -330,10 +330,10 @@ export default function AuthPage() {
         </div>
 
         {/* Main Card */}
-        <Card className="shadow-lg border-border/50">
-          <CardContent className="pt-6">
+        <Card className="shadow-lg border-border/50 overflow-visible">
+          <CardContent className="pt-6 overflow-visible">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="grid w-full grid-cols-2 mb-6 h-auto">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
@@ -377,15 +377,15 @@ export default function AuthPage() {
               </TabsContent>
 
               {/* Signup Tab */}
-              <TabsContent value="signup">
+              <TabsContent value="signup" className="mt-0">
                 <Tabs value={signupType} onValueChange={setSignupType} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsList className="grid w-full grid-cols-2 mb-6 h-auto">
                     <TabsTrigger value="individual">Individual</TabsTrigger>
                     <TabsTrigger value="organization">Organization</TabsTrigger>
                   </TabsList>
 
                   {/* Individual Signup */}
-                  <TabsContent value="individual">
+                  <TabsContent value="individual" className="mt-0 space-y-0">
                     <form onSubmit={handleIndividualSignup} className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -469,7 +469,7 @@ export default function AuthPage() {
                   </TabsContent>
 
                   {/* Organization Signup */}
-                  <TabsContent value="organization">
+                  <TabsContent value="organization" className="mt-0 space-y-0">
                     <form onSubmit={handleOrganizationSignup} className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="organizationName">Organization Name</Label>
