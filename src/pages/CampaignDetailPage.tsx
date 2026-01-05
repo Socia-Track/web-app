@@ -153,8 +153,8 @@ export default function CampaignDetailPage() {
     const endpoint = campaign.campaignType === 'token' ? '/api/tokens' : '/api/campaigns'
 
     try {
-      const res = await fetch(`${endpoint}/${campaign.id}`, {
-        method: 'PATCH',
+      const res = await fetch(`${endpoint}?id=${campaign.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -166,6 +166,8 @@ export default function CampaignDetailPage() {
         const updated = await res.json()
         setCampaign({ ...updated, campaignType: campaign.campaignType })
         toast.success(`Campaign ${newStatus}`)
+      } else {
+        toast.error('Failed to update campaign status')
       }
     } catch (error) {
       toast.error('Error updating campaign')

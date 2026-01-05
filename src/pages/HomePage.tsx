@@ -186,19 +186,29 @@ export default function HomePage() {
       if (Array.isArray(allCampaigns) && allCampaigns.length > 0) {
         console.log('📊 DashboardPage: Fetching analytics for', allCampaigns.length, 'campaigns')
 
-        // Get analytics data for each campaign
-        for (const campaign of allCampaigns) {
-          try {
-            const analyticsRes = await fetch(`/api/analytics/campaign/${campaign.id}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            })
-            const analytics = await analyticsRes.json()
+        // OPTIMIZED: Batch fetch all analytics in ONE request instead of looping
+        try {
+          const campaignIds = allCampaigns.map(c => c.id)
+          const batchAnalyticsRes = await fetch('/api/analytics/batch', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}` 
+            },
+            body: JSON.stringify({ campaignIds })
+          })
 
-            totalTransactions += analytics.totalTransactions || 0
-            totalValueTracked += (parseFloat(analytics.totalEth || '0') * 3400) // ETH to USD
-          } catch (analyticsError) {
-            console.error(`Error fetching analytics for campaign ${campaign.name}:`, analyticsError)
+          if (batchAnalyticsRes.ok) {
+            const analyticsData = await batchAnalyticsRes.json()
+            
+            // Calculate totals from batch response
+            Object.values(analyticsData).forEach((analytics: any) => {
+              totalTransactions += analytics.totalTransactions || 0
+              totalValueTracked += (parseFloat(analytics.totalEth || '0') * 3400) // ETH to USD
+            })
           }
+        } catch (analyticsError) {
+          console.error('Error fetching batch analytics:', analyticsError)
         }
       }
 

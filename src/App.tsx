@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { isAdminSubdomain } from "@/lib/subdomain-utils";
 
@@ -23,20 +23,21 @@ import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminPage from "@/pages/AdminPage";
 import UserDetailsPage from "@/pages/UserDetailsPage";
 
-// Conditionally define Web3Providers - completely skip import on admin domains
-let Web3Providers: React.LazyExoticComponent<React.ComponentType<{ children: React.ReactNode }>> | null = null;
-
-if (typeof window !== 'undefined' && !isAdminSubdomain()) {
-  Web3Providers = React.lazy(() => 
-    import("@/components/Web3Providers").then(module => ({ 
-      default: module.Web3Providers 
-    }))
-  );
-}
+// Lazy load Web3 providers only when needed
+const Web3Providers = React.lazy(() => 
+  import("@/components/Web3Providers").then(module => ({ 
+    default: module.Web3Providers 
+  }))
+);
 
 export default function App() {
   const LANDING_URL = import.meta.env.VITE_LANDING_URL || 'https://sociatrack.com';
   const isAdminDomain = isAdminSubdomain();
+  const location = useLocation();
+  
+  // Routes that require Web3 providers
+  const web3Routes = ['/connect-wallet', '/mobile-wallet'];
+  const needsWeb3 = web3Routes.includes(location.pathname);
   
   // If on admin subdomain, only show admin routes (without any Web3 providers)
   if (isAdminDomain) {
@@ -54,50 +55,52 @@ export default function App() {
     );
   }
   
-  // Regular app routes for main domain - only load Web3Providers if not null
-  if (!Web3Providers) {
-    // Fallback for edge cases
+  // Regular app routes - only load Web3 when accessing wallet pages
+  const appRoutes = (
+    <Routes>
+      {/* Root route - Home Page */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/dashboard" element={<HomePage />} />
+      <Route path="/campaigns" element={<CampaignsPage />} />
+      <Route path="/campaigns/new" element={<NewCampaignPage />} />
+      <Route path="/campaigns/new-nft" element={<NewCampaignPage />} />
+      <Route path="/campaigns/new-token" element={<TokenCampaignPage />} />
+      <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+      <Route path="/analytics" element={<AnalyticsPage />} />
+      <Route path="/attributions" element={<AttributionsPage />} />
+      <Route path="/billing" element={<BillingPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/social" element={<SocialPage />} />
+      <Route path="/tracking" element={<TrackingPage />} />
+      <Route path="/connect-wallet" element={<WalletConnectionPage />} />
+      <Route path="/mobile-wallet" element={<MobileWalletPage />} />
+      {/* Admin routes available on app.sociatrack.com */}
+      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/admin/users/:userId" element={<UserDetailsPage />} />
+      {/* Redirect unknown routes to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+
+  // Only wrap with Web3Providers if on a wallet page
+  if (needsWeb3) {
     return (
-      <>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        <Toaster />
-      </>
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Web3...</div>}>
+        <Web3Providers>
+          {appRoutes}
+          <Toaster />
+        </Web3Providers>
+      </React.Suspense>
     );
   }
 
+  // Fast load for non-wallet pages
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
-      <Web3Providers>
-      <Routes>
-        {/* Root route - Home Page */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/dashboard" element={<HomePage />} />
-        <Route path="/campaigns" element={<CampaignsPage />} />
-        <Route path="/campaigns/new" element={<NewCampaignPage />} />
-        <Route path="/campaigns/new-nft" element={<NewCampaignPage />} />
-        <Route path="/campaigns/new-token" element={<TokenCampaignPage />} />
-        <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
-        <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/attributions" element={<AttributionsPage />} />
-        <Route path="/billing" element={<BillingPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/social" element={<SocialPage />} />
-        <Route path="/tracking" element={<TrackingPage />} />
-        <Route path="/connect-wallet" element={<WalletConnectionPage />} />
-        <Route path="/mobile-wallet" element={<MobileWalletPage />} />
-        {/* Admin routes available on app.sociatrack.com */}
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/users/:userId" element={<UserDetailsPage />} />
-        {/* Redirect unknown routes to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+    <>
+      {appRoutes}
       <Toaster />
-      </Web3Providers>
-    </React.Suspense>
+    </>
   );
 }
