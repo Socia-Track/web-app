@@ -41,7 +41,7 @@ const plans = [
     popular: true
   },
   {
-    name: "Enterprise",
+    name: "Pro Plus",
     price: "$499",
     period: "per month",
     description: "For large teams and agencies",
@@ -216,15 +216,11 @@ export default function PricingPage() {
                 },
                 {
                   question: "What payment methods do you accept?",
-                  answer: "We accept all major credit cards (Visa, MasterCard, American Express) and support cryptocurrency payments for Enterprise plans."
+                  answer: "To upgrade to a paid plan, please email us at contact@sociatrack.com with your preferred plan. We'll guide you through the payment process and set up your account."
                 },
                 {
                   question: "Is there a free trial?",
-                  answer: "Pro plans come with a 14-day free trial. No credit card required. You can also use our Free plan indefinitely to test the platform."
-                },
-                {
-                  question: "What happens if I exceed my wallet limit?",
-                  answer: "We'll notify you when you reach 80% of your limit. You can either upgrade your plan or remove inactive wallets to stay within your limit."
+                  answer: "Yes! Our Free plan allows you to create up to 3 campaigns with 2 links per campaign. No credit card required and you can use it indefinitely to test the platform."
                 }
               ].map((faq, idx) => (
                 <div

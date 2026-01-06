@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
 
-type PlanName = "Free" | "Pro" | "Enterprise";
+type PlanName = "Free" | "Pro" | "Pro Plus";
 
 export function usePlan() {
   const { data: session, isPending: sessionPending } = useSession();
