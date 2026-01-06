@@ -23,6 +23,15 @@ export default function TokenCampaignPage() {
   const [loading, setLoading] = useState(false)
   const [fetchingToken, setFetchingToken] = useState(false)
   const [tokenNetwork, setTokenNetwork] = useState<string>("")
+  
+  // Custom platforms management
+  const [customPlatforms, setCustomPlatforms] = useState<string[]>(() => {
+    const saved = localStorage.getItem('customPlatforms')
+    return saved ? JSON.parse(saved) : []
+  })
+  const [newPlatformName, setNewPlatformName] = useState('')
+  const [showAddPlatform, setShowAddPlatform] = useState(false)
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -39,19 +48,26 @@ export default function TokenCampaignPage() {
   })
   const [generatingLinks, setGeneratingLinks] = useState(false)
 
-  // Link generation states
-  const [linkCounts, setLinkCounts] = useState<Record<string, number>>({
-    Discord: 0,
-    Twitter: 0
+  // Get all available platforms (default + custom)
+  const allPlatforms = ['Discord', 'Twitter', ...customPlatforms]
+
+  // Link generation states - initialize with all platforms
+  const [linkCounts, setLinkCounts] = useState<Record<string, number>>(() => {
+    const counts: Record<string, number> = { Discord: 0, Twitter: 0 }
+    customPlatforms.forEach(p => counts[p] = 0)
+    return counts
   })
 
-  const [personNames, setPersonNames] = useState<Record<string, string[]>>({
-    Discord: [],
-    Twitter: []
+  const [personNames, setPersonNames] = useState<Record<string, string[]>>(() => {
+    const names: Record<string, string[]> = { Discord: [], Twitter: [] }
+    customPlatforms.forEach(p => names[p] = [])
+    return names
   })
-  const [showNameInputs, setShowNameInputs] = useState<Record<string, boolean>>({
-    Discord: false,
-    Twitter: false
+  
+  const [showNameInputs, setShowNameInputs] = useState<Record<string, boolean>>(() => {
+    const inputs: Record<string, boolean> = { Discord: false, Twitter: false }
+    customPlatforms.forEach(p => inputs[p] = false)
+    return inputs
   })
 
   // Fetch token metadata from Alchemy
@@ -171,6 +187,32 @@ export default function TokenCampaignPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const addCustomPlatform = () => {
+    const platformName = newPlatformName.trim()
+    if (!platformName) {
+      toast.error('Platform name cannot be empty')
+      return
+    }
+    
+    if (allPlatforms.includes(platformName)) {
+      toast.error('Platform already exists')
+      return
+    }
+    
+    const updatedCustomPlatforms = [...customPlatforms, platformName]
+    setCustomPlatforms(updatedCustomPlatforms)
+    localStorage.setItem('customPlatforms', JSON.stringify(updatedCustomPlatforms))
+    
+    // Initialize states for new platform
+    setLinkCounts(prev => ({ ...prev, [platformName]: 0 }))
+    setPersonNames(prev => ({ ...prev, [platformName]: [] }))
+    setShowNameInputs(prev => ({ ...prev, [platformName]: false }))
+    
+    setNewPlatformName('')
+    setShowAddPlatform(false)
+    toast.success(`${platformName} added successfully!`)
   }
 
   const togglePlatform = (platform: string) => {
@@ -397,71 +439,91 @@ export default function TokenCampaignPage() {
 
             <div className="space-y-4">
               <div>
-                <Label className="text-gray-300 mb-3 block">Social Platforms *</Label>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-gray-300">Social Platforms *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddPlatform(!showAddPlatform)}
+                    className="text-xs"
+                  >
+                    {showAddPlatform ? 'Cancel' : '+ Add Platform'}
+                  </Button>
+                </div>
+                
+                {showAddPlatform && (
+                  <div className="flex gap-2 mb-3 p-3 bg-muted rounded-lg border border-border">
+                    <Input
+                      placeholder="Enter platform name (e.g., LinkedIn, Instagram)"
+                      value={newPlatformName}
+                      onChange={(e) => setNewPlatformName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addCustomPlatform()}
+                      className="bg-white border-border text-black"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addCustomPlatform}
+                      size="sm"
+                    >
+                      Add
+                    </Button>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div
-                    className={`p-4 rounded-lg border transition-all ${formData.platforms.includes('Discord')
-                      ? 'border-accent bg-accent/10'
-                      : 'border-border bg-muted'
+                  {allPlatforms.map(platform => (
+                    <div
+                      key={platform}
+                      className={`p-4 rounded-lg border transition-all ${
+                        formData.platforms.includes(platform)
+                          ? 'border-accent bg-accent/10'
+                          : 'border-border bg-muted'
                       }`}
-                  >
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={formData.platforms.includes('Discord')}
-                        onCheckedChange={() => togglePlatform('Discord')}
-                      />
-                      <span className="text-foreground font-medium">Discord</span>
-                    </label>
-                  </div>
-
-                  <div
-                    className={`p-4 rounded-lg border transition-all ${formData.platforms.includes('Twitter')
-                      ? 'border-accent bg-accent/10'
-                      : 'border-border bg-muted'
-                      }`}
-                  >
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={formData.platforms.includes('Twitter')}
-                        onCheckedChange={() => togglePlatform('Twitter')}
-                      />
-                      <span className="text-foreground font-medium">Twitter</span>
-                    </label>
-                  </div>
+                    >
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={formData.platforms.includes(platform)}
+                          onCheckedChange={() => togglePlatform(platform)}
+                        />
+                        <span className="text-foreground font-medium">{platform}</span>
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {formData.platforms.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  {formData.platforms.includes('Discord') && (
-                    <div className="space-y-3">
+                  {formData.platforms.map(platform => (
+                    <div key={platform} className="space-y-3">
                       <div>
-                        <Label htmlFor="Discord-count" className="text-foreground">
-                          How many links for Discord? *
+                        <Label htmlFor={`${platform}-count`} className="text-foreground">
+                          How many links for {platform}? *
                         </Label>
                         <Input
-                          id="Discord-count"
+                          id={`${platform}-count`}
                           type="number"
                           min="1"
                           max="50"
                           placeholder="Enter number"
-                          value={linkCounts['Discord'] || ''}
-                          onChange={(e) => handleLinkCountChange('Discord', e.target.value)}
+                          value={linkCounts[platform] || ''}
+                          onChange={(e) => handleLinkCountChange(platform, e.target.value)}
                           className="mt-2 bg-white border-border text-black"
                         />
                       </div>
 
-                      {showNameInputs['Discord'] && linkCounts['Discord'] > 0 && (
+                      {showNameInputs[platform] && linkCounts[platform] > 0 && (
                         <div className="space-y-3 pl-4 border-l-2 border-border">
                           <Label className="text-foreground text-sm">
-                            Enter names ({linkCounts['Discord']} {linkCounts['Discord'] === 1 ? 'link' : 'links'})
+                            Enter names ({linkCounts[platform]} {linkCounts[platform] === 1 ? 'link' : 'links'})
                           </Label>
-                          {Array.from({ length: linkCounts['Discord'] }).map((_, index) => (
+                          {Array.from({ length: linkCounts[platform] }).map((_, index) => (
                             <div key={index}>
                               <Input
                                 placeholder={`Person ${index + 1} name`}
-                                value={personNames['Discord']?.[index] || ''}
-                                onChange={(e) => handlePersonNameChange('Discord', index, e.target.value)}
+                                value={personNames[platform]?.[index] || ''}
+                                onChange={(e) => handlePersonNameChange(platform, index, e.target.value)}
                                 className="bg-white border-border text-black"
                               />
                             </div>
@@ -469,45 +531,15 @@ export default function TokenCampaignPage() {
                         </div>
                       )}
                     </div>
-                  )}
+                  ))}
+                </div>
+              )}
 
-                  {formData.platforms.includes('Twitter') && (
-                    <div className="space-y-3">
-                      <div>
-                        <Label htmlFor="Twitter-count" className="text-foreground">
-                          How many links for Twitter? *
-                        </Label>
-                        <Input
-                          id="Twitter-count"
-                          type="number"
-                          min="1"
-                          max="50"
-                          placeholder="Enter number"
-                          value={linkCounts['Twitter'] || ''}
-                          onChange={(e) => handleLinkCountChange('Twitter', e.target.value)}
-                          className="mt-2 bg-white border-border text-black"
-                        />
-                      </div>
-
-                      {showNameInputs['Twitter'] && linkCounts['Twitter'] > 0 && (
-                        <div className="space-y-3 pl-4 border-l-2 border-border">
-                          <Label className="text-foreground text-sm">
-                            Enter names ({linkCounts['Twitter']} {linkCounts['Twitter'] === 1 ? 'link' : 'links'})
-                          </Label>
-                          {Array.from({ length: linkCounts['Twitter'] }).map((_, index) => (
-                            <div key={index}>
-                              <Input
-                                placeholder={`Person ${index + 1} name`}
-                                value={personNames['Twitter']?.[index] || ''}
-                                onChange={(e) => handlePersonNameChange('Twitter', index, e.target.value)}
-                                className="bg-white border-border text-black"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+              {formData.platforms.length > 0 && formData.platforms.some(p => linkCounts[p] > 0 && showNameInputs[p]) && (
+                <div className="pt-4 border-t border-border">
+                  <div className="text-sm text-muted-foreground">
+                    Total links planned: {Object.values(linkCounts).reduce((sum, count) => sum + count, 0)}
+                  </div>
                 </div>
               )}
             </div>

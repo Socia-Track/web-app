@@ -99,7 +99,12 @@ export default function AnalyticsPage() {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [platformFilter, setPlatformFilter] = useState<"all" | "discord" | "twitter">("all")
+  const [platformFilter, setPlatformFilter] = useState<string>("all")
+  const [availablePlatforms, setAvailablePlatforms] = useState<string[]>(() => {
+    const saved = localStorage.getItem('customPlatforms')
+    const custom = saved ? JSON.parse(saved) : []
+    return ['all', 'discord', 'twitter', ...custom.map((p: string) => p.toLowerCase())]
+  })
   const [attributions, setAttributions] = useState<Attribution[]>([])
   const [attributionsLoading, setAttributionsLoading] = useState(false)
   const [clickAnalytics, setClickAnalytics] = useState<any>(null)
@@ -142,7 +147,7 @@ export default function AnalyticsPage() {
               Best Performance Times
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Hourly Performance: Clicks vs NFT Transactions (Updated Every 5 Min)
+              Hourly Performance: Clicks vs {getAssetTypeLabel()} Transactions (Updated Every 5 Min)
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -162,39 +167,30 @@ export default function AnalyticsPage() {
         {/* Platform Filter for Best Performance Times */}
         <div className="flex items-center gap-3 mt-4">
           <span className="text-sm text-muted-foreground font-medium">Filter:</span>
-          <div className="flex gap-2">
-            <Button
-              variant={platformFilter === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPlatformFilter("all")}
-              className={platformFilter === "all"
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-            >
-              All Platforms
-            </Button>
-            <Button
-              variant={platformFilter === "discord" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPlatformFilter("discord")}
-              className={platformFilter === "discord"
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-            >
-              <MessageSquare size={14} className="mr-1" />
-              Discord
-            </Button>
-            <Button
-              variant={platformFilter === "twitter" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPlatformFilter("twitter")}
-              className={platformFilter === "twitter"
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-            >
-              <Target size={14} className="mr-1" />
-              Twitter
-            </Button>
+          <div className="flex gap-2 flex-wrap">
+            {availablePlatforms.map(platform => {
+              const displayName = platform === 'all' ? 'All Platforms' : 
+                                  platform === 'discord' ? 'Discord' :
+                                  platform === 'twitter' ? 'Twitter' :
+                                  platform.charAt(0).toUpperCase() + platform.slice(1)
+              const icon = platform === 'discord' ? <MessageSquare size={14} className="mr-1" /> :
+                          platform === 'twitter' ? <Target size={14} className="mr-1" /> : null
+              
+              return (
+                <Button
+                  key={platform}
+                  variant={platformFilter === platform ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setPlatformFilter(platform)}
+                  className={platformFilter === platform
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
+                >
+                  {icon}
+                  {displayName}
+                </Button>
+              )
+            })}
           </div>
         </div>
 
@@ -266,7 +262,7 @@ export default function AnalyticsPage() {
                         return [value, 'Real Link Clicks']
                       }
                       if (name === 'transactions') {
-                        return [value, 'Actual NFT Purchases']
+                        return [value, `Actual ${getAssetTypeLabel()} Purchases`]
                       }
                       return [value, name]
                     }}
@@ -299,7 +295,7 @@ export default function AnalyticsPage() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
-            <span className="text-sm text-muted-foreground">Actual NFT Purchases</span>
+            <span className="text-sm text-muted-foreground">Actual {getAssetTypeLabel()} Purchases</span>
           </div>
         </div>
       </CardContent>
@@ -329,7 +325,7 @@ export default function AnalyticsPage() {
         color: "#3b82f6", // Blue
       },
       transactions: {
-        label: "NFT Purchases",
+        label: `${getAssetTypeLabel()} Purchases`,
         color: "#10b981", // Green
       },
       revenue: {
@@ -353,39 +349,30 @@ export default function AnalyticsPage() {
           {/* Platform Filter for Web Analytics */}
           <div className="flex items-center gap-3 mt-4">
             <span className="text-sm text-muted-foreground font-medium">Filter:</span>
-            <div className="flex gap-2">
-              <Button
-                variant={platformFilter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPlatformFilter("all")}
-                className={platformFilter === "all"
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-              >
-                All Platforms
-              </Button>
-              <Button
-                variant={platformFilter === "discord" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPlatformFilter("discord")}
-                className={platformFilter === "discord"
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-              >
-                <MessageSquare size={14} className="mr-1" />
-                Discord
-              </Button>
-              <Button
-                variant={platformFilter === "twitter" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPlatformFilter("twitter")}
-                className={platformFilter === "twitter"
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-              >
-                <Target size={14} className="mr-1" />
-                Twitter
-              </Button>
+            <div className="flex gap-2 flex-wrap">
+              {availablePlatforms.map(platform => {
+                const displayName = platform === 'all' ? 'All Platforms' : 
+                                    platform === 'discord' ? 'Discord' :
+                                    platform === 'twitter' ? 'Twitter' :
+                                    platform.charAt(0).toUpperCase() + platform.slice(1)
+                const icon = platform === 'discord' ? <MessageSquare size={14} className="mr-1" /> :
+                            platform === 'twitter' ? <Target size={14} className="mr-1" /> : null
+                
+                return (
+                  <Button
+                    key={platform}
+                    variant={platformFilter === platform ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPlatformFilter(platform)}
+                    className={platformFilter === platform
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
+                  >
+                    {icon}
+                    {displayName}
+                  </Button>
+                )
+              })}
             </div>
           </div>
 
@@ -471,7 +458,7 @@ export default function AnalyticsPage() {
                           return [`${ethValue.toFixed(4)} ${currency} ($${parseFloat(value as string).toFixed(2)})`, `Real Blockchain Revenue`]
                         }
                         if (name === 'transactions') {
-                          return [value, 'Actual NFT Purchases']
+                          return [value, `Actual ${getAssetTypeLabel()} Purchases`]
                         }
                         if (name === 'clicks') {
                           return [value, 'Real Link Clicks']
@@ -494,7 +481,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
-              <span className="text-sm text-muted-foreground">Actual NFT Purchases</span>
+              <span className="text-sm text-muted-foreground">Actual {getAssetTypeLabel()} Purchases</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-[#f59e0b]"></div>
@@ -505,6 +492,24 @@ export default function AnalyticsPage() {
       </Card>
     )
   }
+
+  // Reload available platforms when component mounts or when window gains focus
+  useEffect(() => {
+    const loadPlatforms = () => {
+      const saved = localStorage.getItem('customPlatforms')
+      const custom = saved ? JSON.parse(saved) : []
+      setAvailablePlatforms(['all', 'discord', 'twitter', ...custom.map((p: string) => p.toLowerCase())])
+    }
+
+    // Load platforms on mount
+    loadPlatforms()
+
+    // Also reload when window gains focus (user might have added a platform in another tab/page)
+    const handleFocus = () => loadPlatforms()
+    window.addEventListener('focus', handleFocus)
+
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [])
 
   // Fetch campaigns
   useEffect(() => {
@@ -536,6 +541,11 @@ export default function AnalyticsPage() {
 
         console.log('Fetched campaigns:', allCampaigns)
         setCampaigns(allCampaigns)
+        
+        // Also reload platforms when campaigns are loaded
+        const saved = localStorage.getItem('customPlatforms')
+        const custom = saved ? JSON.parse(saved) : []
+        setAvailablePlatforms(['all', 'discord', 'twitter', ...custom.map((p: string) => p.toLowerCase())])
       } catch (error) {
         console.error('Error fetching campaigns:', error)
       } finally {
@@ -962,6 +972,11 @@ export default function AnalyticsPage() {
     
     const network = networks.find(n => n.key === selectedCampaign.blockchain)
     return network?.currency || 'ETH'
+  }
+
+  // Helper function to get asset type label based on campaign type
+  const getAssetTypeLabel = (): string => {
+    return selectedCampaign?.campaignType === 'token' ? 'Token' : 'NFT'
   }
 
   // Function to copy link to clipboard
@@ -1430,45 +1445,33 @@ export default function AnalyticsPage() {
             {/* Platform Filter Buttons */}
             <div className="flex items-center gap-3 mb-6">
               <span className="text-sm text-gray-400 font-medium">Filter by Platform:</span>
-              <div className="flex gap-2">
-                <Button
-                  variant={platformFilter === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setPlatformFilter("all")}
-                  className={platformFilter === "all"
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-                >
-                  All Platforms
-                </Button>
-                <Button
-                  variant={platformFilter === "discord" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    console.log('Setting platform filter to discord')
-                    setPlatformFilter("discord")
-                  }}
-                  className={platformFilter === "discord"
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-                >
-                  <MessageSquare size={16} className="mr-1" />
-                  Discord
-                </Button>
-                <Button
-                  variant={platformFilter === "twitter" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    console.log('Setting platform filter to twitter')
-                    setPlatformFilter("twitter")
-                  }}
-                  className={platformFilter === "twitter"
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
-                >
-                  <Target size={16} className="mr-1" />
-                  Twitter
-                </Button>
+              <div className="flex gap-2 flex-wrap">
+                {availablePlatforms.map(platform => {
+                  const displayName = platform === 'all' ? 'All Platforms' : 
+                                      platform === 'discord' ? 'Discord' :
+                                      platform === 'twitter' ? 'Twitter' :
+                                      platform.charAt(0).toUpperCase() + platform.slice(1)
+                  const icon = platform === 'discord' ? <MessageSquare size={16} className="mr-1" /> :
+                              platform === 'twitter' ? <Target size={16} className="mr-1" /> : null
+                  
+                  return (
+                    <Button
+                      key={platform}
+                      variant={platformFilter === platform ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        console.log(`Setting platform filter to ${platform}`)
+                        setPlatformFilter(platform)
+                      }}
+                      className={platformFilter === platform
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
+                    >
+                      {icon}
+                      {displayName}
+                    </Button>
+                  )
+                })}
               </div>
             </div>
 
@@ -1799,7 +1802,7 @@ export default function AnalyticsPage() {
     // Get selected person data for filtering
     const selectedPersonData = getSelectedPersonData()
 
-    // Real analytics calculation using actual NFT transactions from blockchain
+    // Real analytics calculation using actual NFT/Token transactions from blockchain
     let totalClicks, totalTransactions, activeWallets
 
     if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
@@ -2069,7 +2072,7 @@ export default function AnalyticsPage() {
             <div>
               <h3 className="text-xl font-bold text-foreground">Recent Transactions</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Live NFT purchases detected from monitored wallet addresses • Auto-refreshes every 5 minutes
+                Live {getAssetTypeLabel()} purchases detected from monitored wallet addresses • Auto-refreshes every 5 minutes
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -2101,7 +2104,7 @@ export default function AnalyticsPage() {
                 </div>
                 <div className="text-foreground font-semibold mb-2">Monitoring Wallet Transactions</div>
                 <div className="text-sm text-muted-foreground mb-4">
-                  The system checks every 5 minutes for NFT transactions from wallet addresses that clicked your campaign links.
+                  The system checks every 5 minutes for {getAssetTypeLabel()} transactions from wallet addresses that clicked your campaign links.
                 </div>
                 <div className="text-xs text-muted-foreground">
                   • {activeWallets} unique wallets being monitored<br />
@@ -2118,7 +2121,7 @@ export default function AnalyticsPage() {
                     <tr className="border-b border-border">
                       <th className="text-left p-3 text-muted-foreground font-medium">Transaction</th>
                       <th className="text-left p-3 text-muted-foreground font-medium">Wallet Address</th>
-                      <th className="text-left p-3 text-muted-foreground font-medium">NFT Details</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium">{getAssetTypeLabel()} Details</th>
                       <th className="text-left p-3 text-muted-foreground font-medium">Value</th>
                       <th className="text-left p-3 text-muted-foreground font-medium">Status</th>
                       <th className="text-left p-3 text-muted-foreground font-medium">Time</th>
@@ -2158,10 +2161,22 @@ export default function AnalyticsPage() {
                       <td className="p-3">
                         <div className="flex flex-col">
                           <div className="text-foreground font-medium">
-                            {transaction.tokenId ? `Token #${transaction.tokenId}` : 'Collection Purchase'}
+                            {(() => {
+                              const assetType = getAssetTypeLabel();
+                              if (transaction.tokenId) {
+                                return assetType === 'Token' ? `Token Transfer #${transaction.tokenId}` : `${assetType} #${transaction.tokenId}`;
+                              }
+                              return assetType === 'Token' ? 'Token Transfer' : `${assetType} Collection Purchase`;
+                            })()}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
-                            Contract: {transaction.contractAddress?.slice(0, 8) + '...' || 'N/A'}
+                            {(() => {
+                              const contractAddr = transaction.contractAddress || selectedCampaign?.contractAddress;
+                              if (contractAddr) {
+                                return `Contract: ${contractAddr.slice(0, 6)}...${contractAddr.slice(-4)}`;
+                              }
+                              return 'Contract: N/A';
+                            })()}
                           </div>
                         </div>
                       </td>
