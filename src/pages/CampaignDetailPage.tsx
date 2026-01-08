@@ -238,6 +238,14 @@ export default function CampaignDetailPage() {
                   className="w-full h-full object-cover"
                 />
               </div>
+            ) : campaign.campaignType === 'nft' && campaign.nftImage ? (
+              <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-border">
+                <img
+                  src={campaign.nftImage}
+                  alt={campaign.nftName || 'NFT'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             ) : (
               <div className="p-4 rounded-2xl bg-accent/10">
                 <Megaphone size={48} className="text-accent" />
@@ -276,49 +284,6 @@ export default function CampaignDetailPage() {
         />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-
-
-
-          {/* Stats Grid - Only for NFT campaigns */}
-          {campaign.campaignType !== 'token' && (
-            <Section>
-              <h2 className="text-3xl font-bold text-foreground mb-8">Campaign Performance</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <MetricCard
-                  label="Attributions"
-                  value={stats.attributions}
-                  icon={<Activity size={24} />}
-                  trend={{ value: "+12%", direction: "up" }}
-                  subtitle="social posts tracked"
-                  delay={0.1}
-                />
-                <MetricCard
-                  label="Transactions"
-                  value={stats.transactions}
-                  icon={<TrendingUp size={24} />}
-                  trend={{ value: "+8%", direction: "up" }}
-                  subtitle="blockchain transactions"
-                  delay={0.2}
-                />
-                <MetricCard
-                  label="Total Value"
-                  value={`$${stats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
-                  icon={<DollarSign size={24} />}
-                  trend={{ value: "+15%", direction: "up" }}
-                  subtitle="in tracked value"
-                  delay={0.3}
-                />
-                <MetricCard
-                  label="Avg Confidence"
-                  value={`${stats.avgConfidence.toFixed(0)}%`}
-                  icon={<Target size={24} />}
-                  trend={{ value: "+3%", direction: "up" }}
-                  subtitle="attribution accuracy"
-                  delay={0.4}
-                />
-              </div>
-            </Section>
-          )}
 
           {/* Campaign Details */}
           {campaign.campaignType === 'token' ? (
@@ -511,43 +476,95 @@ export default function CampaignDetailPage() {
               transition={{ delay: 0.5 }}
               className="rounded-xl border border-border bg-card p-6 shadow-sm mb-8"
             >
-              <h2 className="text-2xl font-bold text-foreground mb-6">Campaign Details</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-8">NFT Campaign Information</h2>
 
-              <div className="space-y-6">
+              <div className="space-y-8">
+                {/* NFT Metadata */}
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border flex items-center gap-2">
-                    <MessageSquare size={20} /> Objectives
+                    <DollarSign size={20} /> NFT Collection Metadata
                   </h3>
-                  <div className="text-foreground bg-muted/30 p-4 rounded-lg border border-border/50">
-                    {campaign.objectives || "No objectives set"}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Collection Name</div>
+                      <div className="text-foreground font-semibold">{campaign.nftName || 'N/A'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Symbol</div>
+                      <div className="text-foreground font-semibold">{campaign.nftSymbol || 'N/A'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Contract Type</div>
+                      <div className="text-foreground font-semibold">{campaign.nftTokenType || 'N/A'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Supply</div>
+                      <div className="text-foreground font-semibold">{campaign.nftTotalSupply || 'N/A'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Network</div>
+                      <div className="text-foreground font-semibold capitalize">{campaign.blockchain || 'N/A'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Promotion Type</div>
+                      <div className="text-foreground font-semibold capitalize">{campaign.promotionType || 'N/A'}</div>
+                    </div>
                   </div>
                 </div>
 
+                {/* Contract Info */}
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border flex items-center gap-2">
-                    <Target size={20} /> Keywords
+                    <Zap size={20} /> Contract Information
                   </h3>
-                  {keywordsArray.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {keywordsArray.map((keyword: string, i: number) => (
-                        <span key={i} className="px-3 py-1 rounded-full bg-muted text-foreground text-sm border border-border font-medium">
-                          {keyword}
-                        </span>
-                      ))}
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Contract Address</div>
+                      <div className="text-foreground font-mono text-sm break-all bg-muted/50 p-3 rounded border border-border/50">
+                        {campaign.contractAddress || 'N/A'}
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-muted-foreground">No keywords tracked</div>
-                  )}
+                    {campaign.tokenIds && campaign.tokenIds.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Token IDs</div>
+                        <div className="flex flex-wrap gap-2">
+                          {campaign.tokenIds.map((tokenId: string, idx: number) => (
+                            <span key={idx} className="text-foreground font-mono text-xs bg-muted/50 px-3 py-1 rounded border border-border/50">
+                              {tokenId}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Original Link</div>
+                      <div className="text-foreground text-sm break-all bg-muted/50 p-3 rounded border border-border/50">
+                        {campaign.originalLink || 'N/A'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t border-border">
-                  <Calendar size={14} />
-                  Created {new Date(campaign.createdAt).toLocaleDateString()} at {new Date(campaign.createdAt).toLocaleTimeString()}
+                {/* Config */}
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border flex items-center gap-2">
+                    <Settings size={20} /> Campaign Configuration
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Status</div>
+                      <div className="text-foreground font-semibold capitalize">{campaign.status || 'N/A'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Time Window</div>
+                      <div className="text-foreground font-semibold">{campaign.timeWindow ? `${campaign.timeWindow} hours` : 'N/A'}</div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Generated Links for NFT Campaigns */}
+                {/* Generated Links */}
                 {links.length > 0 && (
-                  <div className="pt-4 border-t border-border">
+                  <div>
                     <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border flex items-center gap-2">
                       <Link2 size={20} /> Tracking Links
                     </h3>
@@ -645,12 +662,40 @@ export default function CampaignDetailPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Objectives & Keywords */}
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border flex items-center gap-2">
+                    <MessageSquare size={20} /> Objectives & Keywords
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2">Objectives</div>
+                      <div className="text-foreground bg-muted/30 p-4 rounded-lg border border-border/50">
+                        {campaign.objectives || "No objectives set"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2">Keywords</div>
+                      {keywordsArray.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {keywordsArray.map((keyword: string, i: number) => (
+                            <span key={i} className="px-3 py-1 rounded-full bg-muted text-foreground text-sm border border-border font-medium">
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-muted-foreground">No keywords tracked</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
-          )
-          }
-        </div >
-      </div >
-    </DashboardLayout >
+          )}
+        </div>
+      </div>
+    </DashboardLayout>
   )
 }

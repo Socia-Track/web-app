@@ -48,6 +48,9 @@ export default function NewCampaignPage() {
     tokenIds: [] as string[]
   })
   const [generatingLinks, setGeneratingLinks] = useState(false)
+  const [fetchingNFT, setFetchingNFT] = useState(false)
+  const [nftMetadata, setNftMetadata] = useState<any>(null)
+  const [nftNetwork, setNftNetwork] = useState<string>("")
 
   // Set default blockchain when networks are loaded
   useEffect(() => {
@@ -126,7 +129,20 @@ export default function NewCampaignPage() {
           platforms: JSON.stringify(formData.platforms),
           tokenIds: JSON.stringify(formData.tokenIds),
           plannedLinks: plannedLinksData,
-          totalLinksPlanned: totalLinksPlanned
+          totalLinksPlanned: totalLinksPlanned,
+          // Include NFT metadata
+          nftName: nftMetadata?.name || null,
+          nftSymbol: nftMetadata?.symbol || null,
+          nftTotalSupply: nftMetadata?.totalSupply || null,
+          nftTokenType: nftMetadata?.contractType || null,
+          nftImage: nftMetadata?.image || null,
+          nftDescription: nftMetadata?.description || null,
+          nftBannerImage: nftMetadata?.openSeaMetadata?.bannerImageUrl || null,
+          nftExternalUrl: nftMetadata?.openSeaMetadata?.externalUrl || null,
+          nftDiscordUrl: nftMetadata?.openSeaMetadata?.discordUrl || null,
+          nftTwitterUsername: nftMetadata?.openSeaMetadata?.twitterUsername || null,
+          nftOpenSeaSlug: nftMetadata?.openSeaMetadata?.collectionSlug || null,
+          nftFloorPrice: nftMetadata?.openSeaMetadata?.floorPrice ? String(nftMetadata.openSeaMetadata.floorPrice) : null
         })
       })
 
@@ -170,6 +186,52 @@ export default function NewCampaignPage() {
     setNewPlatformName('')
     setShowAddPlatform(false)
     toast.success(`${platformName} added successfully!`)
+  }
+
+  // Fetch NFT metadata from Alchemy
+  const fetchNFTMetadata = async () => {
+    if (!formData.contractAddress.trim()) {
+      toast.error("Please enter a contract address")
+      return
+    }
+
+    setFetchingNFT(true)
+    try {
+      const token = localStorage.getItem("bearer_token")
+      const res = await fetch('/api/campaigns/nft-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          contractAddress: formData.contractAddress
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to fetch NFT metadata')
+        return
+      }
+
+      // Set NFT network and metadata
+      setNftNetwork(data.network || "Unknown")
+      setNftMetadata(data)
+
+      // Update blockchain if found
+      if (data.blockchain) {
+        setFormData(prev => ({ ...prev, blockchain: data.blockchain }))
+      }
+
+      toast.success(`NFT Collection found on ${data.network || "Unknown network"}! "${data.name}"`)
+    } catch (error) {
+      console.error('Error fetching NFT metadata:', error)
+      toast.error('Failed to fetch NFT metadata')
+    } finally {
+      setFetchingNFT(false)
+    }
   }
 
   const togglePlatform = (platform: string) => {
@@ -504,16 +566,6 @@ export default function NewCampaignPage() {
                   ))}
                 </div>
               )}
-
-              <NetworkSelector
-                value={formData.blockchain}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, blockchain: value }))}
-                label="Blockchain"
-                required={true}
-                showCurrency={true}
-                showChainId={false}
-                className=""
-              />
             </div>
           </div>
 
@@ -552,44 +604,106 @@ export default function NewCampaignPage() {
                 <Label htmlFor="contractAddress" className="text-foreground">
                   Contract Address *
                 </Label>
-                <Input
-                  id="contractAddress"
-                  placeholder="e.g., 0x1234567890abcdef..."
-                  value={formData.contractAddress}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contractAddress: e.target.value }))}
-                  className="mt-2"
-                />
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="contractAddress"
+                    placeholder="e.g., 0x1234567890abcdef..."
+                    value={formData.contractAddress}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contractAddress: e.target.value }))}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={fetchNFTMetadata}
+                    disabled={fetchingNFT || !formData.contractAddress.trim()}
+                    className="px-6 bg-accent hover:bg-accent/90 text-white"
+                  >
+                    {fetchingNFT ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Fetching...
+                      </>
+                    ) : (
+                      'Fetch'
+                    )}
+                  </Button>
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  The smart contract address of the NFT collection
+                  The smart contract address of the NFT collection (click Fetch to load collection details)
                 </p>
               </div>
 
-              {formData.promotionType === 'single' && (
-                <div>
-                  <Label className="text-foreground mb-2 block">Token IDs *</Label>
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Enter token ID (e.g., 1234)"
-                        value={tokenIdInput}
-                        onChange={(e) => setTokenIdInput(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
-                              setFormData(prev => ({
-                                ...prev,
-                                tokenIds: [...prev.tokenIds, tokenIdInput.trim()]
-                              }))
-                              setTokenIdInput("")
-                            }
-                          }
-                        }}
-                        className=""
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => {
+              {nftMetadata && (
+                <div className="p-4 bg-accent/5 border border-accent/20 rounded-lg space-y-3">
+                  <h4 className="text-foreground font-semibold flex items-center gap-2">
+                    NFT Collection Metadata
+                    <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">Verified</span>
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">Name:</span>
+                      <span className="text-foreground font-medium">{nftMetadata.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">Symbol:</span>
+                      <span className="text-foreground font-medium">{nftMetadata.symbol}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">Network:</span>
+                      <span className="text-green-600 font-bold">{nftNetwork}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">Contract Type:</span>
+                      <span className="text-foreground font-medium">{nftMetadata.contractType}</span>
+                    </div>
+                    {nftMetadata.totalSupply && (
+                      <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Total Supply:</span>
+                        <span className="text-foreground font-medium">{nftMetadata.totalSupply}</span>
+                      </div>
+                    )}
+                    <div className="pt-2">
+                      <span className="text-gray-400 text-xs">Contract Address:</span>
+                      <div className="flex items-center gap-2 mt-1 bg-black/30 p-2 rounded font-mono text-xs">
+                        <span className="text-gray-300 truncate flex-1">{formData.contractAddress}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(formData.contractAddress);
+                            toast.success('Contract address copied!');
+                          }}
+                          className="text-blue-400 hover:text-blue-300"
+                        >
+                          <Copy size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 p-4 bg-muted/50 border border-border/50 rounded-lg">
+              <p className="text-muted-foreground text-sm">
+                <strong>NFT Campaign:</strong> We'll track when users purchase NFTs from this collection on marketplaces (OpenSea, Blur, etc.)
+              </p>
+            </div>
+          </div>
+
+          {formData.promotionType === 'single' && (
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <h2 className="text-xl font-bold text-foreground mb-4">Specific Token IDs</h2>
+              <div>
+                <Label className="text-foreground mb-2 block">Token IDs *</Label>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter token ID (e.g., 1234)"
+                      value={tokenIdInput}
+                      onChange={(e) => setTokenIdInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
                           if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
                             setFormData(prev => ({
                               ...prev,
@@ -597,14 +711,28 @@ export default function NewCampaignPage() {
                             }))
                             setTokenIdInput("")
                           }
-                        }}
-                        className="px-4 bg-white/10 hover:bg-white/20 text-white border border-white/10"
-                      >
-                        Add
-                      </Button>
-                    </div>
+                        }
+                      }}
+                      className=""
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (tokenIdInput.trim() && !formData.tokenIds.includes(tokenIdInput.trim())) {
+                          setFormData(prev => ({
+                            ...prev,
+                            tokenIds: [...prev.tokenIds, tokenIdInput.trim()]
+                          }))
+                          setTokenIdInput("")
+                        }
+                      }}
+                      className="px-4 bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                    >
+                      Add
+                    </Button>
+                  </div>
 
-                    {formData.tokenIds.length > 0 && (
+                  {formData.tokenIds.length > 0 && (
                       <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">Added Token IDs:</p>
                         <div className="flex flex-wrap gap-2">
@@ -632,22 +760,23 @@ export default function NewCampaignPage() {
                       </div>
                     )}
 
-                    <p className="text-xs text-muted-foreground">
-                      For single NFT promotion, specify which exact tokens to track. Press Enter or click Add to add each token ID.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {formData.promotionType === 'collection' && (
-                <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                  <p className="text-blue-300 text-sm">
-                    <strong>Collection Promotion:</strong> We'll track when users purchase any NFT from this collection using the contract address. No specific token IDs needed.
+                  <p className="text-xs text-muted-foreground">
+                    For single NFT promotion, specify which exact tokens to track. Press Enter or click Add to add each token ID.
                   </p>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {formData.promotionType === 'collection' && (
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                <p className="text-blue-300 text-sm">
+                  <strong>Collection Promotion:</strong> We'll track when users purchase any NFT from this collection using the contract address. No specific token IDs needed.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="rounded-2xl border border-border bg-card p-6">
             <div className="flex items-center gap-2 mb-4">
