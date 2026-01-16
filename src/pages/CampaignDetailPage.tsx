@@ -431,11 +431,13 @@ export default function CampaignDetailPage() {
                                     <p className="text-sm text-muted-foreground capitalize">{link.platform} • Created {new Date(link.createdAt).toLocaleDateString()}</p>
                                   </div>
                                 </div>
-                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${link.status === 'active'
-                                  ? 'bg-green-500/10 text-green-500 border border-green-500/20'
-                                  : 'bg-muted text-muted-foreground border border-border'
+                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${campaign.status === 'paused'
+                                  ? 'bg-muted text-muted-foreground border border-border'
+                                  : link.status === 'active'
+                                    ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                                    : 'bg-muted text-muted-foreground border border-border'
                                   }`}>
-                                  {link.status}
+                                  {campaign.status === 'paused' ? 'paused' : link.status}
                                 </div>
                               </div>
 
@@ -574,11 +576,13 @@ export default function CampaignDetailPage() {
                                     <p className="text-sm text-muted-foreground capitalize">{link.platform} • Created {new Date(link.createdAt).toLocaleDateString()}</p>
                                   </div>
                                 </div>
-                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${link.status === 'active'
-                                  ? 'bg-green-500/10 text-green-500 border border-green-500/20'
-                                  : 'bg-muted text-muted-foreground border border-border'
+                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${campaign.status === 'paused'
+                                  ? 'bg-muted text-muted-foreground border border-border'
+                                  : link.status === 'active'
+                                    ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                                    : 'bg-muted text-muted-foreground border border-border'
                                   }`}>
-                                  {link.status}
+                                  {campaign.status === 'paused' ? 'paused' : link.status}
                                 </div>
                               </div>
 
