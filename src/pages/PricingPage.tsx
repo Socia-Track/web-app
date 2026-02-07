@@ -24,7 +24,7 @@ const plans = [
       { text: "Basic analytics", included: true },
       { text: "Support", included: true }
     ],
-    cta: "Start Free Trial",
+    cta: "Start Free Trail",
     popular: false
   },
   {
