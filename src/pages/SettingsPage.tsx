@@ -47,10 +47,11 @@ export default function SettingsPage() {
     totalTransactions: 0,
     totalRevenue: 0,
     memberSince: null,
-    maxCampaigns: 3,
-    maxTokens: 3,
-    remainingCampaigns: 3,
-    remainingTokens: 3
+    plan: 'free',
+    maxCampaigns: 1,
+    maxTokens: 1,
+    remainingCampaigns: 1,
+    remainingTokens: 1
   })
 
   // Load user profile data and stats
@@ -142,10 +143,11 @@ export default function SettingsPage() {
           totalTransactions: stats.totalTransactions || 0,
           totalRevenue: stats.totalRevenue || 0,
           memberSince: stats.memberSince || null,
-          maxCampaigns: stats.maxCampaigns || 3,
-          maxTokens: stats.maxTokens || 3,
-          remainingCampaigns: stats.remainingCampaigns ?? (stats.maxCampaigns || 3) - (stats.totalCampaigns || 0),
-          remainingTokens: stats.remainingTokens ?? (stats.maxTokens || 3) - (stats.totalTokens || 0)
+          plan: stats.plan || 'free',
+          maxCampaigns: stats.maxCampaigns || 1,
+          maxTokens: stats.maxTokens || 1,
+          remainingCampaigns: stats.remainingCampaigns ?? Math.max(0, (stats.maxCampaigns || 1) - (stats.totalCampaigns || 0)),
+          remainingTokens: stats.remainingTokens ?? Math.max(0, (stats.maxTokens || 1) - (stats.totalTokens || 0))
         })
       }
     } catch (error) {
@@ -158,14 +160,14 @@ export default function SettingsPage() {
       // Clear token from localStorage
       localStorage.removeItem('bearer_token')
       localStorage.removeItem('admin_session')
-      
+
       // Sign out from auth client
       if (session?.user) {
         await authClient.signOut()
       }
-      
+
       toast.success("Signed out successfully")
-      
+
       // Redirect to auth page
       navigate("/auth")
     } catch (error) {
@@ -344,8 +346,19 @@ export default function SettingsPage() {
                       {/* Usage Limits Section */}
                       <div className="mt-8">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold text-foreground">Usage Limits</h3>
-                          <Button 
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground">Usage Limits</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Current Plan: <span className="font-medium text-foreground">
+                                {userStats.plan === 'free' ? 'Free Plan' :
+                                  userStats.plan === 'pro' ? 'Pro Plan' :
+                                    userStats.plan === 'pro_plus' ? 'Pro Plus Plan' :
+                                      userStats.plan === 'custom' ? 'Custom Plan' :
+                                        'Free Plan'}
+                              </span>
+                            </p>
+                          </div>
+                          <Button
                             variant="outline"
                             onClick={() => navigate('/pricing')}
                             className="gap-2"
@@ -363,22 +376,21 @@ export default function SettingsPage() {
                               </div>
                             </div>
                             <div className="w-full bg-muted rounded-full h-2 mb-2">
-                              <div 
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  userStats.totalCampaigns >= userStats.maxCampaigns 
-                                    ? 'bg-destructive' 
-                                    : userStats.totalCampaigns / userStats.maxCampaigns > 0.8 
-                                    ? 'bg-yellow-500' 
+                              <div
+                                className={`h-2 rounded-full transition-all duration-300 ${userStats.totalCampaigns >= userStats.maxCampaigns
+                                  ? 'bg-destructive'
+                                  : userStats.totalCampaigns / userStats.maxCampaigns > 0.8
+                                    ? 'bg-yellow-500'
                                     : 'bg-primary'
-                                }`}
-                                style={{ 
-                                  width: `${Math.min(100, (userStats.totalCampaigns / userStats.maxCampaigns) * 100)}%` 
+                                  }`}
+                                style={{
+                                  width: `${Math.min(100, (userStats.totalCampaigns / userStats.maxCampaigns) * 100)}%`
                                 }}
                               />
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {userStats.remainingCampaigns > 0 
-                                ? `${userStats.remainingCampaigns} remaining` 
+                              {userStats.remainingCampaigns > 0
+                                ? `${userStats.remainingCampaigns} remaining`
                                 : 'Limit reached'
                               }
                             </div>
@@ -571,7 +583,7 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="pt-2">
-                          <Button 
+                          <Button
                             onClick={handleChangePassword}
                             disabled={passwordLoading}
                             className="h-11"

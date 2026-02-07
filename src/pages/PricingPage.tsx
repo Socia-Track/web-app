@@ -16,10 +16,11 @@ const plans = [
     name: "Free",
     price: "$0",
     period: "forever",
-    description: "Perfect for trying out SociaTrack",
+    description: "free trail",
     features: [
-      { text: "Up to 3 campaigns", included: true },
-      { text: "2 links per campaign", included: true },
+      { text: "1 campaigns", included: true },
+      { text: "1 links per campaign", included: true },
+      { text: "15 wallet / campaign", included: true },
       { text: "Basic analytics", included: true },
       { text: "Support", included: true }
     ],
@@ -28,12 +29,13 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$299",
+     price: "$9",
     period: "per month",
-    description: "For serious Web3 marketers",
+    description: "Perfect for trying out SociaTrack",
     features: [
-      { text: "25 campaigns", included: true },
-      { text: "4 links per campaign", included: true },
+      { text: "5 campaigns", included: true },
+      { text: "2 links per campaign", included: true },
+      { text: "50 wallet / campaign", included: true },
       { text: "Download report", included: true },
       { text: "Multi-chain support", included: true }
     ],
@@ -42,17 +44,36 @@ const plans = [
   },
   {
     name: "Pro Plus",
-    price: "$499",
+    price: "$35",
     period: "per month",
-    description: "For large teams and agencies",
+    description: "For serious Web3 marketers",
     features: [
       { text: "50 campaigns", included: true },
-      { text: "6 links per campaign", included: true },
+      { text: "3 links per campaign", included: true },
+      { text: "100 wallet / campaign", included: true },
       { text: "Download report", included: true },
       { text: "Multi-chain support", included: true },
       { text: "Early access to our V2", included: true }
     ],
     cta: "Get Started",
+    popular: false
+  },
+  {
+    name : "Custom",
+    price : "Custom",
+    period : "per month",
+    description : "For large teams and agencies",
+    features : [
+      { text : "Custom campaigns", included: true},
+      { text : "Custom links per campaign", included: true},
+      { text : "Custom wallet / campaign", included: true},
+      { text : "Download report", included: true},
+      { text : "Multi-chain support", included: true},
+      { text : "Custom features", included: true},
+      { text : "Early access to our V2", included: true}
+      
+    ],
+    cta: "get started",
     popular: false
   }
 ]
