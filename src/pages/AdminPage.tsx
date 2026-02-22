@@ -275,29 +275,29 @@ export default function AdminPage() {
     const userPlan = user.plan || 'free'
     setSelectedPlan(userPlan)
 
-    // Load custom limits if they exist
-    if (user.campaignLimit !== null && user.campaignLimit !== undefined) {
-      setCampaignLimit(user.campaignLimit)
-    } else {
-      // Set defaults based on plan
-      const planDefaults = {
-        free: { campaign: 1, links: 1, wallets: 15 },
-        pro: { campaign: 5, links: 2, wallets: 50 },
-        pro_plus: { campaign: 50, links: 3, wallets: 100 },
-        custom: { campaign: 1, links: 1, wallets: 15 }
+    // Always set defaults based on plan first
+    const planDefaults = {
+      free: { campaign: 1, links: 1, wallets: 15 },
+      pro: { campaign: 5, links: 2, wallets: 50 },
+      pro_plus: { campaign: 50, links: 3, wallets: 100 },
+      custom: { campaign: 1, links: 1, wallets: 15 }
+    }
+    const defaults = planDefaults[userPlan as keyof typeof planDefaults] || planDefaults.free
+    setCampaignLimit(defaults.campaign)
+    setLinksPerCampaign(defaults.links)
+    setWalletsPerCampaign(defaults.wallets)
+
+    // For custom plans, override with user-specific values from DB
+    if (userPlan === 'custom') {
+      if (user.campaignLimit !== null && user.campaignLimit !== undefined) {
+        setCampaignLimit(user.campaignLimit)
       }
-      const defaults = planDefaults[userPlan as keyof typeof planDefaults] || planDefaults.free
-      setCampaignLimit(defaults.campaign)
-      setLinksPerCampaign(defaults.links)
-      setWalletsPerCampaign(defaults.wallets)
-    }
-
-    if (user.linksPerCampaign !== null && user.linksPerCampaign !== undefined) {
-      setLinksPerCampaign(user.linksPerCampaign)
-    }
-
-    if (user.walletsPerCampaign !== null && user.walletsPerCampaign !== undefined) {
-      setWalletsPerCampaign(user.walletsPerCampaign)
+      if (user.linksPerCampaign !== null && user.linksPerCampaign !== undefined) {
+        setLinksPerCampaign(user.linksPerCampaign)
+      }
+      if (user.walletsPerCampaign !== null && user.walletsPerCampaign !== undefined) {
+        setWalletsPerCampaign(user.walletsPerCampaign)
+      }
     }
 
     // Legacy support
