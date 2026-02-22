@@ -60,7 +60,7 @@ export default function CampaignDetailPage() {
 
         if (campaignRes.ok) {
           setCampaign({ ...campaignData, campaignType })
-          
+
           // Extract links from campaign data (they're already included)
           if (campaignData.links && Array.isArray(campaignData.links)) {
             setLinks(campaignData.links)
@@ -181,7 +181,11 @@ export default function CampaignDetailPage() {
     const endpoint = campaign.campaignType === 'token' ? '/api/tokens' : '/api/campaigns'
 
     try {
-      const res = await fetch(`${endpoint}/${campaign.id}`, {
+      // NFT campaigns use query param (?id=), token campaigns use path param (/:id)
+      const deleteUrl = campaign.campaignType === 'token'
+        ? `${endpoint}/${campaign.id}`
+        : `${endpoint}?id=${campaign.id}`
+      const res = await fetch(deleteUrl, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })

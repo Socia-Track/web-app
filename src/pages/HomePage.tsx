@@ -154,19 +154,19 @@ export default function HomePage() {
       if (limitsData) {
         console.log('📊 HomePage: User Limits Data:', limitsData)
         const currentItems = limitsData.usage?.totalItems || 0
-        const maxItems = limitsData.limits?.maxItems || 0
-        
+        const maxItems = limitsData.limits?.campaignLimit || 0
+
         console.log('📊 HomePage: Extracted values - currentItems:', currentItems, 'maxItems:', maxItems)
-        
-        setUserLimits({ 
-          currentItems: currentItems, 
-          maxItems: maxItems 
+
+        setUserLimits({
+          currentItems: currentItems,
+          maxItems: maxItems
         })
-        
+
         console.log('🔍 HomePage: Checking limit:', currentItems, '>=', maxItems, '?', currentItems >= maxItems)
         console.log('🔍 HomePage: maxItems > 0?', maxItems > 0)
         console.log('🔍 HomePage: Final condition:', (currentItems >= maxItems && maxItems > 0))
-        
+
         if (currentItems >= maxItems && maxItems > 0) {
           console.log('⚠️ HomePage: Limit reached! Showing dialog')
           console.log('⚠️ HomePage: About to call setShowLimitDialog(true)')
@@ -191,16 +191,16 @@ export default function HomePage() {
           const campaignIds = allCampaigns.map(c => c.id)
           const batchAnalyticsRes = await fetch('/api/analytics/batch', {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}` 
+              Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({ campaignIds })
           })
 
           if (batchAnalyticsRes.ok) {
             const analyticsData = await batchAnalyticsRes.json()
-            
+
             // Calculate totals from batch response
             Object.values(analyticsData).forEach((analytics: any) => {
               totalTransactions += analytics.totalTransactions || 0
@@ -221,24 +221,24 @@ export default function HomePage() {
       // Calculate trends based on previous week's data
       const lastWeekKey = `kpis_${session.user.uid}_lastweek`
       const lastWeekData = localStorage.getItem(lastWeekKey)
-      
+
       if (lastWeekData) {
         try {
           const previousKpis = JSON.parse(lastWeekData)
           const weekAgo = new Date(previousKpis.timestamp)
           const daysSince = (Date.now() - weekAgo.getTime()) / (1000 * 60 * 60 * 24)
-          
+
           // Only use data if it's between 6-8 days old (approximately a week)
           if (daysSince >= 6 && daysSince <= 8) {
             // Calculate attribution trend
-            const attrChange = previousKpis.totalAttributions > 0 
+            const attrChange = previousKpis.totalAttributions > 0
               ? ((totalTransactions - previousKpis.totalAttributions) / previousKpis.totalAttributions) * 100
               : 0
             setAttributionsTrend({
               value: `${attrChange >= 0 ? '+' : ''}${attrChange.toFixed(1)}%`,
               direction: attrChange >= 0 ? "up" : "down"
             })
-            
+
             // Calculate value trend
             const valueChange = previousKpis.valueUsd > 0
               ? ((totalValueTracked - previousKpis.valueUsd) / previousKpis.valueUsd) * 100
@@ -252,16 +252,16 @@ export default function HomePage() {
           console.error('Error parsing previous week data:', e)
         }
       }
-      
+
       // Store current data for next week's comparison (only if a week has passed)
       const currentDataKey = `kpis_${session.user.uid}_current`
       const currentStoredData = localStorage.getItem(currentDataKey)
-      
+
       if (currentStoredData) {
         try {
           const storedData = JSON.parse(currentStoredData)
           const daysSinceStore = (Date.now() - new Date(storedData.timestamp).getTime()) / (1000 * 60 * 60 * 24)
-          
+
           // Move current to lastweek if 7+ days have passed
           if (daysSinceStore >= 7) {
             localStorage.setItem(lastWeekKey, currentStoredData)
@@ -568,7 +568,7 @@ export default function HomePage() {
             <DialogDescription className="text-muted-foreground text-base">
               {userLimits && (
                 <span>
-                  You've reached your campaign limit ({userLimits.currentItems}/{userLimits.maxItems}). 
+                  You've reached your campaign limit ({userLimits.currentItems}/{userLimits.maxItems}).
                   Upgrade your plan to create more campaigns and unlock advanced features.
                 </span>
               )}

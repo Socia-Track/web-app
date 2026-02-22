@@ -152,19 +152,19 @@ export default function DashboardPage() {
       if (limitsData) {
         console.log('📊 DashboardPage: User Limits Data:', limitsData)
         const currentItems = limitsData.usage?.totalItems || 0
-        const maxItems = limitsData.limits?.maxItems || 0
-        
+        const maxItems = limitsData.limits?.campaignLimit || 0
+
         console.log('📊 DashboardPage: Extracted values - currentItems:', currentItems, 'maxItems:', maxItems)
-        
-        setUserLimits({ 
-          currentItems: currentItems, 
-          maxItems: maxItems 
+
+        setUserLimits({
+          currentItems: currentItems,
+          maxItems: maxItems
         })
-        
+
         console.log('🔍 DashboardPage: Checking limit:', currentItems, '>=', maxItems, '?', currentItems >= maxItems)
         console.log('🔍 DashboardPage: maxItems > 0?', maxItems > 0)
         console.log('🔍 DashboardPage: Final condition:', (currentItems >= maxItems && maxItems > 0))
-        
+
         if (currentItems >= maxItems && maxItems > 0) {
           console.log('⚠️ DashboardPage: Limit reached! Showing dialog')
           console.log('⚠️ DashboardPage: About to call setShowLimitDialog(true)')
@@ -508,7 +508,7 @@ export default function DashboardPage() {
             <DialogDescription className="text-muted-foreground text-base">
               {userLimits && (
                 <span>
-                  You've reached your campaign limit ({userLimits.currentItems}/{userLimits.maxItems}). 
+                  You've reached your campaign limit ({userLimits.currentItems}/{userLimits.maxItems}).
                   Upgrade your plan to create more campaigns and unlock advanced features.
                 </span>
               )}

@@ -96,19 +96,19 @@ export default function CampaignsPage() {
         if (limitsData) {
           console.log('📊 CampaignsPage: User Limits Data:', limitsData)
           const currentItems = limitsData.usage?.totalItems || 0
-          const maxItems = limitsData.limits?.maxItems || 0
-          
+          const maxItems = limitsData.limits?.campaignLimit || 0
+
           console.log('📊 CampaignsPage: Extracted values - currentItems:', currentItems, 'maxItems:', maxItems)
-          
-          setUserLimits({ 
-            currentItems: currentItems, 
-            maxItems: maxItems 
+
+          setUserLimits({
+            currentItems: currentItems,
+            maxItems: maxItems
           })
-          
+
           console.log('🔍 CampaignsPage: Checking limit:', currentItems, '>=', maxItems, '?', currentItems >= maxItems)
           console.log('🔍 CampaignsPage: maxItems > 0?', maxItems > 0)
           console.log('🔍 CampaignsPage: Final condition:', (currentItems >= maxItems && maxItems > 0))
-          
+
           if (currentItems >= maxItems && maxItems > 0) {
             console.log('⚠️ CampaignsPage: Limit reached! Showing dialog')
             console.log('⚠️ CampaignsPage: About to call setShowLimitDialog(true)')
@@ -172,7 +172,7 @@ export default function CampaignsPage() {
             onClick={() => {
               console.log('🔘 New Campaign button clicked')
               console.log('📊 Current userLimits:', userLimits)
-              
+
               if (userLimits && userLimits.currentItems >= userLimits.maxItems) {
                 console.log('⚠️ Limit exceeded! Showing limit dialog')
                 setShowLimitDialog(true)
@@ -351,7 +351,7 @@ export default function CampaignsPage() {
             <DialogDescription className="text-muted-foreground text-base">
               {userLimits && (
                 <span>
-                  You've reached your campaign limit ({userLimits.currentItems}/{userLimits.maxItems}). 
+                  You've reached your campaign limit ({userLimits.currentItems}/{userLimits.maxItems}).
                   Upgrade your plan to create more campaigns and unlock advanced features.
                 </span>
               )}

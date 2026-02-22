@@ -25,7 +25,8 @@ export default function NewCampaignPage() {
   const { data: session } = useSession()
   const { networks, loading: networksLoading, error: networksError } = useNetworks()
   const [loading, setLoading] = useState(false)
-  
+  const [maxLinksPerCampaign, setMaxLinksPerCampaign] = useState(50)
+
   // Custom platforms management
   const [customPlatforms, setCustomPlatforms] = useState<string[]>(() => {
     const saved = localStorage.getItem('customPlatforms')
@@ -33,7 +34,7 @@ export default function NewCampaignPage() {
   })
   const [newPlatformName, setNewPlatformName] = useState('')
   const [showAddPlatform, setShowAddPlatform] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -55,6 +56,28 @@ export default function NewCampaignPage() {
       setFormData(prev => ({ ...prev, blockchain: networks[0].key }))
     }
   }, [networks, formData.blockchain])
+
+  // Fetch user's linksPerCampaign limit
+  useEffect(() => {
+    const fetchLinkLimit = async () => {
+      if (!session?.user?.uid) return
+      const token = localStorage.getItem('bearer_token')
+      try {
+        const res = await fetch(`/api/users/${session.user.uid}/limits`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.limits?.linksPerCampaign) {
+            setMaxLinksPerCampaign(data.limits.linksPerCampaign)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch link limits:', err)
+      }
+    }
+    fetchLinkLimit()
+  }, [session?.user?.uid])
 
   // Get all available platforms (default + custom)
   const allPlatforms = ['Discord', 'Twitter', ...customPlatforms]
@@ -152,21 +175,21 @@ export default function NewCampaignPage() {
       toast.error('Platform name cannot be empty')
       return
     }
-    
+
     if (allPlatforms.includes(platformName)) {
       toast.error('Platform already exists')
       return
     }
-    
+
     const updatedCustomPlatforms = [...customPlatforms, platformName]
     setCustomPlatforms(updatedCustomPlatforms)
     localStorage.setItem('customPlatforms', JSON.stringify(updatedCustomPlatforms))
-    
+
     // Initialize states for new platform
     setLinkCounts(prev => ({ ...prev, [platformName]: 0 }))
     setPersonNames(prev => ({ ...prev, [platformName]: [] }))
     setShowNameInputs(prev => ({ ...prev, [platformName]: false }))
-    
+
     setNewPlatformName('')
     setShowAddPlatform(false)
     toast.success(`${platformName} added successfully!`)
@@ -183,7 +206,18 @@ export default function NewCampaignPage() {
 
   // Handle link count change
   const handleLinkCountChange = (platform: string, count: string) => {
-    const numCount = parseInt(count) || 0
+    let numCount = parseInt(count) || 0
+
+    // Enforce linksPerCampaign limit across all platforms
+    const otherPlatformLinks = Object.entries(linkCounts)
+      .filter(([p]) => p !== platform)
+      .reduce((sum, [, c]) => sum + c, 0)
+    const maxForThisPlatform = Math.max(0, maxLinksPerCampaign - otherPlatformLinks)
+    if (numCount > maxForThisPlatform) {
+      numCount = maxForThisPlatform
+      toast.error(`Total links across all platforms cannot exceed ${maxLinksPerCampaign} (your plan limit)`)
+    }
+
     setLinkCounts(prev => ({
       ...prev,
       [platform]: numCount
@@ -419,7 +453,7 @@ export default function NewCampaignPage() {
                     {showAddPlatform ? 'Cancel' : '+ Add Platform'}
                   </Button>
                 </div>
-                
+
                 {showAddPlatform && (
                   <div className="flex gap-2 mb-3 p-3 bg-muted rounded-lg border border-border">
                     <Input
@@ -438,16 +472,15 @@ export default function NewCampaignPage() {
                     </Button>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {allPlatforms.map(platform => (
                     <div
                       key={platform}
-                      className={`p-4 rounded-lg border transition-all ${
-                        formData.platforms.includes(platform)
+                      className={`p-4 rounded-lg border transition-all ${formData.platforms.includes(platform)
                           ? 'border-accent bg-accent/10'
                           : 'border-border bg-muted'
-                      }`}
+                        }`}
                     >
                       <label className="flex items-center gap-2 cursor-pointer">
                         <Checkbox
@@ -474,8 +507,8 @@ export default function NewCampaignPage() {
                           id={`${platform}-count`}
                           type="number"
                           min="1"
-                          max="50"
-                          placeholder="Enter number"
+                          max={maxLinksPerCampaign}
+                          placeholder={`Enter number (max ${maxLinksPerCampaign})`}
                           value={linkCounts[platform] || ''}
                           onChange={(e) => handleLinkCountChange(platform, e.target.value)}
                           className="mt-2"
