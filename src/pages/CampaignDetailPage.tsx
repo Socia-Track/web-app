@@ -98,30 +98,38 @@ export default function CampaignDetailPage() {
               uniqueWallets: uniqueWallets
             })
           } else {
-            // Fetch NFT campaign stats
-            const [attributionsRes, transactionsRes] = await Promise.all([
+            // Fetch NFT campaign stats - use analytics endpoint for accurate counts
+            const [attributionsRes, transactionsRes, analyticsRes] = await Promise.all([
               fetch(`/api/attributions?campaignId=${params.id}&limit=1000`, {
                 headers: { Authorization: `Bearer ${token}` }
               }),
               fetch(`/api/transactions?campaignId=${params.id}&limit=1000`, {
+                headers: { Authorization: `Bearer ${token}` }
+              }),
+              fetch(`/api/analytics/campaign/${params.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
               })
             ])
 
             const attributions = await attributionsRes.json()
             const transactions = await transactionsRes.json()
+            const analytics = analyticsRes.ok ? await analyticsRes.json() : null
 
+            // Use analytics endpoint for accurate counts (not limited by API limit)
+            const totalAttributions = analytics?.totalAttributions || (Array.isArray(attributions) ? attributions.length : 0)
+            const totalTransactions = analytics?.totalTransactions || (Array.isArray(transactions) ? transactions.length : 0)
+            const totalVal = analytics?.totalValueUsd || (Array.isArray(transactions)
+              ? transactions.reduce((sum: number, t: any) => sum + (parseFloat(t.usdValue) || 0), 0)
+              : 0)
+
+            // Calculate avg confidence from fetched attributions (sample)
             const avgConf = Array.isArray(attributions) && attributions.length > 0
               ? attributions.reduce((sum: number, a: any) => sum + (a.confidenceScore || 0), 0) / attributions.length
               : 0
 
-            const totalVal = Array.isArray(attributions)
-              ? attributions.reduce((sum: number, a: any) => sum + (parseFloat(a.valueUsd) || 0), 0)
-              : 0
-
             setStats({
-              attributions: Array.isArray(attributions) ? attributions.length : 0,
-              transactions: Array.isArray(transactions) ? transactions.length : 0,
+              attributions: totalAttributions,
+              transactions: totalTransactions,
               totalValue: totalVal,
               avgConfidence: avgConf,
               totalClicks: 0,
