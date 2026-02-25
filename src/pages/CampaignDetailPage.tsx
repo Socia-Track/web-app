@@ -293,9 +293,14 @@ export default function CampaignDetailPage() {
 
           {/* Stats Grid - Only for NFT campaigns */}
           {campaign.campaignType !== 'token' && (
-            <Section>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mb-8"
+            >
               <h2 className="text-3xl font-bold text-foreground mb-8">Campaign Performance</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
                 <MetricCard
                   label="Attributions"
                   value={stats.attributions}
@@ -329,7 +334,7 @@ export default function CampaignDetailPage() {
                   delay={0.4}
                 />
               </div>
-            </Section>
+            </motion.div>
           )}
 
           {/* Campaign Details */}

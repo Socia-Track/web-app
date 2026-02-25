@@ -27,7 +27,7 @@ export default function MetricCard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay }}
-            className="group relative rounded-2xl bg-card p-6 sm:p-8 shadow-sm hover:shadow-md transition-all duration-300 border border-border/50"
+            className="group relative rounded-2xl bg-card p-6 sm:p-8 lg:p-10 shadow-sm hover:shadow-md transition-all duration-300 border border-border/50"
         >
             <div className="relative">
                 {/* Header */}
