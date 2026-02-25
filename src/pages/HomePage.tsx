@@ -203,8 +203,8 @@ export default function HomePage() {
 
             // Calculate totals from batch response
             Object.values(analyticsData).forEach((analytics: any) => {
-              totalTransactions += analytics.totalTransactions || 0
-              totalValueTracked += (parseFloat(analytics.totalEth || '0') * 3400) // ETH to USD
+              totalTransactions += analytics.totalAttributions || analytics.totalTransactions || 0
+              totalValueTracked += analytics.totalValueUsd || (parseFloat(analytics.totalEth || '0') * 3400) // Use USD value if available, fallback to ETH conversion
             })
           }
         } catch (analyticsError) {
