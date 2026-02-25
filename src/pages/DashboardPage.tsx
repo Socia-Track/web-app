@@ -193,7 +193,7 @@ export default function DashboardPage() {
             const analytics = await analyticsRes.json()
 
             totalTransactions += analytics.totalTransactions || 0
-            totalValueTracked += (parseFloat(analytics.totalEth || '0') * 3400) // ETH to USD
+            totalValueTracked += analytics.totalValueUsd || (parseFloat(analytics.totalEth || '0') * 3400) // Use USD value if available, fallback to ETH conversion
           } catch (analyticsError) {
             console.error(`Error fetching analytics for campaign ${campaign.name}:`, analyticsError)
           }
