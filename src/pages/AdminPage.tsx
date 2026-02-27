@@ -95,7 +95,7 @@ export default function AdminPage() {
       if (adminSession) {
         try {
           const mockSession = JSON.parse(adminSession)
-          if (mockSession.user?.email === 'contact@sociatrack.admin') {
+          if (mockSession.user?.email === 'admin@sociatrack.com') {
             console.log("✅ Admin session verified")
             return true // Allow access
           }
@@ -124,7 +124,7 @@ export default function AdminPage() {
   const fetchAccessRequests = async () => {
     // Check if we have admin access (either through regular session or admin bypass)
     const adminSession = localStorage.getItem('admin_session')
-    const hasAdminAccess = (session?.user?.uid) || (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
+    const hasAdminAccess = (session?.user?.uid) || (adminSession && JSON.parse(adminSession).user?.email === 'admin@sociatrack.com')
 
     if (!hasAdminAccess) return
 
@@ -169,8 +169,8 @@ export default function AdminPage() {
   useEffect(() => {
     // Check both regular session and admin bypass session
     const adminSession = localStorage.getItem('admin_session')
-    const hasAdminAccess = (session?.user && session.user.email === 'contact@sociatrack.admin') ||
-      (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
+    const hasAdminAccess = (session?.user && session.user.email === 'admin@sociatrack.com') ||
+      (adminSession && JSON.parse(adminSession).user?.email === 'admin@sociatrack.com')
 
     if (hasAdminAccess) {
       fetchAccessRequests()
@@ -508,8 +508,8 @@ export default function AdminPage() {
 
   // Check admin access for rendering
   const adminSession = localStorage.getItem('admin_session')
-  const hasAdminAccess = (session?.user && session.user.email === 'contact@sociatrack.admin') ||
-    (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
+  const hasAdminAccess = (session?.user && session.user.email === 'admin@sociatrack.com') ||
+    (adminSession && JSON.parse(adminSession).user?.email === 'admin@sociatrack.com')
 
   if (!hasAdminAccess) return null
 

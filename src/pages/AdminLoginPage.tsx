@@ -40,6 +40,8 @@ export default function AdminLoginPage() {
         })
       })
 
+      console.log(response);
+
       if (!response.ok) {
         try {
           const errorData = await response.json()
@@ -54,7 +56,7 @@ export default function AdminLoginPage() {
       const data = await response.json()
       
       // Check if user is admin
-      if (data.user.email !== 'contact@sociatrack.admin') {
+      if (data.user.email !== 'admin@sociatrack.com') {
         toast.error("Admin access required")
         setLoading(false)
         return

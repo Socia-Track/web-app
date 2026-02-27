@@ -80,32 +80,32 @@ export default function AuthPage() {
 
     try {
       // Check for admin credentials
-      if (loginEmail.trim() === "contact@sociatrack.admin" && loginPassword === "admin@747") {
-        console.log("✅ Admin login detected")
+      // if (loginEmail.trim() === "contact@sociatrack.admin" && loginPassword === "admin@747") {
+      //   console.log("✅ Admin login detected")
 
-        const adminToken = 'admin-token-' + Date.now()
-        localStorage.setItem('bearer_token', adminToken)
+      //   const adminToken = 'admin-token-' + Date.now()
+      //   localStorage.setItem('bearer_token', adminToken)
 
-        const mockAdminSession = {
-          user: {
-            uid: 'admin-uid',
-            email: 'contact@sociatrack.admin',
-            name: 'Admin User'
-          },
-          token: adminToken
-        }
+      //   const mockAdminSession = {
+      //     user: {
+      //       uid: 'admin-uid',
+      //       email: 'contact@sociatrack.admin',
+      //       name: 'Admin User'
+      //     },
+      //     token: adminToken
+      //   }
 
-        localStorage.setItem('admin_session', JSON.stringify(mockAdminSession))
+      //   localStorage.setItem('admin_session', JSON.stringify(mockAdminSession))
 
-        toast.success("Admin access granted!")
-        setLoginLoading(false)
+      //   toast.success("Admin access granted!")
+      //   setLoginLoading(false)
 
-        setTimeout(() => {
-          navigate("/admin")
-        }, 500)
+      //   setTimeout(() => {
+      //     navigate("/admin")
+      //   }, 500)
 
-        return
-      }
+      //   return
+      // }
 
       const { data, error } = await authClient.signIn.email({
         email: loginEmail.trim(),
@@ -325,7 +325,7 @@ export default function AuthPage() {
           </div>
           <h2 className="text-4xl font-bold text-foreground mb-3">Welcome to SociaTrack</h2>
           <p className="text-lg text-muted-foreground">
-            Log in to your account or request access to get started
+            Log in to your account or create an account to get started
           </p>
         </div>
 
@@ -462,7 +462,7 @@ export default function AuthPage() {
                             Submitting...
                           </>
                         ) : (
-                          "Request Access"
+                          "Create Account"
                         )}
                       </Button>
                     </form>
