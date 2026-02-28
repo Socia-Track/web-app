@@ -88,18 +88,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      console.log("❌ No session found, redirecting to home")
       navigate("/")
-    } else if (session?.user) {
-      console.log("✅ User logged in:", session.user.email)
     }
   }, [session, isPending, navigate])
-
-  // Debug effect to watch limit dialog state
-  useEffect(() => {
-    console.log('🔔 DashboardPage: showLimitDialog changed to:', showLimitDialog)
-    console.log('🔔 DashboardPage: userLimits:', userLimits)
-  }, [showLimitDialog, userLimits])
 
   const fetchData = async () => {
     if (!session?.user?.uid) return
@@ -137,12 +128,6 @@ export default function DashboardPage() {
       const tokenCampaigns = await tokensRes.json()
       const limitsData = limitsRes.ok ? await limitsRes.json() : null
 
-      console.log('🔍 DashboardPage: Raw API responses:', {
-        nftCampaigns,
-        tokenCampaigns,
-        limitsData,
-        limitsResStatus: limitsRes.status
-      })
 
       // Combine both NFT and token campaigns
       const allCampaigns = [
@@ -151,35 +136,24 @@ export default function DashboardPage() {
       ]
 
       setCampaigns(allCampaigns)
-      console.log('🔍 DashboardPage: Total campaigns set:', allCampaigns.length)
 
       // Check if user has reached their limit and show dialog
       if (limitsData) {
-        console.log('📊 DashboardPage: User Limits Data:', limitsData)
         const currentItems = limitsData.usage?.totalItems || 0
         const maxItems = limitsData.limits?.campaignLimit || 0
 
-        console.log('📊 DashboardPage: Extracted values - currentItems:', currentItems, 'maxItems:', maxItems)
 
         setUserLimits({
           currentItems: currentItems,
           maxItems: maxItems
         })
 
-        console.log('🔍 DashboardPage: Checking limit:', currentItems, '>=', maxItems, '?', currentItems >= maxItems)
-        console.log('🔍 DashboardPage: maxItems > 0?', maxItems > 0)
-        console.log('🔍 DashboardPage: Final condition:', (currentItems >= maxItems && maxItems > 0))
 
         if (currentItems >= maxItems && maxItems > 0) {
-          console.log('⚠️ DashboardPage: Limit reached! Showing dialog')
-          console.log('⚠️ DashboardPage: About to call setShowLimitDialog(true)')
           setShowLimitDialog(true)
-          console.log('⚠️ DashboardPage: setShowLimitDialog(true) called')
         } else {
-          console.log('✅ DashboardPage: Limit not reached, no dialog')
         }
       } else {
-        console.log('❌ DashboardPage: No limits data received from API')
       }
 
       // Fetch real transaction data from each campaign's analytics
@@ -187,29 +161,32 @@ export default function DashboardPage() {
       let totalValueTracked = 0
 
       if (Array.isArray(allCampaigns) && allCampaigns.length > 0) {
-        console.log('📊 DashboardPage: Fetching analytics for', allCampaigns.length, 'campaigns')
+        // OPTIMIZED: Batch fetch all analytics in ONE request instead of looping
+        try {
+          const campaignIds = allCampaigns.map(c => c.id)
+          const batchAnalyticsRes = await fetch('/api/analytics/batch', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ campaignIds })
+          })
 
-        // Get analytics data for each campaign
-        for (const campaign of allCampaigns) {
-          try {
-            const analyticsRes = await fetch(`/api/analytics/campaign/${campaign.id}`, {
-              headers: { Authorization: `Bearer ${token}` }
+          if (batchAnalyticsRes.ok) {
+            const analyticsData = await batchAnalyticsRes.json()
+
+            // Calculate totals from batch response
+            Object.values(analyticsData).forEach((analytics: any) => {
+              totalTransactions += analytics.totalAttributions || analytics.totalTransactions || 0
+              totalValueTracked += analytics.totalValueUsd || (parseFloat(analytics.totalEth || '0') * (prices.ETH || 2500))
             })
-            const analytics = await analyticsRes.json()
-
-            totalTransactions += analytics.totalTransactions || 0
-            totalValueTracked += analytics.totalValueUsd || (parseFloat(analytics.totalEth || '0') * (prices.ETH || 2500)) // Use USD value if available, fallback to live ETH price
-          } catch (analyticsError) {
-            console.error(`Error fetching analytics for campaign ${campaign.name}:`, analyticsError)
           }
+        } catch (analyticsError) {
+          console.error('Error fetching batch analytics:', analyticsError)
         }
       }
 
-      console.log('✅ DashboardPage: Final metrics:', {
-        campaigns: allCampaigns.length,
-        totalTransactions,
-        totalValueTracked: totalValueTracked.toFixed(2)
-      })
 
       // Fetch real data-driven trends from backend (last 6 days vs previous 6 days)
       if (token) {
