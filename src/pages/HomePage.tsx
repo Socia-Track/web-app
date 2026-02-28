@@ -32,6 +32,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { usePrices } from "@/hooks/usePrices"
+import { fetchTrends, type TrendInfo } from "@/lib/trend-utils"
 import {
   Dialog,
   DialogContent,
@@ -74,8 +75,8 @@ export default function HomePage() {
     postsCaptured: 0,
     lastUpdated: new Date()
   })
-  const [attributionsTrend, setAttributionsTrend] = useState<{ value: string; direction: "up" | "down" }>({ value: "+0%", direction: "up" })
-  const [valueTrend, setValueTrend] = useState<{ value: string; direction: "up" | "down" }>({ value: "+0%", direction: "up" })
+  const [attributionsTrend, setAttributionsTrend] = useState<TrendInfo>({ value: "+0%", direction: "up" })
+  const [valueTrend, setValueTrend] = useState<TrendInfo>({ value: "+0%", direction: "up" })
 
   // Get time of day greeting
   const getGreeting = () => {
@@ -220,69 +221,12 @@ export default function HomePage() {
         totalValueTracked: totalValueTracked.toFixed(2)
       })
 
-      // Calculate trends based on previous week's data
-      const lastWeekKey = `kpis_${session.user.uid}_lastweek`
-      const lastWeekData = localStorage.getItem(lastWeekKey)
-
-      if (lastWeekData) {
-        try {
-          const previousKpis = JSON.parse(lastWeekData)
-          const weekAgo = new Date(previousKpis.timestamp)
-          const daysSince = (Date.now() - weekAgo.getTime()) / (1000 * 60 * 60 * 24)
-
-          // Use any historical data that's at least 1 day old
-          if (daysSince >= 1) {
-            // Calculate attribution trend
-            const attrChange = previousKpis.totalAttributions > 0
-              ? ((totalTransactions - previousKpis.totalAttributions) / previousKpis.totalAttributions) * 100
-              : 0
-            setAttributionsTrend({
-              value: `${attrChange >= 0 ? '+' : ''}${attrChange.toFixed(1)}%`,
-              direction: attrChange >= 0 ? "up" : "down"
-            })
-
-            // Calculate value trend
-            const valueChange = previousKpis.valueUsd > 0
-              ? ((totalValueTracked - previousKpis.valueUsd) / previousKpis.valueUsd) * 100
-              : 0
-            setValueTrend({
-              value: `${valueChange >= 0 ? '+' : ''}${valueChange.toFixed(1)}%`,
-              direction: valueChange >= 0 ? "up" : "down"
-            })
-          }
-        } catch (e) {
-          console.error('Error parsing previous week data:', e)
-        }
-      }
-
-      // Store current data for next week's comparison (only if a week has passed)
-      const currentDataKey = `kpis_${session.user.uid}_current`
-      const currentStoredData = localStorage.getItem(currentDataKey)
-
-      if (currentStoredData) {
-        try {
-          const storedData = JSON.parse(currentStoredData)
-          const daysSinceStore = (Date.now() - new Date(storedData.timestamp).getTime()) / (1000 * 60 * 60 * 24)
-
-          // Move current to lastweek if 7+ days have passed
-          if (daysSinceStore >= 7) {
-            localStorage.setItem(lastWeekKey, currentStoredData)
-            localStorage.setItem(currentDataKey, JSON.stringify({
-              totalAttributions: totalTransactions,
-              valueUsd: totalValueTracked,
-              timestamp: Date.now()
-            }))
-          }
-        } catch (e) {
-          console.error('Error updating stored data:', e)
-        }
-      } else {
-        // First time - store current data
-        localStorage.setItem(currentDataKey, JSON.stringify({
-          totalAttributions: totalTransactions,
-          valueUsd: totalValueTracked,
-          timestamp: Date.now()
-        }))
+      // Fetch real data-driven trends from backend (last 6 days vs previous 6 days)
+      const trendToken = localStorage.getItem("bearer_token")
+      if (trendToken) {
+        const trends = await fetchTrends(trendToken)
+        setAttributionsTrend(trends.attributions)
+        setValueTrend(trends.value)
       }
 
       setKpis({

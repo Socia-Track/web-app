@@ -12,6 +12,7 @@ import { motion } from "framer-motion"
 import { ArrowLeft, Edit, Trash2, Play, Pause, TrendingUp, Users, DollarSign, Activity, Calendar, Settings, Target, Zap, Megaphone, MessageSquare, Link2, Copy } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
+import { fetchCampaignTrends, type TrendInfo } from "@/lib/trend-utils"
 
 export default function CampaignDetailPage() {
   const navigate = useNavigate()
@@ -28,6 +29,10 @@ export default function CampaignDetailPage() {
     totalClicks: 0,
     uniqueWallets: 0
   })
+  const [attributionsTrend, setAttributionsTrend] = useState<TrendInfo>({ value: "+0%", direction: "up" })
+  const [transactionsTrend, setTransactionsTrend] = useState<TrendInfo>({ value: "+0%", direction: "up" })
+  const [valueTrend, setValueTrend] = useState<TrendInfo>({ value: "+0%", direction: "up" })
+  const [confidenceTrend, setConfidenceTrend] = useState<TrendInfo>({ value: "+0%", direction: "up" })
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -150,6 +155,17 @@ export default function CampaignDetailPage() {
 
     if (session?.user) {
       fetchCampaignData()
+
+      // Fetch real data-driven trends from backend (last 6 days vs previous 6 days)
+      const token = localStorage.getItem("bearer_token")
+      if (token && params.id) {
+        fetchCampaignTrends(token, params.id).then(trends => {
+          setAttributionsTrend(trends.attributions)
+          setTransactionsTrend(trends.transactions)
+          setValueTrend(trends.value)
+          if (trends.confidence) setConfidenceTrend(trends.confidence)
+        })
+      }
     }
   }, [params.id, session, navigate])
 
@@ -305,7 +321,7 @@ export default function CampaignDetailPage() {
                   label="Attributions"
                   value={stats.attributions}
                   icon={<Activity size={24} />}
-                  trend={{ value: "+12%", direction: "up" }}
+                  trend={attributionsTrend}
                   subtitle="social posts tracked"
                   delay={0.1}
                 />
@@ -313,7 +329,7 @@ export default function CampaignDetailPage() {
                   label="Transactions"
                   value={stats.transactions}
                   icon={<TrendingUp size={24} />}
-                  trend={{ value: "+8%", direction: "up" }}
+                  trend={transactionsTrend}
                   subtitle="blockchain transactions"
                   delay={0.2}
                 />
@@ -321,7 +337,7 @@ export default function CampaignDetailPage() {
                   label="Total Value"
                   value={`$${stats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
                   icon={<DollarSign size={24} />}
-                  trend={{ value: "+15%", direction: "up" }}
+                  trend={valueTrend}
                   subtitle="in tracked value"
                   delay={0.3}
                 />
@@ -329,7 +345,7 @@ export default function CampaignDetailPage() {
                   label="Avg Confidence"
                   value={`${stats.avgConfidence.toFixed(0)}%`}
                   icon={<Target size={24} />}
-                  trend={{ value: "+3%", direction: "up" }}
+                  trend={confidenceTrend}
                   subtitle="attribution accuracy"
                   delay={0.4}
                 />
