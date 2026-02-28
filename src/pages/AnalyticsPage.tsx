@@ -16,7 +16,6 @@ import { Spinner } from "@/components/ui/spinner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { CartesianGrid, Line, LineChart, XAxis, Bar, BarChart } from "recharts"
-import { DateRange } from "react-day-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   Card,
@@ -304,12 +303,6 @@ export default function AnalyticsPage() {
       { date: new Date().toISOString().split('T')[0], visitors: 0, clicks: 0, transactions: 0, revenue: 0 }
     ]
 
-    console.log('📊 Web Analytics data received:', {
-      chartData: chartData,
-      dailyData: dailyData,
-      chartDataCalendar: chartDataCalendar.slice(0, 3), // Show first 3 items
-      totalItems: chartDataCalendar.length
-    })
 
     const total = chartDataCalendar.reduce((acc: number, curr: any) => acc + (curr.clicks || curr.visitors || 0), 0)
 
@@ -512,7 +505,6 @@ export default function AnalyticsPage() {
           ...(Array.isArray(tokenCampaigns) ? tokenCampaigns.map((t: any) => ({ ...t, campaignType: 'token' })) : [])
         ]
 
-        console.log('Fetched campaigns:', allCampaigns)
         setCampaigns(allCampaigns)
         
         // Platforms will be loaded when a campaign is selected (in fetchCampaignLinks)
@@ -580,13 +572,6 @@ export default function AnalyticsPage() {
         )
         const data = await response.json()
 
-        console.log('🔍 Analytics API Response:', data);
-        console.log('🔍 totalRevenue:', data.totalRevenue);
-        console.log('🔍 totalEth:', data.totalEth);
-        console.log('🔍 EXACT CHECK - data.totalRevenue value:', data.totalRevenue, 'type:', typeof data.totalRevenue);
-        console.log('🔍 EXACT CHECK - data.totalEth value:', data.totalEth, 'type:', typeof data.totalEth);
-        console.log('🔍 EXACT CHECK - parseFloat(totalEth):', parseFloat(data.totalEth || '0'));
-        console.log('🔍 EXACT CHECK - toFixed result:', parseFloat(data.totalEth || '0').toFixed(4));
 
         // Check if analytics have changed and log updates
         const prevActiveWallets = clickAnalytics?.activeWallets || 0
@@ -595,11 +580,9 @@ export default function AnalyticsPage() {
         const newRevenue = data.totalRevenue || 0
 
         if (prevActiveWallets !== newActiveWallets) {
-          console.log(`🔔 Active Wallets UPDATED: ${prevActiveWallets} → ${newActiveWallets} (+${newActiveWallets - prevActiveWallets})`)
           toast.success(`Active Wallets increased by ${newActiveWallets - prevActiveWallets}!`)
         }
         if (Math.abs(prevRevenue - newRevenue) > 0.01) {
-          console.log(`🔔 Revenue UPDATED: $${prevRevenue.toFixed(2)} → $${newRevenue.toFixed(2)} (+$${(newRevenue - prevRevenue).toFixed(2)})`)
           if (newRevenue > prevRevenue) {
             toast.success(`Revenue increased by $${(newRevenue - prevRevenue).toFixed(2)}!`)
           }
@@ -607,16 +590,6 @@ export default function AnalyticsPage() {
 
         setClickAnalytics(data)
         setLastUpdated(new Date())
-        console.log('📊 Real-time analytics fetched:', {
-          activeWallets: data.activeWallets,
-          totalRevenue: data.totalRevenue,
-          totalEth: data.totalEth,
-          rawData: data,
-          totalTransactions: data.totalTransactions,
-          recentTransactions: data.recentTransactions,
-          recentTransactionsCount: data.recentTransactions?.length || 0,
-          lastUpdated: new Date().toLocaleTimeString()
-        })
       } catch (error) {
         console.error('Error fetching real-time analytics:', error)
         setClickAnalytics(null)
@@ -646,7 +619,6 @@ export default function AnalyticsPage() {
       setTimeout(() => {
         const individualLinks = getIndividualLinkData()
         if (individualLinks && individualLinks.length > 0) {
-          console.log('🔄 Auto-selecting first person:', individualLinks[0].personName, individualLinks[0].id)
           setSelectedPersonLink(individualLinks[0].id)
         }
       }, 100) // Small delay to ensure data is ready
@@ -695,18 +667,6 @@ export default function AnalyticsPage() {
       const platforms = ['all', ...Array.from(uniquePlatforms).sort()]
       setAvailablePlatforms(platforms)
       
-      console.log('✅ Campaign links fetched:', {
-        campaignId,
-        linksCount: links.length,
-        uniquePlatforms: Array.from(uniquePlatforms),
-        links: links.map((link: any) => ({
-          id: link.id,
-          linkName: link.linkName,
-          platform: link.platform,
-          clickCount: link.clickCount,
-          conversionCount: link.conversionCount
-        }))
-      })
     } catch (error) {
       console.error('Error fetching campaign links:', error)
       setCampaignLinks([])
@@ -726,29 +686,8 @@ export default function AnalyticsPage() {
       link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
     )
 
-    console.log('🔍 Getting individual links for platform:', {
-      platformFilter,
-      totalCampaignLinks: campaignLinks.length,
-      platformLinks: platformLinks.length,
-      allPlatformsRaw: campaignLinks.map(link => `"${link.platform}"`).join(', '), // Show exact platform names
-      allCampaignLinks: campaignLinks.map(link => ({
-        id: link.id,
-        linkName: link.linkName,
-        platform: `"${link.platform}"`, // Show exact platform with quotes
-        clickCount: link.clickCount,
-        conversionCount: link.conversionCount
-      })),
-      platformLinksData: platformLinks.map(link => ({
-        id: link.id,
-        linkName: link.linkName,
-        platform: link.platform,
-        clickCount: link.clickCount,
-        conversionCount: link.conversionCount
-      }))
-    })
 
     if (platformLinks.length === 0) {
-      console.log('❌ No links found for platform:', platformFilter)
       return []
     }
 
@@ -760,7 +699,6 @@ export default function AnalyticsPage() {
       const platformNameMatch = link.platform.match(/^[^_]+_(.+)$/)
       if (platformNameMatch) {
         personName = platformNameMatch[1] // Extract the part after the underscore
-        console.log(`✅ Extracted person name from platform: ${link.platform} (${link.clickCount} clicks) -> ${personName}`)
       } else {
         // Fallback to plannedLinks if platform doesn't contain name
         try {
@@ -771,11 +709,9 @@ export default function AnalyticsPage() {
 
             if (personNames && personNames[index]) {
               personName = personNames[index]
-              console.log(`✅ Fallback to plannedLinks name: ${personName}`)
             }
           }
         } catch (error) {
-          console.log('Could not extract from plannedLinks:', error)
         }
       }
 
@@ -787,18 +723,8 @@ export default function AnalyticsPage() {
         } else {
           personName = link.linkName
         }
-        console.log(`📝 Extracted person name from linkName: ${personName}`)
       }
 
-      console.log(`👤 Final person data:`, {
-        linkId: link.id,
-        linkName: link.linkName,
-        personName: personName,
-        platform: link.platform,
-        platformSuffix: link.platform.match(/_(\d+)$/)?.[1] || 'none',
-        clicks: link.clickCount,
-        conversions: link.conversionCount
-      })
 
       return {
         ...link,
@@ -808,12 +734,6 @@ export default function AnalyticsPage() {
       }
     })
 
-    console.log('✅ Individual links processed:', individualLinks.map(link => ({
-      id: link.id,
-      personName: link.personName,
-      clicks: link.clicks,
-      conversions: link.conversions
-    })))
 
     return individualLinks
   }
@@ -834,19 +754,12 @@ export default function AnalyticsPage() {
       return null
     }
 
-    console.log('Getting data for selected link:', {
-      selectedPersonLink,
-      selectedLink: selectedLink,
-      linkId: selectedLink.id,
-      personName: selectedLink.personName
-    })
 
     // Get analytics data for the selected link (real or derived)
     const analytics = linkAnalytics[selectedLink.id] || {}
 
     // If no analytics data exists yet, trigger fetch
     if (Object.keys(analytics).length === 0 && selectedLink.id) {
-      console.log('No analytics data found, fetching for:', selectedLink.id)
       fetchLinkAnalytics(selectedLink.id)
     }
 
@@ -860,13 +773,6 @@ export default function AnalyticsPage() {
       chartData: analytics.chartData || { daily: [], hourly: [] }
     }
 
-    console.log('✅ Selected Person Data with Analytics:', {
-      personName: enrichedData.personName,
-      linkId: enrichedData.id,
-      totalClicks: enrichedData.totalClicks,
-      totalRevenue: enrichedData.totalRevenue,
-      analyticsKeys: Object.keys(enrichedData.analytics)
-    })
     return enrichedData
   }
 
@@ -876,33 +782,26 @@ export default function AnalyticsPage() {
 
     if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
       // Individual person selected - use their specific chart data
-      console.log(`📊 Using individual chart data for ${selectedPersonData.personName}`, {
-        personId: selectedPersonLink,
-        personName: selectedPersonData.personName,
-        clicks: selectedPersonData.totalClicks,
-        hasChartData: !!(selectedPersonData.analytics?.chartData)
-      })
       return {
         hourly: selectedPersonData.analytics?.chartData?.hourly || generateHourlyDataFromClicks(selectedPersonData.totalClicks),
         daily: selectedPersonData.analytics?.chartData?.daily || generateDailyDataFromClicks(selectedPersonData.totalClicks)
       }
     } else if (platformFilter !== "all") {
-      // Platform selected (but no specific person) - generate chart data from platform links
+      // Platform selected (but no specific person) - use campaign chart data (already filtered by platform on backend)
+      if (clickAnalytics?.chartData?.daily?.length > 0 && clickAnalytics?.chartData?.daily.some((d: any) => d.clicks > 0)) {
+        return {
+          hourly: generateHourlyDataFromClicks(clickAnalytics.chartData.daily.reduce((s: number, d: any) => s + (d.clicks || 0), 0)),
+          daily: clickAnalytics.chartData.daily
+        }
+      }
       const platformLinks = campaignLinks.filter(link =>
         link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
       )
 
       const totalPlatformClicks = platformLinks.reduce((sum, link) => sum + (link.clickCount || 0), 0)
-      const totalPlatformConversions = platformLinks.reduce((sum, link) => sum + (link.conversionCount || 0), 0)
 
-      console.log(`📊 Generating chart data for platform ${platformFilter}:`, {
-        totalClicks: totalPlatformClicks,
-        totalConversions: totalPlatformConversions,
-        linksCount: platformLinks.length,
-        selectedPersonLink: selectedPersonLink
-      })
 
-      // Generate chart data based on actual platform totals
+      // Fallback: generate chart data based on actual platform totals
       return {
         hourly: generateHourlyDataFromClicks(totalPlatformClicks),
         daily: generateDailyDataFromClicks(totalPlatformClicks)
@@ -912,13 +811,11 @@ export default function AnalyticsPage() {
       const totalCampaignClicks = campaignLinks.reduce((sum, link) => sum + (link.clickCount || 0), 0)
 
       if (clickAnalytics?.chartData?.hourly && clickAnalytics?.chartData?.daily) {
-        console.log('📊 Using campaign analytics chart data for all platforms')
         return {
           hourly: clickAnalytics.chartData.hourly,
           daily: clickAnalytics.chartData.daily
         }
       } else {
-        console.log('📊 Generating chart data from total campaign clicks:', totalCampaignClicks)
         return {
           hourly: generateHourlyDataFromClicks(totalCampaignClicks),
           daily: generateDailyDataFromClicks(totalCampaignClicks)
@@ -975,7 +872,6 @@ export default function AnalyticsPage() {
   const fetchLinkAnalytics = async (linkId: string) => {
     if (!linkId) return null
 
-    console.log('📊 Fetching REAL analytics for person link:', linkId)
 
     // Find the link in campaignLinks for basic info
     const link = campaignLinks.find(l => l.id === linkId)
@@ -996,13 +892,6 @@ export default function AnalyticsPage() {
       if (response.ok) {
         const realData = await response.json()
 
-        console.log(`✅ REAL blockchain data for ${link.linkName || 'Person'}:`, {
-          linkId,
-          realEthFromAPI: realData.totalEth,
-          realTransactions: realData.totalTransactions,
-          realWallets: realData.activeWallets,
-          clicksFromLink: link.clickCount
-        })
 
         // Use real blockchain data
         const linkAnalytics = {
@@ -1037,7 +926,6 @@ export default function AnalyticsPage() {
     }
 
     // Fallback to basic link data if API fails
-    console.log('⚠️ Using fallback data for:', link.linkName)
     const fallbackAnalytics = {
       totalClicks: link.clickCount || 0,
       totalTransactions: link.conversionCount || 0,
@@ -1083,13 +971,6 @@ export default function AnalyticsPage() {
     const realConversionRate = totalClicks > 0 ? Math.min((totalTransactionCount / totalClicks) * 100, 100) : 0
     const avgEthPerTransaction = totalTransactionCount > 0 ? totalEthRevenue / totalTransactionCount : 0.001
 
-    console.log('📊 Real Analytics Data for Chart:', {
-      totalClicks,
-      totalTransactionCount,
-      totalEthRevenue,
-      realConversionRate: realConversionRate.toFixed(2) + '%',
-      avgEthPerTransaction: avgEthPerTransaction.toFixed(4) + ' ' + getCampaignCurrency()
-    })
 
     for (let i = 29; i >= 0; i--) {
       const date = new Date()
@@ -1356,7 +1237,6 @@ export default function AnalyticsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   onClick={() => {
-                    console.log('Selecting campaign:', campaign)
                     setSelectedCampaign(campaign)
                   }}
                   className="rounded-2xl border border-border p-6 hover:border-accent/50 hover:shadow-lg transition-all cursor-pointer bg-card"
@@ -1442,7 +1322,6 @@ export default function AnalyticsPage() {
                       variant={platformFilter === platform ? "default" : "outline"}
                       size="sm"
                       onClick={() => {
-                        console.log(`Setting platform filter to ${platform}`)
                         setPlatformFilter(platform)
                       }}
                       className={platformFilter === platform
@@ -1476,12 +1355,6 @@ export default function AnalyticsPage() {
                             name={`platform-${platformFilter}`}
                             checked={selectedPersonLink === link.id}
                             onChange={() => {
-                              console.log('✅ Radio button selected:', {
-                                personName: link.personName,
-                                linkId: link.id,
-                                platform: link.platform,
-                                isReal: !link.id.startsWith('placeholder-')
-                              })
                               setSelectedPersonLink(link.id)
                             }}
                             className="w-4 h-4 border-2 border-border bg-background text-primary focus:ring-2 focus:ring-ring focus:border-primary"
@@ -1693,7 +1566,7 @@ export default function AnalyticsPage() {
                   </DialogContent>
                 </Dialog>
 
-                <Button variant="outline" className="border-border">
+                <Button variant="outline" className="border-border" onClick={handleExportReport} disabled={!clickAnalytics?.recentTransactions?.length}>
                   <Download size={20} className="mr-2" />
                   Export Report
                 </Button>
@@ -1792,12 +1665,6 @@ export default function AnalyticsPage() {
     totalTransactions = clickAnalytics?.totalTransactions || 0
     activeWallets = clickAnalytics?.activeWallets || 0
 
-    console.log(`📊 KPI Data from Backend (platform: ${clickAnalytics?.platformFilter || 'all'}):`, {
-      clicks: totalClicks,
-      transactions: totalTransactions,
-      activeWallets: activeWallets,
-      totalRevenue: clickAnalytics?.totalRevenue
-    })
 
     // Calculate platform data from campaign links directly
     const platformCounts: { [key: string]: { clicks: number, conversions: number, ethSpent: number } } = {}
@@ -1852,7 +1719,6 @@ export default function AnalyticsPage() {
 
     // Get recent transactions for display - always show all transactions for the campaign
     let recentTransactions = clickAnalytics?.recentTransactions || []
-    console.log('📋 Recent Transactions from backend:', recentTransactions)
 
     // Create top performers from recent transactions
     const topInfluencers = recentTransactions.slice(0, 4).map((tx: any, index: number) => ({
@@ -1889,12 +1755,6 @@ export default function AnalyticsPage() {
                 // ALWAYS use backend's clickAnalytics.totalRevenue - it's already filtered by platform
                 // The backend returns filtered data when platformFilter is passed
                 const ethValue = clickAnalytics?.totalRevenue || 0;
-                console.log('🎯 ETH Transactions KPI:', {
-                  platformFilter,
-                  backendPlatformFilter: clickAnalytics?.platformFilter,
-                  totalRevenue: ethValue,
-                  formatted: formatEthValue(ethValue, currency)
-                });
                 return formatEthValue(ethValue, currency);
               })(),
               change: `${totalTransactions} detected`,
@@ -2097,13 +1957,6 @@ export default function AnalyticsPage() {
                           <div className="text-foreground">
                             {(() => {
                               // Log transaction data for debugging
-                              console.log('💰 Transaction ETH data:', {
-                                transactionId: transaction.id,
-                                amount: transaction.amount,
-                                nftValue: transaction.nftValue,
-                                amountType: typeof transaction.amount,
-                                nftValueType: typeof transaction.nftValue
-                              });
 
                               // Try multiple possible field names for ETH amount
                               const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
@@ -2112,9 +1965,13 @@ export default function AnalyticsPage() {
                           </div>
                           <div className="text-green-700 font-semibold">
                             {(() => {
+                              // Use stored usdValue from DB if available, fallback to live price
+                              if (transaction.usdValue && transaction.usdValue > 0) {
+                                return `$${parseFloat(transaction.usdValue).toFixed(2)}`;
+                              }
                               const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
                               const parsedEth = parseFloat(ethAmount.toString());
-                              const usdValue = parsedEth * (prices.ETH || 2500); // Live ETH to USD
+                              const usdValue = parsedEth * (prices.ETH || 2500); // Live ETH to USD fallback
                               return `$${usdValue.toFixed(2)}`;
                             })()}
                           </div>
