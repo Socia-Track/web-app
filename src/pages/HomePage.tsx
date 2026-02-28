@@ -31,6 +31,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { usePrices } from "@/hooks/usePrices"
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ interface KPIs {
 export default function HomePage() {
   const navigate = useNavigate()
   const { data: session, isPending } = useSession()
+  const { prices } = usePrices()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -204,7 +206,7 @@ export default function HomePage() {
             // Calculate totals from batch response
             Object.values(analyticsData).forEach((analytics: any) => {
               totalTransactions += analytics.totalAttributions || analytics.totalTransactions || 0
-              totalValueTracked += analytics.totalValueUsd || (parseFloat(analytics.totalEth || '0') * 3400) // Use USD value if available, fallback to ETH conversion
+              totalValueTracked += analytics.totalValueUsd || (parseFloat(analytics.totalEth || '0') * (prices.ETH || 2500)) // Use USD value if available, fallback to live ETH price
             })
           }
         } catch (analyticsError) {
@@ -228,8 +230,8 @@ export default function HomePage() {
           const weekAgo = new Date(previousKpis.timestamp)
           const daysSince = (Date.now() - weekAgo.getTime()) / (1000 * 60 * 60 * 24)
 
-          // Only use data if it's between 6-8 days old (approximately a week)
-          if (daysSince >= 6 && daysSince <= 8) {
+          // Use any historical data that's at least 1 day old
+          if (daysSince >= 1) {
             // Calculate attribution trend
             const attrChange = previousKpis.totalAttributions > 0
               ? ((totalTransactions - previousKpis.totalAttributions) / previousKpis.totalAttributions) * 100

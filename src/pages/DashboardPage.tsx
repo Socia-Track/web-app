@@ -31,6 +31,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { usePrices } from "@/hooks/usePrices"
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ interface KPIs {
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { data: session, isPending } = useSession()
+  const { prices } = usePrices()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -195,7 +197,7 @@ export default function DashboardPage() {
             const analytics = await analyticsRes.json()
 
             totalTransactions += analytics.totalTransactions || 0
-            totalValueTracked += analytics.totalValueUsd || (parseFloat(analytics.totalEth || '0') * 3400) // Use USD value if available, fallback to ETH conversion
+            totalValueTracked += analytics.totalValueUsd || (parseFloat(analytics.totalEth || '0') * (prices.ETH || 2500)) // Use USD value if available, fallback to live ETH price
           } catch (analyticsError) {
             console.error(`Error fetching analytics for campaign ${campaign.name}:`, analyticsError)
           }

@@ -10,6 +10,7 @@ import Highlight from "@/components/Highlight"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useNetworks } from "@/hooks/useNetworks"
+import { usePrices } from "@/hooks/usePrices"
 import { Download, TrendingUp, DollarSign, MessageSquare, Target, Clock, ArrowLeft, Megaphone, Calendar, Search, Filter, Link2, Copy, ExternalLink, TrendingDown, CalendarIcon, RefreshCw } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -89,12 +90,14 @@ interface CampaignLink {
   uniqueClicks: number
   conversionCount: number
   totalRevenue: number
+  totalEthSpent: number
   createdAt: string
 }
 
 export default function AnalyticsPage() {
   const { data: session, isPending } = useSession()
   const { networks } = useNetworks()
+  const { prices } = usePrices()
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [loading, setLoading] = useState(true)
@@ -440,7 +443,7 @@ export default function AnalyticsPage() {
                         if (name === 'revenue') {
                           // Show actual ETH values from blockchain transactions
                           const currency = getCampaignCurrency();
-                          const ethValue = parseFloat(value as string) / 3400; // Convert USD back to ETH
+                          const ethValue = parseFloat(value as string) / (prices.ETH || 2500); // Convert USD back to ETH
                           return [`${ethValue.toFixed(4)} ${currency} ($${parseFloat(value as string).toFixed(2)})`, `Real Blockchain Revenue`]
                         }
                         if (name === 'transactions') {
@@ -1097,7 +1100,7 @@ export default function AnalyticsPage() {
       // Use real conversion rate and ETH values
       const dayTransactions = Math.floor(dayClicks * (realConversionRate / 100))
       const dayEthRevenue = dayTransactions * avgEthPerTransaction
-      const dayUsdRevenue = dayEthRevenue * 3400 // ETH to USD conversion
+      const dayUsdRevenue = dayEthRevenue * (prices.ETH || 2500) // ETH to USD conversion
 
       data.push({
         date: dateStr,
@@ -1135,7 +1138,7 @@ export default function AnalyticsPage() {
         hour: hour < 10 ? `0${hour}:00` : `${hour}:00`,
         clicks: hourClicks,
         transactions: hourTransactions,
-        revenue: hourEthRevenue * 3400, // Convert ETH to USD
+        revenue: hourEthRevenue * (prices.ETH || 2500), // Convert ETH to USD
         desktop: Math.floor(hourClicks * 0.6),
         mobile: Math.floor(hourClicks * 0.4)
       })
@@ -1797,17 +1800,18 @@ export default function AnalyticsPage() {
     })
 
     // Calculate platform data from campaign links directly
-    const platformCounts: { [key: string]: { clicks: number, conversions: number } } = {}
+    const platformCounts: { [key: string]: { clicks: number, conversions: number, ethSpent: number } } = {}
 
     // Group links by platform and sum their values (handle platform names with suffixes)
     campaignLinks.forEach(link => {
       // Extract base platform name (remove _1, _2, etc.)
       const basePlatform = link.platform.toLowerCase().replace(/_\d+$/, '')
       if (!platformCounts[basePlatform]) {
-        platformCounts[basePlatform] = { clicks: 0, conversions: 0 }
+        platformCounts[basePlatform] = { clicks: 0, conversions: 0, ethSpent: 0 }
       }
       platformCounts[basePlatform].clicks += link.clickCount || 0
       platformCounts[basePlatform].conversions += link.conversionCount || 0
+      platformCounts[basePlatform].ethSpent += link.totalEthSpent || 0
     })
 
     // Create platform data array
@@ -1815,7 +1819,7 @@ export default function AnalyticsPage() {
       platform: platform.charAt(0).toUpperCase() + platform.slice(1),
       clicks: data.clicks,
       influencers: campaignLinks.filter(link => link.platform.toLowerCase().startsWith(platform)).length,
-      value: `$${(data.conversions * 50).toLocaleString()}` // $50 per conversion
+      value: `$${(data.ethSpent * (prices.ETH || 2500)).toLocaleString()}` // Convert ETH to USD
     }))
 
     // If individual person is selected, filter to show only their data
@@ -1826,7 +1830,7 @@ export default function AnalyticsPage() {
             ...platform,
             clicks: selectedPersonData.clickCount || 0,
             influencers: 1, // Just this person
-            value: `$${((selectedPersonData.conversionCount || 0) * 50).toLocaleString()}`
+            value: `$${((selectedPersonData.totalEthSpent || 0) * (prices.ETH || 2500)).toLocaleString()}`
           }
         }
         return { ...platform, clicks: 0, influencers: 0, value: "$0" }
@@ -2110,7 +2114,7 @@ export default function AnalyticsPage() {
                             {(() => {
                               const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
                               const parsedEth = parseFloat(ethAmount.toString());
-                              const usdValue = parsedEth * 3400; // Approximate ETH to USD
+                              const usdValue = parsedEth * (prices.ETH || 2500); // Live ETH to USD
                               return `$${usdValue.toFixed(2)}`;
                             })()}
                           </div>
