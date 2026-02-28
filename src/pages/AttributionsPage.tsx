@@ -213,7 +213,7 @@ export default function AttributionsPage() {
           <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
               <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">
-                Attribution Dashboard(COMMING SOON)
+                Attribution Dashboard(COMING SOON)
               </h1>
               <p className="text-sm md:text-base text-gray-400">
                 Track social posts linked to blockchain transactions with AI-powered confidence scoring
