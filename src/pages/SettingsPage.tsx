@@ -20,8 +20,10 @@ export default function SettingsPage() {
   const { data: session, isPending } = useSession()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("profile")
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [twoFactorAuth, setTwoFactorAuth] = useState(false)
+  // TODO: Implement email notifications backend integration
+  // const [emailNotifications, setEmailNotifications] = useState(true)
+  // TODO: Implement 2FA with authenticator app integration
+  // const [twoFactorAuth, setTwoFactorAuth] = useState(false)
   const [loading, setLoading] = useState(false)
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
@@ -485,6 +487,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="space-y-4">
+                      {/* TODO: Implement Email Notifications - requires backend email service integration
                       <div className="flex items-center justify-between p-6 rounded-xl border border-border bg-card transition-all">
                         <div className="flex-1">
                           <p className="font-medium text-foreground text-base">Email Notifications</p>
@@ -492,7 +495,9 @@ export default function SettingsPage() {
                         </div>
                         <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
                       </div>
+                      */}
 
+                      {/* TODO: Implement Weekly Reports - requires scheduled email reports service
                       <div className="flex items-center justify-between p-6 rounded-xl border border-border bg-card transition-all">
                         <div className="flex-1">
                           <p className="font-medium text-foreground text-base">Weekly Reports</p>
@@ -500,6 +505,7 @@ export default function SettingsPage() {
                         </div>
                         <Switch defaultChecked />
                       </div>
+                      */}
 
                       <div className="flex items-center justify-between p-6 rounded-xl border border-border bg-card transition-all">
                         <div className="flex-1">
@@ -594,9 +600,13 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
+                    {/* TODO: Implement Two-Factor Authentication
+                         - Requires: TOTP library (speakeasy), QR code generation, 
+                         - Backend: Store 2FA secret in user table, verify codes on login
+                         - Frontend: Generate QR code, handle verification flow
+                    
                     <Separator />
 
-                    {/* Two-Factor Authentication */}
                     <div>
                       <h2 className="text-2xl font-bold text-foreground mb-2">Two-Factor Authentication</h2>
                       <p className="text-muted-foreground mb-6">Add an extra layer of security to your account</p>
@@ -624,6 +634,7 @@ export default function SettingsPage() {
                         )}
                       </div>
                     </div>
+                    */}
                   </div>
                 )}
               </motion.div>

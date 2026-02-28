@@ -36,6 +36,7 @@ const plans = [
       { text: "5 campaigns", included: true },
       { text: "2 links per campaign", included: true },
       { text: "50 wallet / campaign", included: true },
+      // TODO: Implement report download feature - PDF/CSV export
       { text: "Download report", included: true },
       { text: "Multi-chain support", included: true }
     ],
@@ -51,7 +52,8 @@ const plans = [
       { text: "50 campaigns", included: true },
       { text: "3 links per campaign", included: true },
       { text: "100 wallet / campaign", included: true },
-      { text: "Download report", included: true },
+      // TODO: Implement report download feature - PDF/CSV export
+      // { text: "Download report", included: true },
       { text: "Multi-chain support", included: true },
       { text: "Early access to our V2", included: true }
     ],
@@ -67,7 +69,8 @@ const plans = [
       { text : "Custom campaigns", included: true},
       { text : "Custom links per campaign", included: true},
       { text : "Custom wallet / campaign", included: true},
-      { text : "Download report", included: true},
+      // TODO: Implement report download feature - PDF/CSV export
+      // { text : "Download report", included: true},
       { text : "Multi-chain support", included: true},
       { text : "Custom features", included: true},
       { text : "Early access to our V2", included: true}
