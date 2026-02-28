@@ -72,6 +72,8 @@ export default function DashboardPage() {
     postsCaptured: 0,
     lastUpdated: new Date()
   })
+  const [attributionsTrend, setAttributionsTrend] = useState<{ value: string; direction: "up" | "down" }>({ value: "+0%", direction: "up" })
+  const [valueTrend, setValueTrend] = useState<{ value: string; direction: "up" | "down" }>({ value: "+0%", direction: "up" })
 
   // Get time of day greeting
   const getGreeting = () => {
@@ -206,6 +208,70 @@ export default function DashboardPage() {
         totalValueTracked: totalValueTracked.toFixed(2)
       })
 
+      // Calculate trends based on previous week's data
+      const lastWeekKey = `dashboard_kpis_${session.user.uid}_lastweek`
+      const currentDataKey = `dashboard_kpis_${session.user.uid}_current`
+      const lastWeekData = localStorage.getItem(lastWeekKey)
+
+      if (lastWeekData) {
+        try {
+          const previousKpis = JSON.parse(lastWeekData)
+          const weekAgo = new Date(previousKpis.timestamp)
+          const daysSince = (Date.now() - weekAgo.getTime()) / (1000 * 60 * 60 * 24)
+
+          // Only use data if it's between 6-8 days old (approximately a week)
+          if (daysSince >= 6 && daysSince <= 8) {
+            // Calculate attribution trend
+            const attrChange = previousKpis.totalAttributions > 0
+              ? ((totalTransactions - previousKpis.totalAttributions) / previousKpis.totalAttributions) * 100
+              : 0
+            setAttributionsTrend({
+              value: `${attrChange >= 0 ? '+' : ''}${attrChange.toFixed(1)}%`,
+              direction: attrChange >= 0 ? "up" : "down"
+            })
+
+            // Calculate value trend
+            const valueChange = previousKpis.valueUsd > 0
+              ? ((totalValueTracked - previousKpis.valueUsd) / previousKpis.valueUsd) * 100
+              : 0
+            setValueTrend({
+              value: `${valueChange >= 0 ? '+' : ''}${valueChange.toFixed(1)}%`,
+              direction: valueChange >= 0 ? "up" : "down"
+            })
+          }
+        } catch (e) {
+          console.error('Error parsing previous week data:', e)
+        }
+      }
+
+      // Store current data for next week's comparison
+      const currentStoredData = localStorage.getItem(currentDataKey)
+      if (currentStoredData) {
+        try {
+          const storedData = JSON.parse(currentStoredData)
+          const daysSinceStore = (Date.now() - new Date(storedData.timestamp).getTime()) / (1000 * 60 * 60 * 24)
+
+          // Move current to lastweek if 7+ days have passed
+          if (daysSinceStore >= 7) {
+            localStorage.setItem(lastWeekKey, currentStoredData)
+            localStorage.setItem(currentDataKey, JSON.stringify({
+              totalAttributions: totalTransactions,
+              valueUsd: totalValueTracked,
+              timestamp: Date.now()
+            }))
+          }
+        } catch (e) {
+          console.error('Error updating stored data:', e)
+        }
+      } else {
+        // First time - store current data
+        localStorage.setItem(currentDataKey, JSON.stringify({
+          totalAttributions: totalTransactions,
+          valueUsd: totalValueTracked,
+          timestamp: Date.now()
+        }))
+      }
+
       setKpis({
         totalAttributions: totalTransactions,
         avgScore: 0,
@@ -331,7 +397,7 @@ export default function DashboardPage() {
             label="Total Attributions"
             value={kpis.totalAttributions}
             icon={<Activity size={24} />}
-            trend={{ value: "+12.5%", direction: "up" }}
+            trend={attributionsTrend}
             subtitle="vs last week"
             delay={0.2}
           />
@@ -339,8 +405,8 @@ export default function DashboardPage() {
             label="Total Value Tracked"
             value={`$${kpis.valueUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
             icon={<DollarSign size={24} />}
-            trend={{ value: "+23.1%", direction: "up" }}
-            subtitle="in transactions"
+            trend={valueTrend}
+            subtitle="vs last week"
             delay={0.3}
           />
         </div>
