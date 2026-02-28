@@ -100,11 +100,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [platformFilter, setPlatformFilter] = useState<string>("all")
-  const [availablePlatforms, setAvailablePlatforms] = useState<string[]>(() => {
-    const saved = localStorage.getItem('customPlatforms')
-    const custom = saved ? JSON.parse(saved) : []
-    return ['all', 'discord', 'twitter', ...custom.map((p: string) => p.toLowerCase())]
-  })
+  const [availablePlatforms, setAvailablePlatforms] = useState<string[]>(['all'])
   const [attributions, setAttributions] = useState<Attribution[]>([])
   const [attributionsLoading, setAttributionsLoading] = useState(false)
   const [clickAnalytics, setClickAnalytics] = useState<any>(null)
@@ -170,11 +166,7 @@ export default function AnalyticsPage() {
           <div className="flex gap-2 flex-wrap">
             {availablePlatforms.map(platform => {
               const displayName = platform === 'all' ? 'All Platforms' : 
-                                  platform === 'discord' ? 'Discord' :
-                                  platform === 'twitter' ? 'Twitter' :
                                   platform.charAt(0).toUpperCase() + platform.slice(1)
-              const icon = platform === 'discord' ? <MessageSquare size={14} className="mr-1" /> :
-                          platform === 'twitter' ? <Target size={14} className="mr-1" /> : null
               
               return (
                 <Button
@@ -186,7 +178,6 @@ export default function AnalyticsPage() {
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
                     : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
                 >
-                  {icon}
                   {displayName}
                 </Button>
               )
@@ -352,11 +343,7 @@ export default function AnalyticsPage() {
             <div className="flex gap-2 flex-wrap">
               {availablePlatforms.map(platform => {
                 const displayName = platform === 'all' ? 'All Platforms' : 
-                                    platform === 'discord' ? 'Discord' :
-                                    platform === 'twitter' ? 'Twitter' :
                                     platform.charAt(0).toUpperCase() + platform.slice(1)
-                const icon = platform === 'discord' ? <MessageSquare size={14} className="mr-1" /> :
-                            platform === 'twitter' ? <Target size={14} className="mr-1" /> : null
                 
                 return (
                   <Button
@@ -368,7 +355,6 @@ export default function AnalyticsPage() {
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
                       : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
                   >
-                    {icon}
                     {displayName}
                   </Button>
                 )
@@ -493,23 +479,7 @@ export default function AnalyticsPage() {
     )
   }
 
-  // Reload available platforms when component mounts or when window gains focus
-  useEffect(() => {
-    const loadPlatforms = () => {
-      const saved = localStorage.getItem('customPlatforms')
-      const custom = saved ? JSON.parse(saved) : []
-      setAvailablePlatforms(['all', 'discord', 'twitter', ...custom.map((p: string) => p.toLowerCase())])
-    }
-
-    // Load platforms on mount
-    loadPlatforms()
-
-    // Also reload when window gains focus (user might have added a platform in another tab/page)
-    const handleFocus = () => loadPlatforms()
-    window.addEventListener('focus', handleFocus)
-
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [])
+  // Platforms are now dynamically loaded from campaign links in fetchCampaignLinks
 
   // Fetch campaigns
   useEffect(() => {
@@ -542,10 +512,7 @@ export default function AnalyticsPage() {
         console.log('Fetched campaigns:', allCampaigns)
         setCampaigns(allCampaigns)
         
-        // Also reload platforms when campaigns are loaded
-        const saved = localStorage.getItem('customPlatforms')
-        const custom = saved ? JSON.parse(saved) : []
-        setAvailablePlatforms(['all', 'discord', 'twitter', ...custom.map((p: string) => p.toLowerCase())])
+        // Platforms will be loaded when a campaign is selected (in fetchCampaignLinks)
       } catch (error) {
         console.error('Error fetching campaigns:', error)
       } finally {
@@ -665,7 +632,7 @@ export default function AnalyticsPage() {
     const interval = setInterval(() => fetchRealTimeAnalytics(true), 30000)
 
     return () => clearInterval(interval)
-  }, [selectedCampaign, session])
+  }, [selectedCampaign, session, platformFilter])
 
   // Reset and auto-select first person when platform filter changes
   useEffect(() => {
@@ -708,12 +675,28 @@ export default function AnalyticsPage() {
       }
 
       const data = await response.json()
-      setCampaignLinks(data.links || [])
+      const links = data.links || []
+      setCampaignLinks(links)
 
+      // Extract unique base platforms from links (e.g., discord_john -> discord)
+      const uniquePlatforms = new Set<string>()
+      links.forEach((link: any) => {
+        if (link.platform) {
+          // Extract base platform name (remove _suffix like _john, _1, etc.)
+          const basePlatform = link.platform.toLowerCase().replace(/_[^_]+$/, '')
+          uniquePlatforms.add(basePlatform)
+        }
+      })
+      
+      // Update available platforms: 'all' + unique platforms from this campaign
+      const platforms = ['all', ...Array.from(uniquePlatforms).sort()]
+      setAvailablePlatforms(platforms)
+      
       console.log('✅ Campaign links fetched:', {
         campaignId,
-        linksCount: data.links?.length || 0,
-        links: data.links?.map((link: any) => ({
+        linksCount: links.length,
+        uniquePlatforms: Array.from(uniquePlatforms),
+        links: links.map((link: any) => ({
           id: link.id,
           linkName: link.linkName,
           platform: link.platform,
@@ -1448,11 +1431,7 @@ export default function AnalyticsPage() {
               <div className="flex gap-2 flex-wrap">
                 {availablePlatforms.map(platform => {
                   const displayName = platform === 'all' ? 'All Platforms' : 
-                                      platform === 'discord' ? 'Discord' :
-                                      platform === 'twitter' ? 'Twitter' :
                                       platform.charAt(0).toUpperCase() + platform.slice(1)
-                  const icon = platform === 'discord' ? <MessageSquare size={16} className="mr-1" /> :
-                              platform === 'twitter' ? <Target size={16} className="mr-1" /> : null
                   
                   return (
                     <Button
@@ -1467,7 +1446,6 @@ export default function AnalyticsPage() {
                         ? "bg-primary text-primary-foreground hover:bg-primary/90"
                         : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"}
                     >
-                      {icon}
                       {displayName}
                     </Button>
                   )
@@ -1802,56 +1780,21 @@ export default function AnalyticsPage() {
     // Get selected person data for filtering
     const selectedPersonData = getSelectedPersonData()
 
-    // Real analytics calculation using actual NFT/Token transactions from blockchain
+    // Real analytics calculation - ALWAYS use backend data for KPIs
+    // The backend already filters by platform, so we use clickAnalytics directly
     let totalClicks, totalTransactions, activeWallets
 
-    if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
-      // Individual person selected - show their specific data
-      totalClicks = selectedPersonData.totalClicks || selectedPersonData.clickCount || 0
-      totalTransactions = selectedPersonData.conversionCount || 0
-      activeWallets = Math.min(totalClicks, 5) // Reasonable estimate for individual
+    // Use backend-filtered data for all cases (platform filter is sent to backend)
+    totalClicks = clickAnalytics?.totalClicks || 0
+    totalTransactions = clickAnalytics?.totalTransactions || 0
+    activeWallets = clickAnalytics?.activeWallets || 0
 
-      console.log(`👤 Individual person data for ${selectedPersonData.personName}:`, {
-        clicks: totalClicks,
-        transactions: totalTransactions,
-        selectedPersonLink: selectedPersonLink,
-        selectedPersonData: selectedPersonData
-      })
-    } else if (platformFilter !== "all") {
-      // Platform filter selected - sum all links for that platform
-      const platformLinks = campaignLinks.filter(link =>
-        link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
-      )
-
-      totalClicks = platformLinks.reduce((sum, link) => sum + (link.clickCount || 0), 0)
-      totalTransactions = platformLinks.reduce((sum, link) => sum + (link.conversionCount || 0), 0)
-      activeWallets = Math.min(totalClicks, 10)
-
-      console.log(`📱 Platform ${platformFilter} totals (no specific person):`, {
-        clicks: totalClicks,
-        transactions: totalTransactions,
-        linksCount: platformLinks.length,
-        selectedPersonLink: selectedPersonLink,
-        links: platformLinks.map(link => ({
-          id: link.id,
-          name: link.linkName,
-          platform: link.platform,
-          clicks: link.clickCount,
-          conversions: link.conversionCount
-        }))
-      })
-    } else {
-      // All platforms - use real transaction data from backend
-      totalClicks = campaignLinks.reduce((sum, link) => sum + (link.clickCount || 0), 0)
-      totalTransactions = clickAnalytics?.totalTransactions ?? 0
-      activeWallets = clickAnalytics?.activeWallets || 0
-
-      console.log(`🌐 All platforms analytics:`, {
-        backendTotalTransactions: clickAnalytics?.totalTransactions,
-        activeWallets: activeWallets,
-        ethFromBackend: clickAnalytics?.totalRevenue
-      })
-    }
+    console.log(`📊 KPI Data from Backend (platform: ${clickAnalytics?.platformFilter || 'all'}):`, {
+      clicks: totalClicks,
+      transactions: totalTransactions,
+      activeWallets: activeWallets,
+      totalRevenue: clickAnalytics?.totalRevenue
+    })
 
     // Calculate platform data from campaign links directly
     const platformCounts: { [key: string]: { clicks: number, conversions: number } } = {}
@@ -1939,53 +1882,18 @@ export default function AnalyticsPage() {
               label: `${getCampaignCurrency()} Transactions`,
               value: (() => {
                 const currency = getCampaignCurrency();
-                if (selectedPersonData && selectedPersonLink && platformFilter !== "all") {
-                  // ✅ Individual person selected - use their specific ETH from real transactions
-                  const personEth = selectedPersonData.totalRevenue || 0;
-                  console.log('🎯 PERSON-SPECIFIC ETH (Real Blockchain):', {
-                    personName: selectedPersonData.personName,
-                    linkId: selectedPersonLink,
-                    rawEthValue: personEth,
-                    formattedEth: formatEthValue(personEth, currency)
-                  });
-                  return formatEthValue(personEth, currency);
-                } else if (platformFilter !== "all") {
-                  // ✅ Platform filter selected - use backend filtered ETH data
-                  if (clickAnalytics?.platformFilter === platformFilter) {
-                    const platformEth = clickAnalytics?.totalEth || '0';
-                    console.log('🎯 PLATFORM-FILTERED ETH (Backend):', {
-                      platform: platformFilter,
-                      rawEthValue: platformEth,
-                      formattedEth: formatEthValue(platformEth, currency)
-                    });
-                    return formatEthValue(platformEth, currency);
-                  } else {
-                    // Fallback to manual calculation
-                    const platformLinks = campaignLinks.filter(link =>
-                      link.platform.toLowerCase().startsWith(platformFilter.toLowerCase())
-                    );
-                    const platformEth = platformLinks.reduce((sum, link) => sum + (link.totalRevenue || 0), 0);
-                    console.log('🎯 PLATFORM-MANUAL ETH:', {
-                      platform: platformFilter,
-                      platformLinks: platformLinks.length,
-                      rawEthValue: platformEth,
-                      formattedEth: formatEthValue(platformEth, currency)
-                    });
-                    return formatEthValue(platformEth, currency);
-                  }
-                } else {
-                  // ✅ All platforms - use campaign total ETH from raw totalRevenue (not pre-formatted totalEth)
-                  const campaignEth = clickAnalytics?.totalRevenue || 0; // Use totalRevenue instead of totalEth
-                  console.log('🎯 CAMPAIGN TOTAL ETH:', {
-                    rawTotalRevenue: clickAnalytics?.totalRevenue,
-                    preFormattedTotalEth: clickAnalytics?.totalEth,
-                    usingRawValue: campaignEth,
-                    smartFormatted: formatEthValue(campaignEth, currency)
-                  });
-                  return formatEthValue(campaignEth, currency);
-                }
+                // ALWAYS use backend's clickAnalytics.totalRevenue - it's already filtered by platform
+                // The backend returns filtered data when platformFilter is passed
+                const ethValue = clickAnalytics?.totalRevenue || 0;
+                console.log('🎯 ETH Transactions KPI:', {
+                  platformFilter,
+                  backendPlatformFilter: clickAnalytics?.platformFilter,
+                  totalRevenue: ethValue,
+                  formatted: formatEthValue(ethValue, currency)
+                });
+                return formatEthValue(ethValue, currency);
               })(),
-              change: `${clickAnalytics?.totalTransactions ?? 0} detected`,
+              change: `${totalTransactions} detected`,
               subtitle: `Real ${getCampaignCurrency()} from Blockchain`
             },
             {
