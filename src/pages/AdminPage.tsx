@@ -21,7 +21,10 @@ import {
   Key,
   UserCog,
   Shield,
-  Eye
+  Eye,
+  UserCheck,
+  UserMinus,
+  Trash2
 } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
@@ -47,6 +50,7 @@ interface AccessRequest {
   rejectionReason?: string
   createdAt: string
   requestData?: any
+  isActive: boolean,
 }
 
 export default function AdminPage() {
@@ -58,6 +62,11 @@ export default function AdminPage() {
   const [selectedRequest, setSelectedRequest] = useState<AccessRequest | null>(null)
   const [showApprovalDialog, setShowApprovalDialog] = useState(false)
   const [showRejectionDialog, setShowRejectionDialog] = useState(false)
+  const [showDisableDialog, setShowDisableDialog] = useState(false)
+  const [userToToggle, setUserToToggle] = useState<any>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<any>(null)
+  const [deleteConfirmation, setDeleteConfirmation] = useState("")
   const [generatedPassword, setGeneratedPassword] = useState("")
   const [rejectionReason, setRejectionReason] = useState("")
   const [allUsers, setAllUsers] = useState<any[]>([])
@@ -86,7 +95,7 @@ export default function AdminPage() {
       if (adminSession) {
         try {
           const mockSession = JSON.parse(adminSession)
-          if (mockSession.user?.email === 'contact@sociatrack.admin') {
+          if (mockSession.user?.email === 'admin@sociatrack.com') {
             console.log("✅ Admin session verified")
             return true // Allow access
           }
@@ -115,7 +124,7 @@ export default function AdminPage() {
   const fetchAccessRequests = async () => {
     // Check if we have admin access (either through regular session or admin bypass)
     const adminSession = localStorage.getItem('admin_session')
-    const hasAdminAccess = (session?.user?.uid) || (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
+    const hasAdminAccess = (session?.user?.uid) || (adminSession && JSON.parse(adminSession).user?.email === 'admin@sociatrack.com')
 
     if (!hasAdminAccess) return
 
@@ -160,8 +169,8 @@ export default function AdminPage() {
   useEffect(() => {
     // Check both regular session and admin bypass session
     const adminSession = localStorage.getItem('admin_session')
-    const hasAdminAccess = (session?.user && session.user.email === 'contact@sociatrack.admin') ||
-      (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
+    const hasAdminAccess = (session?.user && session.user.email === 'admin@sociatrack.com') ||
+      (adminSession && JSON.parse(adminSession).user?.email === 'admin@sociatrack.com')
 
     if (hasAdminAccess) {
       fetchAccessRequests()
@@ -377,6 +386,93 @@ export default function AdminPage() {
     }
   }
 
+  const handleToggleDisable = async () => {
+    if (!userToToggle) return
+
+    try {
+      const token = localStorage.getItem("bearer_token")
+
+      if (!token) {
+        toast.error('Session expired. Please log out and log in again.')
+        return
+      }
+
+      // the user model we get has isActive, if they are currently active, we want to disable (isActive = false)
+      const newIsActive = !userToToggle.isActive
+
+      const response = await fetch(getApiUrl(API_ENDPOINTS.USER_DISABLE(userToToggle.id)), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isActive: newIsActive })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update user status')
+      }
+
+      const responseData = await response.json()
+
+      // Update local state
+      setAllUsers(prev => prev.map(u =>
+        u.id === userToToggle.id ? { ...u, ...responseData.user } : u
+      ))
+
+      toast.success(responseData.message)
+      setShowDisableDialog(false)
+      setUserToToggle(null)
+    } catch (error) {
+      console.error('Error toggling user status:', error)
+      toast.error(error instanceof Error ? error.message : "Failed to update user status")
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return
+    if (deleteConfirmation !== "DELETE") {
+      toast.error("Please type DELETE to confirm")
+      return
+    }
+
+    try {
+      const token = localStorage.getItem("bearer_token")
+      if (!token) {
+        toast.error('Session expired. Please log out and log in again.')
+        return
+      }
+
+      const response = await fetch(getApiUrl(API_ENDPOINTS.USER_DELETE(userToDelete.id)), {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to soft delete user')
+      }
+
+      const responseData = await response.json()
+
+      // Update local state to show the user as inactive/deleted
+      setAllUsers(prev => prev.map(u =>
+        u.id === userToDelete.id ? { ...u, isActive: false } : u
+      ))
+
+      toast.success(responseData.message || "User successfully deleted")
+      setShowDeleteDialog(false)
+      setUserToDelete(null)
+      setDeleteConfirmation("")
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      toast.error(error instanceof Error ? error.message : "Failed to delete user")
+    }
+  }
+
   const handleLogout = async () => {
     try {
       // Clear admin session from localStorage
@@ -412,8 +508,8 @@ export default function AdminPage() {
 
   // Check admin access for rendering
   const adminSession = localStorage.getItem('admin_session')
-  const hasAdminAccess = (session?.user && session.user.email === 'contact@sociatrack.admin') ||
-    (adminSession && JSON.parse(adminSession).user?.email === 'contact@sociatrack.admin')
+  const hasAdminAccess = (session?.user && session.user.email === 'admin@sociatrack.com') ||
+    (adminSession && JSON.parse(adminSession).user?.email === 'admin@sociatrack.com')
 
   if (!hasAdminAccess) return null
 
@@ -900,6 +996,7 @@ export default function AdminPage() {
                           <th className="text-left p-4 font-medium" style={{ color: '#1A1A1A' }}>Name</th>
                           <th className="text-left p-4 font-medium" style={{ color: '#1A1A1A' }}>Email</th>
                           <th className="text-left p-4 font-medium" style={{ color: '#1A1A1A' }}>Role</th>
+                          <th className="text-left p-4 font-medium" style={{ color: '#1A1A1A' }}>Status</th>
                           <th className="text-left p-4 font-medium" style={{ color: '#1A1A1A' }}>Limits</th>
                           <th className="text-left p-4 font-medium" style={{ color: '#1A1A1A' }}>Joined</th>
                           <th className="text-left p-4 font-medium" style={{ color: '#1A1A1A' }}>Actions</th>
@@ -914,6 +1011,18 @@ export default function AdminPage() {
                             <td className="p-4 text-sm" style={{ color: '#6B7280' }}>{user.email}</td>
                             <td className="p-4">
                               <Badge variant="outline" className="text-xs" style={{ color: '#374151', borderColor: '#E5E7EB' }}>{user.role}</Badge>
+                            </td>
+                            <td className="p-4">
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs ${user.isActive ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500' : 'bg-red-500/10 text-red-500 border-red-500'}`}
+                                style={{
+                                  color: user.isActive ? '#10B981' : '#EF4444',
+                                  borderColor: user.isActive ? '#10B981' : '#EF4444'
+                                }}
+                              >
+                                {user.isActive ? 'Active' : 'Inactive'}
+                              </Badge>
                             </td>
                             <td className="p-4">
                               <div className="text-sm" style={{ color: '#6B7280' }}>
@@ -962,15 +1071,55 @@ export default function AdminPage() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleEditLimits(user)}
+                                  disabled={!user.isActive}
                                   style={{
-                                    borderColor: '#D4E157',
-                                    color: '#1A1A1A',
-                                    backgroundColor: 'transparent'
+                                    borderColor: user.isActive ? '#D4E157' : '#E5E7EB',
+                                    color: user.isActive ? '#1A1A1A' : '#9CA3AF',
+                                    backgroundColor: 'transparent',
+                                    opacity: !user.isActive ? 0.5 : 1
                                   }}
-                                  className="hover:bg-yellow-50"
+                                  className={user.isActive ? "hover:bg-yellow-50" : ""}
                                 >
                                   <UserCog className="h-3 w-3 mr-1" />
                                   Limits
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setUserToToggle(user)
+                                    setShowDisableDialog(true)
+                                  }}
+                                  style={{
+                                    borderColor: user.isActive ? '#EF4444' : '#10B981',
+                                    color: user.isActive ? '#EF4444' : '#10B981',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                  className={user.isActive ? "hover:bg-red-50" : "hover:bg-green-50"}
+                                >
+                                  {user.isActive ? (
+                                    <><UserMinus className="h-3 w-3 mr-1" /> Disable</>
+                                  ) : (
+                                    <><UserCheck className="h-3 w-3 mr-1" /> Enable</>
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setUserToDelete(user)
+                                    setDeleteConfirmation("")
+                                    setShowDeleteDialog(true)
+                                  }}
+                                  style={{
+                                    borderColor: '#EF4444',
+                                    color: '#EF4444',
+                                    backgroundColor: 'transparent'
+                                  }}
+                                  className="hover:bg-red-50"
+                                  title="Soft delete user"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" /> Remove
                                 </Button>
                               </div>
                             </td>
@@ -1296,6 +1445,123 @@ export default function AdminPage() {
               >
                 <UserCog className="h-3 w-3 mr-1" />
                 Update Plan
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Disable User Confirmation Dialog */}
+      <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
+        <DialogContent className="sm:max-w-md bg-white border" style={{ borderColor: '#E5E7EB' }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: userToToggle?.isActive ? '#EF4444' : '#10B981' }}>
+              {userToToggle?.isActive ? 'Disable User Account' : 'Re-enable User Account'}
+            </DialogTitle>
+            <DialogDescription style={{ color: '#6B7280' }}>
+              {userToToggle?.isActive 
+                ? 'This action is immediate. The user will be immediately logged out and unable to log back in. Their data will be preserved.' 
+                : 'This action will allow the user to log in again using their existing credentials.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm" style={{ color: '#6B7280' }}>
+              You are about to {userToToggle?.isActive ? 'disable' : 're-enable'} the account for:
+            </div>
+            <div className="font-medium" style={{ color: '#1A1A1A' }}>
+              {userToToggle?.firstName} {userToToggle?.lastName}
+            </div>
+            <div className="text-sm" style={{ color: '#6B7280' }}>
+              {userToToggle?.email}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowDisableDialog(false)}
+                style={{
+                  borderColor: '#E5E7EB',
+                  color: '#374151'
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleToggleDisable}
+                style={{
+                  backgroundColor: userToToggle?.isActive ? '#EF4444' : '#10B981',
+                  color: '#FFFFFF',
+                  borderColor: userToToggle?.isActive ? '#EF4444' : '#10B981'
+                }}
+                className={userToToggle?.isActive ? "hover:bg-red-600" : "hover:bg-green-600"}
+              >
+                {userToToggle?.isActive ? (
+                  <><UserMinus className="h-4 w-4 mr-2" /> Confirm Disable</>
+                ) : (
+                  <><UserCheck className="h-4 w-4 mr-2" /> Confirm Re-enable</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-md bg-white border" style={{ borderColor: '#E5E7EB' }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: '#EF4444' }} className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Remove User Account
+            </DialogTitle>
+            <DialogDescription style={{ color: '#6B7280' }}>
+              This action is irreversible. The user will be immediately logged out, completely disabled, and visually marked as deleted. Their historical data will remain intact in the database.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm" style={{ color: '#6B7280' }}>
+              You are about to soft delete the account for:
+            </div>
+            <div className="font-medium" style={{ color: '#1A1A1A' }}>
+              {userToDelete?.firstName} {userToDelete?.lastName}
+            </div>
+            <div className="text-sm" style={{ color: '#6B7280' }}>
+              {userToDelete?.email}
+            </div>
+            
+            <div className="space-y-2 mt-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
+              <Label style={{ color: '#374151' }}>To confirm, type <strong>DELETE</strong> below:</Label>
+              <Input
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="Type DELETE"
+                className="bg-white border-red-200 focus-visible:ring-red-500 text-black"
+                style={{ color: '#1A1A1A' }}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteDialog(false)}
+                style={{
+                  borderColor: '#E5E7EB',
+                  color: '#374151'
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteUser}
+                disabled={deleteConfirmation !== "DELETE"}
+                style={{
+                  backgroundColor: '#EF4444',
+                  color: '#FFFFFF',
+                  borderColor: '#EF4444',
+                  opacity: deleteConfirmation !== "DELETE" ? 0.5 : 1
+                }}
+                className="hover:bg-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" /> Confirm Remove
               </Button>
             </div>
           </div>

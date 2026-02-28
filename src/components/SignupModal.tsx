@@ -118,7 +118,7 @@ export default function SignupModal({ open, onOpenChange, onSwitchToLogin }: Sig
         return
       }
 
-      toast.success("Access request submitted! You'll receive an email once your account is approved by an administrator.")
+      toast.success("Account created successfully! Please check your email for the credentials.")
       
       setLoading(false)
       onOpenChange(false)
@@ -200,7 +200,7 @@ export default function SignupModal({ open, onOpenChange, onSwitchToLogin }: Sig
         return
       }
 
-      toast.success("Access request submitted! You'll receive an email once your account is approved by an administrator.")
+      toast.success("Account created successfully! Please check your email for the credentials.")
       
       setLoading(false)
       onOpenChange(false)

@@ -35,6 +35,7 @@ interface UserDetails {
     lastName: string
     phoneNumber?: string
     role: string
+    isActive: boolean  
     accountType: string
     createdAt: string
     updatedAt: string
@@ -203,8 +204,22 @@ export default function UserDetailsPage() {
                 )}
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">
+                <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                   {user.firstName} {user.lastName}
+                  <span
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+                    style={{
+                      backgroundColor: user.isActive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                      color: user.isActive ? '#10B981' : '#EF4444',
+                      border: `1px solid ${user.isActive ? '#10B981' : '#EF4444'}`
+                    }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: user.isActive ? '#10B981' : '#EF4444' }}
+                    />
+                    {user.isActive ? 'Active' : 'Inactive'}
+                  </span>
                 </h1>
                 <div className="flex items-center gap-2 mt-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
