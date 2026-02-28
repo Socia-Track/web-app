@@ -88,18 +88,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!isPending && !session?.user) {
-      console.log("❌ No session found, redirecting to home")
       navigate("/")
-    } else if (session?.user) {
-      console.log("✅ User logged in:", session.user.email)
     }
   }, [session, isPending, navigate])
-
-  // Debug effect to watch limit dialog state
-  useEffect(() => {
-    console.log('🔔 HomePage: showLimitDialog changed to:', showLimitDialog)
-    console.log('🔔 HomePage: userLimits:', userLimits)
-  }, [showLimitDialog, userLimits])
 
   const fetchData = async () => {
     if (!session?.user?.uid) return
@@ -137,12 +128,6 @@ export default function HomePage() {
       const tokenCampaigns = await tokensRes.json()
       const limitsData = limitsRes.ok ? await limitsRes.json() : null
 
-      console.log('🔍 HomePage: Raw API responses:', {
-        nftCampaigns,
-        tokenCampaigns,
-        limitsData,
-        limitsResStatus: limitsRes.status
-      })
 
       // Combine both NFT and token campaigns
       const allCampaigns = [
@@ -151,35 +136,24 @@ export default function HomePage() {
       ]
 
       setCampaigns(allCampaigns)
-      console.log('🔍 HomePage: Total campaigns set:', allCampaigns.length)
 
       // Check if user has reached their limit and show dialog
       if (limitsData) {
-        console.log('📊 HomePage: User Limits Data:', limitsData)
         const currentItems = limitsData.usage?.totalItems || 0
         const maxItems = limitsData.limits?.campaignLimit || 0
 
-        console.log('📊 HomePage: Extracted values - currentItems:', currentItems, 'maxItems:', maxItems)
 
         setUserLimits({
           currentItems: currentItems,
           maxItems: maxItems
         })
 
-        console.log('🔍 HomePage: Checking limit:', currentItems, '>=', maxItems, '?', currentItems >= maxItems)
-        console.log('🔍 HomePage: maxItems > 0?', maxItems > 0)
-        console.log('🔍 HomePage: Final condition:', (currentItems >= maxItems && maxItems > 0))
 
         if (currentItems >= maxItems && maxItems > 0) {
-          console.log('⚠️ HomePage: Limit reached! Showing dialog')
-          console.log('⚠️ HomePage: About to call setShowLimitDialog(true)')
           setShowLimitDialog(true)
-          console.log('⚠️ HomePage: setShowLimitDialog(true) called')
         } else {
-          console.log('✅ HomePage: Limit not reached, no dialog')
         }
       } else {
-        console.log('❌ HomePage: No limits data received from API')
       }
 
       // Fetch real transaction data from each campaign's analytics
@@ -187,7 +161,6 @@ export default function HomePage() {
       let totalValueTracked = 0
 
       if (Array.isArray(allCampaigns) && allCampaigns.length > 0) {
-        console.log('📊 DashboardPage: Fetching analytics for', allCampaigns.length, 'campaigns')
 
         // OPTIMIZED: Batch fetch all analytics in ONE request instead of looping
         try {
@@ -215,11 +188,6 @@ export default function HomePage() {
         }
       }
 
-      console.log('✅ DashboardPage: Final metrics:', {
-        campaigns: allCampaigns.length,
-        totalTransactions,
-        totalValueTracked: totalValueTracked.toFixed(2)
-      })
 
       // Fetch real data-driven trends from backend (last 6 days vs previous 6 days)
       const trendToken = localStorage.getItem("bearer_token")
