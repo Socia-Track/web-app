@@ -9,6 +9,7 @@ import { Wallet, Shield, ArrowRight, CheckCircle, QrCode, Smartphone } from "luc
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import QRCode from "qrcode"
+import { getAddress, isAddress } from "viem"
 
 export default function WalletConnectionPage() {
   const { address, isConnected } = useAccount()
@@ -61,6 +62,14 @@ export default function WalletConnectionPage() {
           return
         }
 
+        const connectedAddress = address.trim()
+        if (!isAddress(connectedAddress)) {
+          console.warn('Skipping wallet address save: invalid wallet address format')
+          return
+        }
+
+        const canonicalAddress = getAddress(connectedAddress)
+
         try {
           const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.sociatrack.com'}/api/tracking/wallet`, {
             method: 'POST',
@@ -69,7 +78,7 @@ export default function WalletConnectionPage() {
             },
             body: JSON.stringify({
               linkId: linkId,
-              walletAddress: address
+              walletAddress: canonicalAddress
             })
           })
 
@@ -350,16 +359,18 @@ export default function WalletConnectionPage() {
                               return
                             }
 
-                            if (!addr.match(/^0x[a-fA-F0-9]{40}$/)) {
-                              alert('Please enter a valid wallet address (starts with 0x and 42 characters long)')
+                            if (!isAddress(addr)) {
+                              alert('Please enter a valid Ethereum wallet address')
                               return
                             }
+
+                            const canonicalAddress = getAddress(addr)
 
                             try {
                               const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.sociatrack.com'}/api/tracking/wallet`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ linkId: linkId, walletAddress: addr })
+                                body: JSON.stringify({ linkId: linkId, walletAddress: canonicalAddress })
                               })
                               
                               if (response.ok) {

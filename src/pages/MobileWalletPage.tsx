@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { getAddress, isAddress } from 'viem';
 
 export function MobileWalletPage() {
   const [searchParams] = useSearchParams();
@@ -19,27 +20,32 @@ export function MobileWalletPage() {
   };
 
   const submitWalletAddress = async () => {
-    if (!walletAddress.trim()) {
+    const trimmedAddress = walletAddress.trim();
+
+    if (!trimmedAddress) {
       alert('Please enter your wallet address');
       return;
     }
 
-    if (!walletAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
-      alert('Please enter a valid wallet address (starts with 0x and 42 characters long)');
+    if (!isAddress(trimmedAddress)) {
+      alert('Please enter a valid Ethereum wallet address');
       return;
     }
+
+    const canonicalAddress = getAddress(trimmedAddress);
+    const apiBaseUrl = import.meta.env.VITE_API_URL;
 
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tracking/wallet`, {
+      const response = await fetch(`${apiBaseUrl}/api/tracking/wallet`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           linkId,
-          walletAddress: walletAddress.trim(),
+          walletAddress: canonicalAddress,
         }),
       });
 
