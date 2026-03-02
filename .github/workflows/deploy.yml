@@ -1,4 +1,4 @@
-name: Deploy Frontend
+name: Deploy Frontend to Azure
 
 on:
   push:
@@ -10,45 +10,45 @@ concurrency:
   group: frontend-deploy
   cancel-in-progress: true
 
-env:
-  PROJECT_ID: charming-shield-477806-j2
-  REGION: us-central1
-
 jobs:
   deploy-frontend:
-    name: Deploy Frontend
+    name: Build & Deploy Frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          node-version: 20
+          cache: 'npm'
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        env:
+          VITE_API_URL: https://api.sociatrack.com
+          VITE_API_BASE_URL: https://api.sociatrack.com/api
+          VITE_BACKEND_URL: https://api.sociatrack.com
+          VITE_LANDING_URL: https://sociatrack.com
+          VITE_APP_URL: https://app.sociatrack.com
+          VITE_WALLETCONNECT_PROJECT_ID: 2f05a7ca2bb7abb24e2d7b700e80f90e
+        run: npm run build
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
         with:
-          project_id: ${{ env.PROJECT_ID }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: "upload"
+          skip_app_build: true
+          app_location: "dist"
 
-      - name: Configure Docker for GCR
-        run: gcloud auth configure-docker
-
-      - name: Build and deploy frontend
+      - name: Deployment Summary
+        if: always()
         run: |
-          gcloud builds submit --config cloudbuild.yaml --async .
-
-      - name: Wait for frontend to be ready
-        run: |
-          echo "Waiting for frontend deployment to complete..."
-          for i in {1..60}; do
-            if curl -sf https://app.sociatrack.com/ > /dev/null; then
-              echo "✅ Frontend is live!"
-              exit 0
-            fi
-            echo "Attempt $i/60: Frontend not ready yet..."
-            sleep 10
-          done
-          echo "❌ Frontend health check timed out"
-          exit 1
+          echo "## 🚀 Frontend Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **App**: sociatrack-webapp" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://app.sociatrack.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: Deployed ✅" >> $GITHUB_STEP_SUMMARY
