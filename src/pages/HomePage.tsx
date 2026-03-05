@@ -87,8 +87,12 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    if (!isPending && !session?.user) {
-      navigate("/")
+    if (isPending) return
+
+    if (!session?.user) {
+      navigate("/auth", { replace: true })
+    } else if (window.location.pathname === "/") {
+      navigate("/dashboard", { replace: true })
     }
   }, [session, isPending, navigate])
 

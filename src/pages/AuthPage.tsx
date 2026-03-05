@@ -51,7 +51,7 @@ export default function AuthPage() {
   // Check if user is already logged in
   useEffect(() => {
     if (!isPending && session?.user) {
-      navigate("/home")
+      navigate("/dashboard")
     }
   }, [session, isPending, navigate])
 
@@ -133,7 +133,7 @@ export default function AuthPage() {
       setLoginLoading(false)
 
       setTimeout(() => {
-        navigate("/home")
+        navigate("/dashboard")
       }, 500)
     } catch (error) {
       console.error("Login error:", error)
