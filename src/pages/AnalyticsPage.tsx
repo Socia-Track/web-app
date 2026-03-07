@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
   const [linkAnalytics, setLinkAnalytics] = useState<Record<string, any>>({})
   const [linkAnalyticsLoading, setLinkAnalyticsLoading] = useState(false)
   const [transactionPage, setTransactionPage] = useState(0)
-  const transactionsPerPage = 5
+  const transactionsPerPage = 10
 
   // Get real-time chart data from analytics - defined later after getSelectedPersonData
 
@@ -632,6 +632,8 @@ export default function AnalyticsPage() {
     }
   }, [selectedPersonLink])
 
+
+
   // Function to fetch campaign links
   const fetchCampaignLinks = async (campaignId: string) => {
     setLinksLoading(true)
@@ -1106,7 +1108,7 @@ export default function AnalyticsPage() {
     try {
       const token = localStorage.getItem("bearer_token")
       const response = await fetch(
-        `/api/analytics/transactions/${selectedCampaign.id}?format=csv`,
+        `/api/analytics/transactions/${selectedCampaign.id}?format=excel`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -1120,7 +1122,7 @@ export default function AnalyticsPage() {
         const a = document.createElement('a')
         a.style.display = 'none'
         a.href = url
-        a.download = `transactions_${selectedCampaign.name}_${new Date().toISOString().split('T')[0]}.csv`
+        a.download = `transactions_${selectedCampaign.name}_${new Date().toISOString().split('T')[0]}.xlsx`
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
