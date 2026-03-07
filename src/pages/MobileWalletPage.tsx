@@ -6,9 +6,10 @@ export function MobileWalletPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [walletAddress, setWalletAddress] = useState('');
+  const [telegramId, setTelegramId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(1);
-  
+
   const linkId = searchParams.get('linkId');
   const originalUrl = searchParams.get('url');
 
@@ -21,6 +22,12 @@ export function MobileWalletPage() {
 
   const submitWalletAddress = async () => {
     const trimmedAddress = walletAddress.trim();
+    const trimmedTelegramId = telegramId.trim();
+
+    if (!trimmedTelegramId) {
+      alert('Please enter your Telegram ID');
+      return;
+    }
 
     if (!trimmedAddress) {
       alert('Please enter your wallet address');
@@ -36,7 +43,7 @@ export function MobileWalletPage() {
     const apiBaseUrl = import.meta.env.VITE_API_URL;
 
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch(`${apiBaseUrl}/api/tracking/wallet`, {
         method: 'POST',
@@ -46,6 +53,7 @@ export function MobileWalletPage() {
         body: JSON.stringify({
           linkId,
           walletAddress: canonicalAddress,
+          telegramId: trimmedTelegramId,
         }),
       });
 
@@ -86,8 +94,8 @@ export function MobileWalletPage() {
             <div className="text-center">
               <div className="bg-orange-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <svg className="w-8 h-8 text-orange-600" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                 </svg>
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -101,8 +109,8 @@ export function MobileWalletPage() {
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                  <path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="m2 17 10 5 10-5M2 12l10 5 10-5" />
                 </svg>
                 <span>Open MetaMask App</span>
               </button>
@@ -110,10 +118,10 @@ export function MobileWalletPage() {
 
             <div className="text-center">
               <p className="text-sm text-gray-500">
-                Don't have MetaMask? 
-                <a 
-                  href="https://metamask.io/download/" 
-                  target="_blank" 
+                Don't have MetaMask?
+                <a
+                  href="https://metamask.io/download/"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:underline ml-1"
                 >
@@ -129,7 +137,7 @@ export function MobileWalletPage() {
             <div className="text-center">
               <div className="bg-blue-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <svg className="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 16H9V7h9v14z"/>
+                  <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 16H9V7h9v14z" />
                 </svg>
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -148,6 +156,21 @@ export function MobileWalletPage() {
 
             <div className="space-y-4">
               <div>
+                <label htmlFor="telegramId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Telegram ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="telegramId"
+                  value={telegramId}
+                  onChange={(e) => setTelegramId(e.target.value)}
+                  placeholder="@username or ID"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm leading-6"
+                  required
+                />
+              </div>
+
+              <div>
                 <label htmlFor="walletAddress" className="block text-sm font-medium text-gray-700 mb-2">
                   Wallet Address
                 </label>
@@ -163,7 +186,7 @@ export function MobileWalletPage() {
 
               <button
                 onClick={submitWalletAddress}
-                disabled={isSubmitting || !walletAddress.trim()}
+                disabled={isSubmitting || !walletAddress.trim() || !telegramId.trim()}
                 className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-lg transition duration-200"
               >
                 {isSubmitting ? 'Saving...' : 'Continue'}

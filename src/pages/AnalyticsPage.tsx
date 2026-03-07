@@ -167,9 +167,9 @@ export default function AnalyticsPage() {
           <span className="text-sm text-muted-foreground font-medium">Filter:</span>
           <div className="flex gap-2 flex-wrap">
             {availablePlatforms.map(platform => {
-              const displayName = platform === 'all' ? 'All Platforms' : 
-                                  platform.charAt(0).toUpperCase() + platform.slice(1)
-              
+              const displayName = platform === 'all' ? 'All Platforms' :
+                platform.charAt(0).toUpperCase() + platform.slice(1)
+
               return (
                 <Button
                   key={platform}
@@ -338,9 +338,9 @@ export default function AnalyticsPage() {
             <span className="text-sm text-muted-foreground font-medium">Filter:</span>
             <div className="flex gap-2 flex-wrap">
               {availablePlatforms.map(platform => {
-                const displayName = platform === 'all' ? 'All Platforms' : 
-                                    platform.charAt(0).toUpperCase() + platform.slice(1)
-                
+                const displayName = platform === 'all' ? 'All Platforms' :
+                  platform.charAt(0).toUpperCase() + platform.slice(1)
+
                 return (
                   <Button
                     key={platform}
@@ -506,7 +506,7 @@ export default function AnalyticsPage() {
         ]
 
         setCampaigns(allCampaigns)
-        
+
         // Platforms will be loaded when a campaign is selected (in fetchCampaignLinks)
       } catch (error) {
         console.error('Error fetching campaigns:', error)
@@ -662,11 +662,11 @@ export default function AnalyticsPage() {
           uniquePlatforms.add(basePlatform)
         }
       })
-      
+
       // Update available platforms: 'all' + unique platforms from this campaign
       const platforms = ['all', ...Array.from(uniquePlatforms).sort()]
       setAvailablePlatforms(platforms)
-      
+
     } catch (error) {
       console.error('Error fetching campaign links:', error)
       setCampaignLinks([])
@@ -852,7 +852,7 @@ export default function AnalyticsPage() {
   // Helper function to get currency for the selected campaign's blockchain
   const getCampaignCurrency = (): string => {
     if (!selectedCampaign?.blockchain) return 'ETH'
-    
+
     const network = networks.find(n => n.key === selectedCampaign.blockchain)
     return network?.currency || 'ETH'
   }
@@ -1313,9 +1313,9 @@ export default function AnalyticsPage() {
               <span className="text-sm text-gray-400 font-medium">Filter by Platform:</span>
               <div className="flex gap-2 flex-wrap">
                 {availablePlatforms.map(platform => {
-                  const displayName = platform === 'all' ? 'All Platforms' : 
-                                      platform.charAt(0).toUpperCase() + platform.slice(1)
-                  
+                  const displayName = platform === 'all' ? 'All Platforms' :
+                    platform.charAt(0).toUpperCase() + platform.slice(1)
+
                   return (
                     <Button
                       key={platform}
@@ -1891,159 +1891,167 @@ export default function AnalyticsPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left p-3 text-muted-foreground font-medium">Transaction</th>
-                      <th className="text-left p-3 text-muted-foreground font-medium">Wallet Address</th>
-                      <th className="text-left p-3 text-muted-foreground font-medium">{getAssetTypeLabel()} Details</th>
-                      <th className="text-left p-3 text-muted-foreground font-medium">Value</th>
-                      <th className="text-left p-3 text-muted-foreground font-medium">Status</th>
-                      <th className="text-left p-3 text-muted-foreground font-medium">Time</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium whitespace-nowrap">Transaction</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium whitespace-nowrap">Wallet Address</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium whitespace-nowrap">Telegram ID</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium whitespace-nowrap">{getAssetTypeLabel()} Details</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium whitespace-nowrap">Value</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium whitespace-nowrap">Status</th>
+                      <th className="text-left p-3 text-muted-foreground font-medium whitespace-nowrap">Time</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recentTransactions
                       .slice(transactionPage * transactionsPerPage, (transactionPage + 1) * transactionsPerPage)
                       .map((transaction: any, index: number) => (
-                    <motion.tr
-                      key={transaction.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="border-b border-border/50 hover:bg-muted transition-colors"
-                    >
-                      <td className="p-3">
-                        <div className="flex flex-col">
-                          <div className="font-mono text-xs text-accent">
-                            {transaction.transactionHash || 'N/A'}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Block #{transaction.blockNumber || 'Pending'}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-col">
-                          <div className="font-mono text-sm text-foreground">
-                            {transaction.walletAddress || 'N/A'}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            From campaign link
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-col">
-                          <div className="text-foreground font-medium">
-                            {(() => {
-                              const assetType = getAssetTypeLabel();
-                              if (transaction.tokenId) {
-                                return assetType === 'Token' ? `Token Transfer #${transaction.tokenId}` : `${assetType} #${transaction.tokenId}`;
-                              }
-                              return assetType === 'Token' ? 'Token Transfer' : `${assetType} Collection Purchase`;
-                            })()}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {(() => {
-                              const contractAddr = transaction.contractAddress || selectedCampaign?.contractAddress;
-                              if (contractAddr) {
-                                return `Contract: ${contractAddr.slice(0, 6)}...${contractAddr.slice(-4)}`;
-                              }
-                              return 'Contract: N/A';
-                            })()}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-col">
-                          <div className="text-foreground">
-                            {(() => {
-                              // Log transaction data for debugging
+                        <motion.tr
+                          key={transaction.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="border-b border-border/50 hover:bg-muted transition-colors"
+                        >
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <div className="font-mono text-xs text-accent">
+                                {transaction.transactionHash || 'N/A'}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Block #{transaction.blockNumber || 'Pending'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <div className="font-mono text-sm text-foreground">
+                                {transaction.walletAddress || 'N/A'}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                From campaign link
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="text-sm font-medium text-foreground">
+                              {transaction.telegramId ?
+                                (transaction.telegramId.startsWith('@') ? transaction.telegramId : `@${transaction.telegramId}`)
+                                : 'N/A'}
+                            </div>
+                          </td>
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <div className="text-foreground font-medium">
+                                {(() => {
+                                  const assetType = getAssetTypeLabel();
+                                  if (transaction.tokenId) {
+                                    return assetType === 'Token' ? `Token Transfer #${transaction.tokenId}` : `${assetType} #${transaction.tokenId}`;
+                                  }
+                                  return assetType === 'Token' ? 'Token Transfer' : `${assetType} Collection Purchase`;
+                                })()}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {(() => {
+                                  const contractAddr = transaction.contractAddress || selectedCampaign?.contractAddress;
+                                  if (contractAddr) {
+                                    return `Contract: ${contractAddr.slice(0, 6)}...${contractAddr.slice(-4)}`;
+                                  }
+                                  return 'Contract: N/A';
+                                })()}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <div className="text-foreground">
+                                {(() => {
+                                  // Log transaction data for debugging
 
-                              // Try multiple possible field names for ETH amount
-                              const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
-                              return formatEthValue(ethAmount, getCampaignCurrency());
-                            })()}
-                          </div>
-                          <div className="text-green-700 font-semibold">
-                            {(() => {
-                              // Use stored usdValue from DB if available, fallback to live price
-                              if (transaction.usdValue && transaction.usdValue > 0) {
-                                return `$${parseFloat(transaction.usdValue).toFixed(2)}`;
-                              }
-                              const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
-                              const parsedEth = parseFloat(ethAmount.toString());
-                              const usdValue = parsedEth * (prices.ETH || 2500); // Live ETH to USD fallback
-                              return `$${usdValue.toFixed(2)}`;
-                            })()}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                          Confirmed
-                        </Badge>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-col">
-                          <div className="text-black text-sm">
-                            {new Date(transaction.timestamp || transaction.createdAt).toLocaleDateString()}
-                          </div>
-                          <div className="text-gray-400 text-xs">
-                            {new Date(transaction.timestamp || transaction.createdAt).toLocaleTimeString()}
-                          </div>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls */}
-            {recentTransactions.length > 0 && (
-              <div className="relative z-10 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border pt-4 px-2 pointer-events-auto">
-                <div className="text-sm text-foreground font-medium">
-                  Showing {Math.min(transactionPage * transactionsPerPage + 1, recentTransactions.length)} to{' '}
-                  {Math.min((transactionPage + 1) * transactionsPerPage, recentTransactions.length)} of{' '}
-                  {recentTransactions.length} transaction{recentTransactions.length !== 1 ? 's' : ''}
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setTransactionPage(prev => Math.max(0, prev - 1));
-                    }}
-                    disabled={transactionPage === 0}
-                    className="border-border hover:bg-muted text-foreground disabled:opacity-50 cursor-pointer"
-                  >
-                    Previous
-                  </Button>
-                  <div className="text-sm text-foreground font-medium px-2">
-                    Page {transactionPage + 1} of {Math.max(1, Math.ceil(recentTransactions.length / transactionsPerPage))}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setTransactionPage(prev => 
-                        Math.min(Math.ceil(recentTransactions.length / transactionsPerPage) - 1, prev + 1)
-                      );
-                    }}
-                    disabled={transactionPage >= Math.ceil(recentTransactions.length / transactionsPerPage) - 1}
-                    className="border-border hover:bg-muted text-foreground disabled:opacity-50 cursor-pointer"
-                  >
-                    Next
-                  </Button>
-                </div>
+                                  // Try multiple possible field names for ETH amount
+                                  const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
+                                  return formatEthValue(ethAmount, getCampaignCurrency());
+                                })()}
+                              </div>
+                              <div className="text-green-700 font-semibold">
+                                {(() => {
+                                  // Use stored usdValue from DB if available, fallback to live price
+                                  if (transaction.usdValue && transaction.usdValue > 0) {
+                                    return `$${parseFloat(transaction.usdValue).toFixed(2)}`;
+                                  }
+                                  const ethAmount = transaction.amount || transaction.nftValue || transaction.ethAmount || 0;
+                                  const parsedEth = parseFloat(ethAmount.toString());
+                                  const usdValue = parsedEth * (prices.ETH || 2500); // Live ETH to USD fallback
+                                  return `$${usdValue.toFixed(2)}`;
+                                })()}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3 whitespace-nowrap">
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                              Confirmed
+                            </Badge>
+                          </td>
+                          <td className="p-3 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <div className="text-black text-sm">
+                                {new Date(transaction.timestamp || transaction.createdAt).toLocaleDateString()}
+                              </div>
+                              <div className="text-gray-400 text-xs">
+                                {new Date(transaction.timestamp || transaction.createdAt).toLocaleTimeString()}
+                              </div>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                  </tbody>
+                </table>
               </div>
-            )}
-          </>
+
+              {/* Pagination Controls */}
+              {recentTransactions.length > 0 && (
+                <div className="relative z-10 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border pt-4 px-2 pointer-events-auto">
+                  <div className="text-sm text-foreground font-medium">
+                    Showing {Math.min(transactionPage * transactionsPerPage + 1, recentTransactions.length)} to{' '}
+                    {Math.min((transactionPage + 1) * transactionsPerPage, recentTransactions.length)} of{' '}
+                    {recentTransactions.length} transaction{recentTransactions.length !== 1 ? 's' : ''}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setTransactionPage(prev => Math.max(0, prev - 1));
+                      }}
+                      disabled={transactionPage === 0}
+                      className="border-border hover:bg-muted text-foreground disabled:opacity-50 cursor-pointer"
+                    >
+                      Previous
+                    </Button>
+                    <div className="text-sm text-foreground font-medium px-2">
+                      Page {transactionPage + 1} of {Math.max(1, Math.ceil(recentTransactions.length / transactionsPerPage))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setTransactionPage(prev =>
+                          Math.min(Math.ceil(recentTransactions.length / transactionsPerPage) - 1, prev + 1)
+                        );
+                      }}
+                      disabled={transactionPage >= Math.ceil(recentTransactions.length / transactionsPerPage) - 1}
+                      className="border-border hover:bg-muted text-foreground disabled:opacity-50 cursor-pointer"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-        </div>
+        </div >
       </>
     )
   }

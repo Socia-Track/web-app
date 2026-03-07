@@ -16,7 +16,7 @@ export default function WalletConnectionPage() {
   const { disconnect } = useDisconnect()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  
+
   // Get the tracking parameters from URL
   const linkId = searchParams.get('linkId')
   const originalUrl = searchParams.get('url')
@@ -24,6 +24,7 @@ export default function WalletConnectionPage() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
   const [showMobileQR, setShowMobileQR] = useState(false)
   const [manualWallet, setManualWallet] = useState('')
+  const [telegramId, setTelegramId] = useState('')
 
   // Generate QR code for mobile wallet flow
   useEffect(() => {
@@ -31,8 +32,8 @@ export default function WalletConnectionPage() {
       // Use the backend URL to generate mobile wallet link since it should be publicly accessible (ngrok)
       const backendUrl = import.meta.env.VITE_API_URL || 'https://api.sociatrack.com'
       const mobileWalletUrl = `${backendUrl}/mobile-wallet?linkId=${linkId}&url=${encodeURIComponent(originalUrl)}`
-      
-      QRCode.toDataURL(mobileWalletUrl, { 
+
+      QRCode.toDataURL(mobileWalletUrl, {
         width: 256,
         margin: 2,
         color: {
@@ -53,12 +54,20 @@ export default function WalletConnectionPage() {
   useEffect(() => {
     if (isConnected && address && originalUrl && !isRedirecting) {
       setIsRedirecting(true)
-      
+
       // Save the wallet address to the backend
       const saveWalletAddress = async () => {
         // Additional safety check to ensure we don't send null/undefined addresses
         if (!address || address.trim() === '') {
           console.warn('Skipping wallet address save: address is null or empty')
+          return
+        }
+
+        if (!telegramId || telegramId.trim() === '') {
+          alert('Please enter your Telegram ID before connecting your wallet')
+          // Assuming we need to stay on page or handle UI state
+          disconnect()
+          setIsRedirecting(false)
           return
         }
 
@@ -78,7 +87,8 @@ export default function WalletConnectionPage() {
             },
             body: JSON.stringify({
               linkId: linkId,
-              walletAddress: canonicalAddress
+              walletAddress: canonicalAddress,
+              telegramId: telegramId.trim()
             })
           })
 
@@ -193,13 +203,13 @@ export default function WalletConnectionPage() {
               >
                 <Wallet className="w-8 h-8 text-blue-400" />
               </motion.div>
-              
+
               <CardTitle className="text-2xl font-bold text-white mb-2">
                 Connect Your Wallet
               </CardTitle>
-              
+
               <CardDescription className="text-gray-400 text-sm">
-                To continue to your destination, please connect your wallet. 
+                To continue to your destination, please connect your wallet.
                 We only collect your wallet address for analytics purposes.
               </CardDescription>
             </CardHeader>
@@ -236,6 +246,24 @@ export default function WalletConnectionPage() {
               >
                 {!isConnected ? (
                   <div className="flex flex-col gap-4">
+                    {/* Telegram ID Input Area */}
+                    <div className="flex flex-col gap-2 relative">
+                      <label className="text-sm text-gray-400 font-medium">Telegram ID <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        placeholder="@username or ID"
+                        value={telegramId}
+                        onChange={(e) => setTelegramId(e.target.value)}
+                        className={`w-full bg-black/30 border ${!telegramId.trim() ? 'border-red-500/50' : 'border-white/10'} px-4 py-3 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all`}
+                        required
+                      />
+                      {!telegramId.trim() && (
+                        <span className="text-xs text-red-500/80 absolute -bottom-5 left-1 tracking-wide">
+                          Required before connecting
+                        </span>
+                      )}
+                    </div>
+
                     {/* Desktop Wallet Connection */}
                     <ConnectButton.Custom>
                       {({
@@ -270,9 +298,19 @@ export default function WalletConnectionPage() {
                               if (!connected) {
                                 return (
                                   <Button
-                                    onClick={openConnectModal}
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3"
+                                    onClick={() => {
+                                      if (!telegramId.trim()) {
+                                        alert("Please enter your Telegram ID before connecting");
+                                        return;
+                                      }
+                                      openConnectModal();
+                                    }}
+                                    className={`w-full font-medium py-3 mt-4 ${!telegramId.trim()
+                                        ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                      }`}
                                     size="lg"
+                                    disabled={!telegramId.trim()}
                                   >
                                     <Wallet className="w-5 h-5 mr-2" />
                                     Connect Browser Wallet
@@ -290,7 +328,7 @@ export default function WalletConnectionPage() {
                                     <CheckCircle className="w-5 h-5 mr-2" />
                                     Connected: {account.displayName}
                                   </Button>
-                                  
+
                                   <Button
                                     onClick={() => disconnect()}
                                     variant="outline"
@@ -308,17 +346,26 @@ export default function WalletConnectionPage() {
                     </ConnectButton.Custom>
 
                     {/* Mobile QR Code Option */}
-                    <div className="border-t border-white/10 pt-4">
+                    <div className="border-t border-white/10 pt-4 mt-2">
                       <Button
-                        onClick={() => setShowMobileQR(!showMobileQR)}
+                        onClick={() => {
+                          if (!telegramId.trim()) {
+                            alert("Please enter your Telegram ID first to generate the correct QR link");
+                            return;
+                          }
+                          setShowMobileQR(!showMobileQR)
+                        }}
                         variant="outline"
-                        className="w-full border-white/20 text-gray-300 hover:bg-white/10"
-                        size="lg"
+                        className={`w-full border-white/20 size-lg ${!telegramId.trim()
+                            ? 'text-gray-500 border-gray-700 cursor-not-allowed hidden'
+                            : 'text-gray-300 hover:bg-white/10'
+                          }`}
+                        disabled={!telegramId.trim()}
                       >
                         <Smartphone className="w-5 h-5 mr-2" />
                         Use Mobile Wallet
                       </Button>
-                      
+
                       {showMobileQR && qrCodeUrl && (
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
@@ -353,6 +400,11 @@ export default function WalletConnectionPage() {
                         />
                         <Button
                           onClick={async () => {
+                            if (!telegramId.trim()) {
+                              alert('Please enter your Telegram ID first')
+                              return
+                            }
+
                             const addr = manualWallet.trim()
                             if (!addr) {
                               alert('Please enter a valid wallet address')
@@ -370,9 +422,13 @@ export default function WalletConnectionPage() {
                               const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.sociatrack.com'}/api/tracking/wallet`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ linkId: linkId, walletAddress: canonicalAddress })
+                                body: JSON.stringify({
+                                  linkId: linkId,
+                                  walletAddress: canonicalAddress,
+                                  telegramId: telegramId.trim()
+                                })
                               })
-                              
+
                               if (response.ok) {
                                 // Redirect to original URL
                                 window.location.href = originalUrl || '/'
